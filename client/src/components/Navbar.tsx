@@ -25,28 +25,22 @@ export default function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-4">
           <div className="flex items-center space-x-2">
-            <Link href="/">
-              <a className="font-bold text-xl text-primary">CityPulse</a>
+            <Link href="/" className="font-bold text-xl text-primary">
+              CityPulse
             </Link>
             <div className="bg-accent text-neutral-dark px-2 py-1 rounded text-xs font-semibold">SOUTH AFRICA</div>
           </div>
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
-            <Link href="/">
-              <a className={`${location === "/" ? "text-primary" : "text-neutral-dark"} hover:text-primary transition font-medium`}>
+            <Link href="/" className={`${location === "/" ? "text-primary" : "text-neutral-dark"} hover:text-primary transition font-medium`}>
                 Home
-              </a>
             </Link>
-            <Link href="/deals">
-              <a className={`${location === "/deals" ? "text-primary" : "text-neutral-dark"} hover:text-primary transition font-medium`}>
+            <Link href="/deals" className={`${location === "/deals" ? "text-primary" : "text-neutral-dark"} hover:text-primary transition font-medium`}>
                 Deals
-              </a>
             </Link>
-            <Link href="/events">
-              <a className={`${location === "/events" ? "text-primary" : "text-neutral-dark"} hover:text-primary transition font-medium`}>
+            <Link href="/events" className={`${location === "/events" ? "text-primary" : "text-neutral-dark"} hover:text-primary transition font-medium`}>
                 Events
-              </a>
             </Link>
             
             {currentUser ? (
@@ -76,28 +70,28 @@ export default function Navbar() {
         
         {/* Mobile Navigation Menu */}
         <div className={`md:hidden ${mobileMenuOpen ? "" : "hidden"} pb-4`}>
-          <Link href="/">
-            <a onClick={() => setMobileMenuOpen(false)} className="block py-2 text-neutral-dark hover:text-primary">Home</a>
+          <Link href="/" className="block py-2 text-neutral-dark hover:text-primary" onClick={() => setMobileMenuOpen(false)}>
+            Home
           </Link>
-          <Link href="/deals">
-            <a onClick={() => setMobileMenuOpen(false)} className="block py-2 text-neutral-dark hover:text-primary">Deals</a>
+          <Link href="/deals" className="block py-2 text-neutral-dark hover:text-primary" onClick={() => setMobileMenuOpen(false)}>
+            Deals
           </Link>
-          <Link href="/events">
-            <a onClick={() => setMobileMenuOpen(false)} className="block py-2 text-neutral-dark hover:text-primary">Events</a>
+          <Link href="/events" className="block py-2 text-neutral-dark hover:text-primary" onClick={() => setMobileMenuOpen(false)}>
+            Events
           </Link>
           
           {currentUser ? (
             <>
-              <Link href="/merchant-dashboard">
-                <a onClick={() => setMobileMenuOpen(false)} className="block py-2 text-neutral-dark hover:text-primary">Dashboard</a>
+              <Link href="/merchant-dashboard" className="block py-2 text-neutral-dark hover:text-primary" onClick={() => setMobileMenuOpen(false)}>
+                Dashboard
               </Link>
               <button onClick={() => { handleSignOut(); setMobileMenuOpen(false); }} className="block py-2 text-red-600 font-medium">
                 Sign Out
               </button>
             </>
           ) : (
-            <Link href="/merchant-login">
-              <a onClick={() => setMobileMenuOpen(false)} className="block py-2 text-primary font-medium">Merchant Login</a>
+            <Link href="/merchant-login" className="block py-2 text-primary font-medium" onClick={() => setMobileMenuOpen(false)}>
+              Merchant Login
             </Link>
           )}
         </div>
