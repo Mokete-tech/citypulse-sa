@@ -120,12 +120,12 @@ export default function Home() {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl md:text-3xl font-bold">Upcoming Events</h2>
             <Link href="/events">
-              <a className="text-primary hover:text-opacity-80 font-medium flex items-center">
+              <div className="text-primary hover:text-opacity-80 font-medium flex items-center cursor-pointer">
                 View All
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                 </svg>
-              </a>
+              </div>
             </Link>
           </div>
           
@@ -160,7 +160,7 @@ export default function Home() {
           <h2 className="text-2xl md:text-3xl font-bold mb-6">Browse by Category</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Link href="/deals?category=food">
-              <a className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition flex flex-col items-center justify-center text-center">
+              <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition flex flex-col items-center justify-center text-center cursor-pointer">
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
@@ -168,11 +168,11 @@ export default function Home() {
                 </div>
                 <h3 className="font-semibold">Food & Drink</h3>
                 <p className="text-sm text-neutral-dark/70">42 deals</p>
-              </a>
+              </div>
             </Link>
             
             <Link href="/deals?category=entertainment">
-              <a className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition flex flex-col items-center justify-center text-center">
+              <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition flex flex-col items-center justify-center text-center cursor-pointer">
                 <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center mb-3">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z" />
@@ -180,11 +180,11 @@ export default function Home() {
                 </div>
                 <h3 className="font-semibold">Entertainment</h3>
                 <p className="text-sm text-neutral-dark/70">28 deals</p>
-              </a>
+              </div>
             </Link>
             
             <Link href="/deals?category=shopping">
-              <a className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition flex flex-col items-center justify-center text-center">
+              <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition flex flex-col items-center justify-center text-center cursor-pointer">
                 <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mb-3">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -192,11 +192,11 @@ export default function Home() {
                 </div>
                 <h3 className="font-semibold">Shopping</h3>
                 <p className="text-sm text-neutral-dark/70">36 deals</p>
-              </a>
+              </div>
             </Link>
             
             <Link href="/deals?category=wellness">
-              <a className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition flex flex-col items-center justify-center text-center">
+              <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition flex flex-col items-center justify-center text-center cursor-pointer">
                 <div className="w-12 h-12 bg-warning/10 rounded-full flex items-center justify-center mb-3">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -204,7 +204,7 @@ export default function Home() {
                 </div>
                 <h3 className="font-semibold">Wellness</h3>
                 <p className="text-sm text-neutral-dark/70">19 deals</p>
-              </a>
+              </div>
             </Link>
           </div>
         </section>

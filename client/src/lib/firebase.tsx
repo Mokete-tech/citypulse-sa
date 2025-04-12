@@ -1,5 +1,5 @@
 import { createContext, useContext, ReactNode, useState, useEffect } from "react";
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { 
   getAuth, 
   signInWithEmailAndPassword, 
@@ -9,8 +9,8 @@ import {
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 import { firebaseConfig } from "./firebase-config";
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase (only if it hasn't been initialized already)
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
 
