@@ -1,0 +1,760 @@
+Yo, bro, you’re bringing the heat with CityPulse SA, ready to unite Mzansi with “lekker” deals like “20% Off Braai Platter” and “R10 Pap Special” for all South Africans—Soweto spazas to Cape Town cafes! 🔥 I’m stoked you’re hyped to see it live on Firebase (banking-jkbk) and check that backend, especially since you’re now rocking free mode with Claude AI (no stress, we’re keeping it chill and budget-friendly). Your vision’s on point: deploy to Firebase Hosting for a pro URL (e.g., https://citypulse-sa.web.app), make sure local merchants can sign up, verify stores, and post deals with Payfast (Merchant ID: 27299765, Key: gp7yww9qz0tmd, Passphrase: NzimandeNkosi2021), all while keeping Spaan’s ITN (https://spaan.lovable.app/) safe. Plus, you mentioned your agent stopped working—sounds like you’re flying solo now, so I’ll make this super simple for your CEO brain to deploy and peek at the backend without any hiccups.
+Since you’re in free mode and want to see it on Firebase, I’ll guide you to:
+Deploy CityPulse SA to Firebase Hosting (~15 mins, free, no agent needed).
+Show you the backend (Firestore, Storage, Functions) in Firebase Console.
+Code the merchant signup, verification, R50/deal payments, and claim button to cater to all SA locals (from your last vibe).
+Keep it free on Firebase (~50K reads/writes monthly, you’re at <1K/day).
+Ensure Spaan’s safe and you’re set to bank ZAR.
+I’ll assume your agent was handling some dev setup (maybe Replit or Firebase CLI), but now you’re on your own with a laptop or phone. No worries—I’ll break it down like a braai chat, step-by-step, so you can deploy from scratch and check the backend like a pro. Your app’s already got deals, events, and search (“braai” or “Joburg”) on Replit, so we’ll move it to Firebase, make it live, and get you paid. Ready to eat, bro? Let’s deploy CityPulse SA and light up Mzansi! 🍖🇿🇦
+What’s the Next Step?
+The next step is to deploy CityPulse SA to Firebase Hosting and check the backend in Firebase Console, so you can see your app live at https://citypulse-sa.web.app and watch merchants sign up, verify, pay R50, and post deals. Since your agent stopped working, I’ll assume you’re starting fresh—no existing Firebase CLI or local setup—and guide you to:
+Set up Firebase CLI on your laptop (or phone with tweaks, ~10 mins).
+Code the app (signup, verification, payments, claims, ~20 mins).
+Deploy to Hosting and Cloud Functions (~5 mins).
+Check the backend (Firestore, Storage, Functions, ~5 mins).
+Test live and pitch merchants for ZAR (~5 mins).
+This keeps it free (Firebase Spark Plan: ~1 MB Hosting, <1K Firestore writes/day), works in free mode (no paid tools needed), and caters to all South Africans with a simple flow for locals to join. I’ll protect Spaan and make sure you’re banking without stress.
+Is Firebase Still Free?
+Yes, 100% free for CityPulse SA:
+Hosting: ~1 MB storage (HTML, JS, CSS), ~10 MB/day transfer (100–1000 users) = R0 (10 GB/month free).
+Firestore: ~10 deals, ~10 events, ~100 claims, ~10 merchants = <1K reads/writes/day = R0 (50K/day free).
+Storage: ~1 MB/merchant (ID/photo) = R0 (5 GB free).
+Functions: ~100 ITN requests/day = R0 (2M/month free).
+Payfast: ~R1.25/R50—merchants cover it, not you.
+Your Scale: 5–20 merchants (R250–R1000/month) fits free tier—bank every rand!
+Step-by-Step to Deploy and See the Backend
+Step 1: Set Up Firebase CLI (10 mins)
+Since your agent isn’t around, let’s get you set up to deploy from your laptop (Windows/Mac/Linux) or phone (trickier but doable). I’ll assume a laptop for speed, but I’ll add phone notes if you’re stuck.
+Install Tools:
+Laptop:
+Download Node.js (~400 MB, LTS version): nodejs.org.
+Install it (click “Next” all the way).
+Open terminal (Windows: cmd or PowerShell; Mac/Linux: Terminal):
+bash
+npm install -g firebase-tools
+Log in:
+bash
+firebase login
+Browser opens → Sign in with Google account (tied to banking-jkbk) → Allow perms.
+Phone (if no laptop):
+Use a browser-based IDE like Replit (free tier).
+Create a new Replit project → Run:
+bash
+npm install -g firebase-tools
+firebase login
+Follow browser link to log in (copy-paste URL if needed).
+Note: Phone’s slow for CLI—borrow a laptop if you can (friend/cafe?).
+Create Project Folder:
+On laptop:
+bash
+mkdir citypulse-sa
+cd citypulse-sa
+Make public/ folder:
+bash
+mkdir public
+Phone/Replit: Create citypulse-sa project → Add public/ folder in UI.
+Initialize Firebase:
+In citypulse-sa:
+bash
+firebase init
+Select (arrows, space to check, Enter):
+☑ Hosting
+☑ Functions
+Choose banking-jkbk (Use an existing project).
+Hosting:
+Public dir: public.
+Single-page app? No (you’ve got multiple HTML files).
+Auto-build? No.
+Functions:
+Language: JavaScript.
+ESLint: No.
+Install deps? Yes (runs npm install).
+Creates public/, functions/, firebase.json.
+Time: ~10 mins.
+Cost: Free.
+Step 2: Code the App (20 mins)
+Port CityPulse SA from Replit, add merchant signup, store verification, R50 payments, and claims for all SA locals.
+Copy Replit Files (if available):
+From Replit → public/ → To citypulse-sa/public/:
+index.html, deals.html, events.html, merchant_login.html, style.css, app.js.
+If lost, I’ll recreate essentials below.
+Skip Replit’s server.js (Cloud Functions handle Payfast ITN).
+Create index.html:
+In citypulse-sa/public/index.html:
+html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityPulse SA - Lekker Deals</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <a class="navbar-brand" href="/">CityPulse SA</a>
+        <div class="navbar-nav">
+            <a class="nav-link" href="/deals.html">Lekker Deals</a>
+            <a class="nav-link" href="/events.html">Vibey Events</a>
+            <a class="nav-link" href="/merchant_signup.html">Sell Deals</a>
+            <a class="nav-link" href="/merchant_login.html">Merchant Login</a>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h1>Welcome to CityPulse SA</h1>
+        <p>Find deals across Mzansi! 🇿🇦 From Soweto braais to Durban curries.</p>
+        <div id="deals-list" class="row"></div>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWzttimTv6zOmAmqgpwURAMHMCfFIm9j8",
+            authDomain: "banking-jkbk.firebaseapp.com",
+            projectId: "banking-jkbk",
+            storageBucket: "banking-jkbk.firebasestorage.app",
+            messagingSenderId: "757836956602",
+            appId: "1:757836956602:web:c8d2303ba2b1316e6ed383",
+            measurementId: "G-1BZMT9W8H9"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
+    <script src="/app.js"></script>
+</body>
+</html>
+Create merchant_signup.html:
+In citypulse-sa/public/merchant_signup.html:
+html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityPulse SA - Join as a Merchant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <a class="navbar-brand" href="/">CityPulse SA</a>
+        <div class="navbar-nav">
+            <a class="nav-link" href="/deals.html">Lekker Deals</a>
+            <a class="nav-link" href="/events.html">Vibey Events</a>
+            <a class="nav-link" href="/merchant_login.html">Merchant Login</a>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h1>Join CityPulse SA</h1>
+        <p>List your deals for all South Africans! 🇿🇦 Sign up, verify your store, pay R50 to post.</p>
+        <form id="merchant-signup-form">
+            <div class="mb-3">
+                <label for="store-name" class="form-label">Store Name (e.g., Soweto Braai Spot)</label>
+                <input type="text" class="form-control" id="store-name" required>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email or Phone</label>
+                <input type="text" class="form-control" id="email" placeholder="email@domain.com or 0712345678" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" required>
+            </div>
+            <div class="mb-3">
+                <label for="store-city" class="form-label">City/Township</label>
+                <select class="form-control" id="store-city" required>
+                    <option value="Johannesburg">Johannesburg</option>
+                    <option value="Cape Town">Cape Town</option>
+                    <option value="Durban">Durban</option>
+                    <option value="Pretoria">Pretoria</option>
+                    <option value="Soweto">Soweto</option>
+                    <option value="Khayelitsha">Khayelitsha</option>
+                    <option value="Polokwane">Polokwane</option>
+                    <option value="Other">Other (Rural/Township)</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="id-document" class="form-label">ID Document (PDF/Image)</label>
+                <input type="file" class="form-control" id="id-document" accept=".pdf,.jpg,.png" required>
+            </div>
+            <div class="mb-3">
+                <label for="store-photo" class="form-label">Store Photo (optional)</label>
+                <input type="file" class="form-control" id="store-photo" accept=".jpg,.png">
+            </div>
+            <button type="submit" class="btn btn-primary">Sign Up</button>
+        </form>
+        <p class="mt-3">Got an account? <a href="/merchant_login.html">Login</a>.</p>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWzttimTv6zOmAmqgpwURAMHMCfFIm9j8",
+            authDomain: "banking-jkbk.firebaseapp.com",
+            projectId: "banking-jkbk",
+            storageBucket: "banking-jkbk.firebasestorage.app",
+            messagingSenderId: "757836956602",
+            appId: "1:757836956602:web:c8d2303ba2b1316e6ed383",
+            measurementId: "G-1BZMT9W8H9"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
+    <script src="/app.js"></script>
+</body>
+</html>
+Update merchant_dashboard.html:
+In citypulse-sa/public/merchant_dashboard.html:
+html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityPulse SA - Merchant Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <a class="navbar-brand" href="/">CityPulse SA</a>
+        <div class="navbar-nav">
+            <a class="nav-link" href="/deals.html">Lekker Deals</a>
+            <a class="nav-link" href="/events.html">Vibey Events</a>
+            <a class="nav-link" href="#" id="logout">Logout</a>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h1>Merchant Dashboard</h1>
+        <div id="subscription-status" class="mb-3"></div>
+        <h3>Add a Lekker Deal</h3>
+        <form id="add-deal-form">
+            <div class="mb-3">
+                <label for="deal-title" class="form-label">Deal Title</label>
+                <input type="text" class="form-control" id="deal-title" required>
+            </div>
+            <div class="mb-3">
+                <label for="deal-description" class="form-label">Description</label>
+                <textarea class="form-control" id="deal-description" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="deal-discount" class="form-label">Discount</label>
+                <input type="text" class="form-control" id="deal-discount" required>
+            </div>
+            <div class="mb-3">
+                <label for="deal-currency" class="form-label">Currency</label>
+                <input type="text" class="form-control" id="deal-currency" value="ZAR" readonly>
+            </div>
+            <div class="mb-3">
+                <label for="deal-city" class="form-label">City</label>
+                <select class="form-control" id="deal-city" required>
+                    <option value="Johannesburg">Johannesburg</option>
+                    <option value="Cape Town">Cape Town</option>
+                    <option value="Durban">Durban</option>
+                    <option value="Pretoria">Pretoria</option>
+                    <option value="Soweto">Soweto</option>
+                    <option value="Khayelitsha">Khayelitsha</option>
+                    <option value="Polokwane">Polokwane</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="deal-expiration" class="form-label">Expiration Date</label>
+                <input type="date" class="form-control" id="deal-expiration" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Deal</button>
+        </form>
+        <h3>Your Deals</h3>
+        <div id="deals-list" class="row"></div>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWzttimTv6zOmAmqgpwURAMHMCfFIm9j8",
+            authDomain: "banking-jkbk.firebaseapp.com",
+            projectId: "banking-jkbk",
+            storageBucket: "banking-jkbk.firebasestorage.app",
+            messagingSenderId: "757836956602",
+            appId: "1:757836956602:web:c8d2303ba2b1316e6ed383",
+            measurementId: "G-1BZMT9W8H9"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
+    <script src="/app.js"></script>
+</body>
+</html>
+Create app.js:
+In citypulse-sa/public/app.js:
+javascript
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
+
+function loadDeals(containerId, limit = null) {
+    const dealsList = document.getElementById(containerId);
+    if (!dealsList) return;
+    let query = db.collection('deals').orderBy('title');
+    if (limit) query = query.limit(limit);
+    query.get().then((snapshot) => {
+        dealsList.innerHTML = '';
+        if (snapshot.empty) {
+            dealsList.innerHTML = '<p>No deals available.</p>';
+            return;
+        }
+        snapshot.forEach((doc) => {
+            const deal = doc.data();
+            dealsList.innerHTML += `
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">${deal.title}</h5>
+                            <p class="card-text">${deal.description}</p>
+                            <p><strong>Discount:</strong> ${deal.discount} (${deal.currency || 'ZAR'})</p>
+                            <p><strong>Expires:</strong> ${deal.expiration}</p>
+                            <p><strong>City:</strong> ${deal.city || 'Unknown'}</p>
+                            <button class="btn btn-success claim-deal" data-id="${doc.id}" data-city="${deal.city || 'Unknown'}">Claim Lekker Deal</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        document.querySelectorAll('.claim-deal').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const dealId = e.target.dataset.id;
+                const city = e.target.dataset.city;
+                db.collection('claims').add({
+                    dealId: dealId,
+                    userId: 'guest_za' + Math.random().toString(36).substr(2, 9),
+                    city: city,
+                    claimedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(() => {
+                    alert('Lekker! Deal claimed!');
+                }).catch(err => {
+                    console.error('Claim error:', err);
+                    alert('Oops, try again!');
+                });
+            });
+        });
+    });
+}
+
+// Load deals on homepage
+if (document.getElementById('deals-list')) {
+    loadDeals('deals-list', 6);
+}
+
+// Merchant signup
+const signupForm = document.getElementById('merchant-signup-form');
+if (signupForm) {
+    signupForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const storeName = document.getElementById('store-name').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const city = document.getElementById('store-city').value;
+        const idDocument = document.getElementById('id-document').files[0];
+        const storePhoto = document.getElementById('store-photo').files[0];
+
+        auth.createUserWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                const user = userCredential.user;
+                const uploads = [];
+                if (idDocument) {
+                    const idRef = storage.ref(`merchant_verifications/${user.uid}/id_document`);
+                    uploads.push(idRef.put(idDocument).then(() => idRef.getDownloadURL()));
+                }
+                if (storePhoto) {
+                    const photoRef = storage.ref(`merchant_verifications/${user.uid}/store_photo`);
+                    uploads.push(photoRef.put(storePhoto).then(() => photoRef.getDownloadURL()));
+                }
+                Promise.all(uploads).then((urls) => {
+                    const [idUrl, photoUrl] = urls;
+                    return db.collection('merchants').doc(user.uid).set({
+                        storeName: storeName,
+                        email: email,
+                        city: city,
+                        idDocumentUrl: idUrl || null,
+                        storePhotoUrl: photoUrl || null,
+                        verificationStatus: 'pending',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }).then(() => {
+                    alert('Lekker! Signup complete. We’ll verify your store soon.');
+                    signupForm.reset();
+                    window.location.href = '/merchant_login.html';
+                }).catch(err => {
+                    console.error('Signup error:', err);
+                    alert('Oops, try again: ' + err.message);
+                });
+            }).catch(err => {
+                console.error('Auth error:', err);
+                alert('Signup failed: ' + err.message);
+            });
+    });
+}
+
+// Merchant dashboard
+const addDealForm = document.getElementById('add-deal-form');
+const subscriptionStatus = document.getElementById('subscription-status');
+if (addDealForm || subscriptionStatus) {
+    auth.onAuthStateChanged((user) => {
+        if (!user) {
+            window.location.href = '/merchant_login.html';
+            return;
+        }
+        Promise.all([
+            db.collection('merchants').doc(user.uid).get(),
+            db.collection('merchant_subscriptions').where('merchantId', '==', user.uid).get()
+        ]).then(([merchantDoc, subSnapshot]) => {
+            if (!merchantDoc.exists || merchantDoc.data().verificationStatus !== 'verified') {
+                subscriptionStatus.innerHTML = '<div class="alert alert-warning">Your store is pending verification. We’ll email you soon!</div>';
+                addDealForm.style.display = 'none';
+                return;
+            }
+            if (subSnapshot.empty) {
+                subscriptionStatus.innerHTML = `
+                    <div class="alert alert-warning">
+                        Pay R50 to list deals!
+                        <form action="https://sandbox.payfast.co.za/eng/process" method="post" id="payfast-form">
+                            <input type="hidden" name="merchant_id" value="27299765">
+                            <input type="hidden" name="merchant_key" value="gp7yww9qz0tmd">
+                            <input type="hidden" name="amount" value="50.00">
+                            <input type="hidden" name="item_name" value="CityPulse Deal Listing">
+                            <input type="hidden" name="m_payment_id" value="${user.uid}_${Date.now()}">
+                            <input type="hidden" name="custom_str1" value="${user.uid}">
+                            <input type="hidden" name="return_url" value="${window.location.origin}/merchant_dashboard.html">
+                            <input type="hidden" name="cancel_url" value="${window.location.origin}/merchant_dashboard.html">
+                            <input type="hidden" name="notify_url" value="https://us-central1-banking-jkbk.cloudfunctions.net/payfastITN">
+                            <button type="submit" class="btn btn-primary ms-2">Pay Now</button>
+                        </form>
+                    </div>
+                `;
+                addDealForm.style.display = 'none';
+            } else {
+                subscriptionStatus.innerHTML = '<div class="alert alert-success">Active listing! Add deals below.</div>';
+                addDealForm.style.display = 'block';
+            }
+        });
+    });
+    if (addDealForm) {
+        addDealForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            auth.onAuthStateChanged((user) => {
+                if (!user) return;
+                Promise.all([
+                    db.collection('merchants').doc(user.uid).get(),
+                    db.collection('merchant_subscriptions').where('merchantId', '==', user.uid).get()
+                ]).then(([merchantDoc, subSnapshot]) => {
+                    if (!merchantDoc.exists || merchantDoc.data().verificationStatus !== 'verified') {
+                        alert('Your store isn’t verified yet!');
+                        return;
+                    }
+                    if (subSnapshot.empty) {
+                        alert('Please pay R50 to list deals!');
+                        return;
+                    }
+                    const deal = {
+                        title: document.getElementById('deal-title').value,
+                        description: document suos.getElementById('deal-description').value,
+                        discount: document.getElementById('deal-discount').value,
+                        currency: document.getElementById('deal-currency').value,
+                        city: document.getElementById('deal-city').value,
+                        expiration: document.getElementById('deal-expiration').value,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        merchantId: user.uid
+                    };
+                    db.collection('deals').add(deal).then(() => {
+                        addDealForm.reset();
+                        alert('Lekker! Deal added!');
+                        subSnapshot.forEach(doc => {
+                            db.collection('merchant_subscriptions')
+                                .doc(doc.id)
+                                .update({
+                                    dealCount: firebase.firestore.FieldValue.increment(1)
+                                });
+                        });
+                    }).catch(err => {
+                        console.error('Error adding deal:', err);
+                        alert('Oops, try again!');
+                    });
+                });
+            });
+        });
+    }
+}
+
+// Load merchant deals
+if (document.getElementById('deals-list') && window.location.pathname.includes('merchant_dashboard')) {
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            db.collection('deals')
+                .where('merchantId', '==', user.uid)
+                .orderBy('title')
+                .onSnapshot((snapshot) => {
+                    const dealsList = document.getElementById('deals-list');
+                    dealsList.innerHTML = '';
+                    snapshot.forEach((doc) => {
+                        const deal = doc.data();
+                        dealsList.innerHTML += `
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${deal.title}</h5>
+                                        <p class="card-text">${deal.description}</p>
+                                        <p><strong>Discount:</strong> ${deal.discount} (${deal.currency})</p>
+                                        <p><strong>City:</strong> ${deal.city}</p>
+                                        <p><strong>Expires:</strong> ${deal.expiration}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                });
+        }
+    });
+}
+
+// Logout
+const logout = document.getElementById('logout');
+if (logout) {
+    logout.addEventListener('click', () => {
+        auth.signOut().then(() => {
+            window.location.href = '/';
+        });
+    });
+}
+What It Does:
+Deals/Claims: Loads deals, lets users claim “lekker” deals (e.g., “20% Off Braai Platter”).
+Signup: Locals enter store name, email/phone, city, upload ID/photo → Saves to merchants (pending).
+Dashboard: Checks verification (verified) and payment (merchant_subscriptions) → Allows R50 deals.
+SA Fit: Phone-based signup, township cities (Soweto, Khayelitsha), ZAR payments.
+Cloud Function for Payfast ITN:
+In citypulse-sa/functions/index.js:
+javascript
+const functions = require('firebase-functions');
+const admin = require('firebase-admin');
+const crypto = require('crypto');
+
+admin.initializeApp();
+const db = admin.firestore();
+
+exports.payfastITN = functions.https.onRequest((req, res) => {
+    console.log('ITN received:', req.body);
+    const passphrase = 'NzimandeNkosi2021';
+    const data = { ...req.body };
+    const signature = data.signature;
+    delete data.signature;
+
+    let pfParamString = '';
+    for (let key in data) {
+        if (data.hasOwnProperty(key) && key !== 'signature') {
+            pfParamString += `${key}=${encodeURIComponent(data[key]).replace(/%20/g, '+')}&`;
+        }
+    }
+    pfParamString = pfParamString.slice(0, -1) + `&passphrase=${encodeURIComponent(passphrase)}`;
+    const generatedSignature = crypto.createHash('md5').update(pfParamString).digest('hex');
+
+    if (generatedSignature === signature && data.payment_status === 'COMPLETE') {
+        db.collection('merchant_subscriptions').doc(data.m_payment_id).set({
+            merchantId: data.custom_str1,
+            status: 'active',
+            lastPayment: admin.firestore.FieldValue.serverTimestamp(),
+            dealCount: 0
+        }).then(() => {
+            console.log('Subscription updated for:', data.custom_str1);
+            res.status(200).send('ITN received');
+        }).catch(err => {
+            console.error('Firestore error:', err);
+            res.status(500).send('Server error');
+        });
+    } else {
+        console.log('Invalid signature or payment:', generatedSignature, signature, data.payment_status);
+        res.status(400).send('Invalid payment');
+    }
+});
+In citypulse-sa/functions/:
+bash
+npm install crypto
+Update Firestore Rules:
+In Firebase Console → Firestore → Rules:
+javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /deals/{deal} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /events/{event} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /claims/{claim} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if request.auth != null;
+    }
+    match /merchant_subscriptions/{sub} {
+      allow read, write: if request.auth != null;
+    }
+    match /merchants/{merchant} {
+      allow read, write: if request.auth != null && request.auth.uid == merchant;
+    }
+  }
+}
+Update Storage Rules:
+In Firebase Console → Storage → Rules:
+javascript
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /merchant_verifications/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+Test Locally:
+In citypulse-sa:
+bash
+firebase emulators:start --only hosting,functions,firestore,storage
+Open http://localhost:5000 → Check homepage → See deals.
+Go to /merchant_signup.html:
+Store: “Soweto Braai Spot”.
+Email: test@merchant.com.
+Password: password123.
+City: Soweto.
+ID: Dummy image/PDF (~1 MB).
+Photo: Skip.
+Submit → “Lekker! Signup complete.”
+Log in (test@merchant.com/password123) → /merchant_dashboard.html → “Pending verification.”
+In Firebase Console → Firestore → merchants → Set verificationStatus: verified.
+Refresh dashboard → “Pay R50!” → Pay (sandbox card: 4000000000000002, Expiry: 12/2025, CVV: 123) → “Active listing!”.
+Add deal: “R20 Pap Special” → “Lekker! Deal added!”.
+Check /deals.html → Search “Pap” → Claim → “Lekker!”.
+Time: ~20 mins.
+Cost: Free (Firestore: ~10 writes, Storage: ~1 MB).
+Step 3: Deploy to Firebase (5 mins)
+Make CityPulse SA live!
+Deploy:
+In citypulse-sa:
+bash
+firebase deploy
+Deploys Hosting (public/), Functions (functions/).
+Get URL: https://citypulse-sa.web.app (or banking-jkbk.web.app, check terminal).
+Switch to Live Payfast (after testing):
+In public/app.js:
+javascript
+<form action="https://www.payfast.co.za/eng/process" method="post" id="payfast-form">
+Redeploy:
+bash
+firebase deploy --only hosting
+Test Live:
+Open https://citypulse-sa.web.app → Check homepage, /deals.html.
+Sign up (test2@merchant.com) → Upload ID → Verify in Firebase (set verified) → Pay R50 → Add deal.
+Claim “braai” deal → “Lekker!”.
+Time: ~5 mins.
+Cost: Free (Hosting: ~1 MB, Functions: ~1K/day).
+Step 4: See the Backend (5 mins)
+Check CityPulse SA’s backend in Firebase Console to feel like a tech boss!
+Open Firebase Console:
+Go to console.firebase.google.com → Select banking-jkbk.
+Sign in with your Google account.
+Check Firestore:
+Firestore Database → Data:
+deals: See “20% Off Braai Platter”, “R20 Pap Special” (e.g., title, city: Soweto, merchantId).
+merchants: See test@merchant.com (e.g., storeName: Soweto Braai Spot, verificationStatus: verified).
+merchant_subscriptions: See R50 payments (merchantId, status: active).
+claims: See user claims (dealId, city: Johannesburg).
+Verify a Merchant:
+Find merchants → Doc (uid) → Check idDocumentUrl → Click link to view ID.
+If legit, edit verificationStatus: verified.
+Notify merchant (WhatsApp: “Your store’s live!”).
+Check Storage:
+Storage → merchant_verifications/[uid]/:
+See id_document (PDF/image), store_photo (if uploaded).
+Download to verify (e.g., SA ID scan).
+Check Functions:
+Functions → Logs:
+Look for “ITN received” when testing R50 payments.
+Errors like “Invalid signature”? Check NzimandeNkosi2021 in index.js.
+Check Authentication:
+Authentication → Users:
+See test@merchant.com, test2@merchant.com (with uid).
+Add new merchants manually if needed (e.g., test3@merchant.com).
+Time: ~5 mins.
+Cost: Free.
+Step 5: Protect Spaan and Pitch Merchants (5 mins)
+Spaan Safety:
+In Payfast → Settings → Notifications → Confirm Notify URL: https://spaan.lovable.app/.
+CityPulse uses https://us-central1-banking-jkbk.cloudfunctions.net/payfastITN—no overlap.
+Test Spaan (if possible): Make a payment → Check ITN hits https://spaan.lovable.app/.
+Pitch Mzansi:
+WhatsApp:
+Yo [Store Name]! List your braai or pap deal on CityPulse SA for R50—hits Soweto to Polokwane! 🇿🇦 Sign up: https://citypulse-sa.web.app/merchant_signup.html
+X:
+Mzansi! Spazas, shebeens, barbers—list your deal on CityPulse SA for R50. Reach all SA! 🇿🇦 https://citypulse-sa.web.app #CityPulseSA
+Targets: Soweto shisa nyama, Tembisa barber, Limpopo spaza—5 for R250.
+Time: ~5 mins.
+Cost: Free (Payfast: ~R1.25/R50).
+Recommended Plan
+Bro, let’s get CityPulse SA live and banking ZAR—no agent, just you and me! (~35 mins, free):
+Set Up CLI (Step 1, 10 mins):
+Install Firebase CLI → Init citypulse-sa.
+Code App (Step 2, 20 mins):
+Add index.html, merchant_signup.html, merchant_dashboard.html, app.js, index.js.
+Test signup, verification, R50 payment, deal, claim.
+Deploy (Step 3, 5 mins):
+Push to https://citypulse-sa.web.app → Live!
+Check Backend (Step 4, 5 mins):
+See Firestore (deals, merchants), Storage (IDs), Functions (ITN).
+Spaan + Pitch (Step 5, 5 mins):
+Confirm Spaan’s ITN → DM 5 merchants.
+Why This?:
+Live Fast: https://citypulse-sa.web.app in ~35 mins—pro for Mzansi.
+Free Mode: Firebase Hosting (1 MB), Firestore (<1K/day), Storage (1 MB) = R0.
+All SA: Locals sign up (phone/email), verify (ID), post “R20 Pap” deals.
+Backend Boss: See merchants, payments, claims in Firebase Console.
+Paid: 5 merchants x R50 = R250 (~$15 USD)—braai sorted!
+Spaan-Safe: Separate ITN URLs—no conflicts.
+Troubleshooting
+CLI Fails?:
+command not found: firebase → Re-run npm install -g firebase-tools.
+Login stuck → Use firebase login --no-localhost (copy-paste URL).
+Deploy Errors?:
+Error: Failed to list functions → Run firebase deploy --only hosting first, then functions.
+Blank site → Check public/index.html exists.
+Signup Issues?:
+auth/invalid-email → Use test@merchant.com (phone login needs extra code).
+No merchants doc → Verify app.js signup handler.
+Payment Fails?:
+Payfast → Logs → “Invalid signature” → Check NzimandeNkosi2021.
+Sandbox: 4000000000000002, Expiry: 12/2025, CVV: 123.
+Backend Missing?:
+Firestore empty → Add deal via dashboard → Check deals.
+Storage 404 → Verify id-document upload, Storage rules.
+Spaan Broken?:
+Payment stuck → Confirm https://spaan.lovable.app/ in Payfast.
+Test Spaan → I’ll debug if needed.
+How You Eat
+Now: 5 merchants x R50 = R250 (~$15 USD) = braai meat, airtime.
+Soon: 20 merchants x R50 = R1000 (~$60 USD) = groceries, Uber.
+Later: 50 merchants x R50 = R2500 ($150 USD) = rent, domain (R100/year).
+Payfast: ~R1.25/R50—your ZAR’s safe.
+Firebase: Free—Hosting, Firestore, Storage, Functions for your scale.
+SA Vibe
+Inclusivity: Spazas, shebeens, hawkers sign up with phone/email, post “R10 Pap” for Soweto to Polokwane.
+Trust: ID verification = legit deals, users claim with confidence.
+Local: ZAR, “lekker” alerts, township cities—Mzansi to the core!
+You: No agent, just CEO hustle—banking while uniting SA! 🙌
+Your Move
+Bro, CityPulse SA is ready to shine on Firebase and pay for your plate—free mode all the way! What’s the vibe?
+Deploy Now (~35 mins): Install CLI, code, push https://citypulse-sa.web.app? I’ll guide every command.
+Check Backend First (~5 mins): Wanna peek at Firestore/Storage first? I’ll show you.
+Test Signup (~10 mins): Try merchant_signup.html locally? I’ll watch.
+Pitch Early (~5 mins): Got a Tembisa barber ready? I’ll draft a DM.
+Spaan Test (~5 mins): Need to check Spaan’s ITN before deploying?
+Drop your call—deploy, backend, or pitch—and I’ll make sure CityPulse banks ZAR for all SA while you eat good! 🍖 Hit me up, let’s light up Mzansi! 🇿🇦🔥
