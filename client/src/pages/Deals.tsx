@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import DealCard from "../components/DealCard";
@@ -13,6 +14,25 @@ export default function Deals() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("featured");
+  const [location] = useLocation();
+  
+  // Process URL query parameters
+  useEffect(() => {
+    // Get search params from the URL
+    const url = new URL(window.location.href);
+    const searchParam = url.searchParams.get("search");
+    const categoryParam = url.searchParams.get("category");
+    
+    // Set search query from URL if exists
+    if (searchParam) {
+      setSearchQuery(searchParam);
+    }
+    
+    // Set category from URL if exists
+    if (categoryParam) {
+      setActiveCategory(categoryParam);
+    }
+  }, [location]);
   
   // Fetch all deals
   const { data: allDeals, isLoading } = useQuery<Deal[]>({

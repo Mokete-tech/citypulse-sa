@@ -46,6 +46,22 @@ export default function Navbar() {
             <div className="bg-accent text-neutral-dark px-2 py-1 rounded text-xs font-semibold">SOUTH AFRICA</div>
           </div>
           
+          {/* Search Box - Desktop */}
+          <form onSubmit={handleSearch} className="hidden md:flex relative max-w-xs">
+            <Input
+              type="text"
+              placeholder="Search deals & events..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full py-2 px-4 pl-10 pr-3 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            />
+            <button type="submit" className="absolute inset-y-0 left-0 pl-3 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
+          </form>
+          
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
             <Link href="/" className={`${location === "/" ? "text-primary" : "text-neutral-dark"} hover:text-primary transition font-medium`}>
@@ -85,6 +101,24 @@ export default function Navbar() {
         
         {/* Mobile Navigation Menu */}
         <div className={`md:hidden ${mobileMenuOpen ? "" : "hidden"} pb-4`}>
+          {/* Mobile Search */}
+          <form onSubmit={(e) => { handleSearch(e); setMobileMenuOpen(false); }} className="py-3 mb-2">
+            <div className="relative">
+              <Input
+                type="text"
+                placeholder="Search deals & events..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full py-2 px-4 pl-10 pr-3 bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+              <button type="submit" className="absolute inset-y-0 left-0 pl-3 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </button>
+            </div>
+          </form>
+        
           <Link href="/" className="block py-2 text-neutral-dark hover:text-primary" onClick={() => setMobileMenuOpen(false)}>
             Home
           </Link>

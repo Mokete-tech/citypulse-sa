@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import EventCard from "../components/EventCard";
@@ -13,6 +14,31 @@ export default function Events() {
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("soonest");
+  const [location] = useLocation();
+  
+  // Process URL query parameters
+  useEffect(() => {
+    // Get search params from the URL
+    const url = new URL(window.location.href);
+    const searchParam = url.searchParams.get("search");
+    const categoryParam = url.searchParams.get("category");
+    const dateParam = url.searchParams.get("date");
+    
+    // Set search query from URL if exists
+    if (searchParam) {
+      setSearchQuery(searchParam);
+    }
+    
+    // Set category from URL if exists
+    if (categoryParam) {
+      setCategoryFilter(categoryParam);
+    }
+    
+    // Set date filter from URL if exists
+    if (dateParam && ["today", "tomorrow", "weekend", "next-week", "this-month"].includes(dateParam)) {
+      setDateFilter(dateParam);
+    }
+  }, [location]);
   
   // Fetch all events
   const { data: allEvents, isLoading } = useQuery<Event[]>({
