@@ -9,6 +9,7 @@ import Events from "@/pages/Events";
 import MerchantLogin from "@/pages/MerchantLogin";
 import MerchantDashboard from "@/pages/MerchantDashboard";
 import { AuthProvider } from "./lib/firebase";
+import Contact from "./pages/Contact"; // Added import for Contact component
 
 function Router() {
   return (
@@ -16,8 +17,9 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/deals" component={Deals} />
       <Route path="/events" component={Events} />
-      <Route path="/merchant-login" component={MerchantLogin} />
-      <Route path="/merchant-dashboard" component={MerchantDashboard} />
+      <Route path="/contact" component={Contact} /> {/* Added Contact route */}
+      <Route path="/merchant/login" component={MerchantLogin} />
+      <Route path="/merchant/dashboard" component={MerchantDashboard} />
       <Route component={NotFound} />
     </Switch>
   );
