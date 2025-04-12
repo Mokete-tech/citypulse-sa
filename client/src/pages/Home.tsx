@@ -159,15 +159,52 @@ export default function Home() {
         <section className="mb-12">
           <h2 className="text-2xl md:text-3xl font-bold mb-6">Browse by Category</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Link href="/deals?category=food">
+            <Link href="/deals?category=braai">
               <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition flex flex-col items-center justify-center text-center cursor-pointer">
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
                   </svg>
                 </div>
-                <h3 className="font-semibold">Food & Drink</h3>
-                <p className="text-sm text-neutral-dark/70">42 deals</p>
+                <h3 className="font-semibold">Braai & Shisanyama</h3>
+                <p className="text-sm text-neutral-dark/70">12 deals</p>
+              </div>
+            </Link>
+            
+            <Link href="/deals?category=local">
+              <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition flex flex-col items-center justify-center text-center cursor-pointer">
+                <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                </div>
+                <h3 className="font-semibold">Local & Spaza</h3>
+                <p className="text-sm text-neutral-dark/70">28 deals</p>
+              </div>
+            </Link>
+
+            <Link href="/deals?category=entertainment">
+              <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition flex flex-col items-center justify-center text-center cursor-pointer">
+                <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="font-semibold">Events & Lifestyle</h3>
+                <p className="text-sm text-neutral-dark/70">36 deals</p>
+              </div>
+            </Link>
+
+            <Link href="/deals?location=soweto">
+              <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition flex flex-col items-center justify-center text-center cursor-pointer">
+                <div className="w-12 h-12 bg-warning/10 rounded-full flex items-center justify-center mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                <h3 className="font-semibold">Soweto Specials</h3>
+                <p className="text-sm text-neutral-dark/70">19 deals</p>
               </div>
             </Link>
             
