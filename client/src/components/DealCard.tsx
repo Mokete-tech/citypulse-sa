@@ -45,7 +45,10 @@ export default function DealCard({ deal }: DealCardProps) {
         </div>
       </div>
       <CardContent className="p-4">
-        <div className="text-xs text-neutral-dark/60 mb-1">{deal.category}</div>
+        <div className="flex justify-between items-center mb-1">
+          <span className="text-xs text-neutral-dark/60">{deal.category}</span>
+          <span className="text-xs font-medium bg-gray-100 px-2 py-1 rounded">{deal.city || "Cape Town"}</span>
+        </div>
         <h3 className="font-bold text-xl mb-2">{deal.title}</h3>
         <p className="text-neutral-dark/80 mb-4">{deal.description}</p>
         <div className="flex justify-between items-center">

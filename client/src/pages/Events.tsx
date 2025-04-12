@@ -67,10 +67,12 @@ export default function Events() {
       return false;
     }
     
-    // Filter by search
+    // Filter by search (title, description, location, or city)
     if (searchQuery && 
         !event.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !event.description.toLowerCase().includes(searchQuery.toLowerCase())) {
+        !event.description.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        !event.location.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        !event.city?.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
     

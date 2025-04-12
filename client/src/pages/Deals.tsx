@@ -26,10 +26,11 @@ export default function Deals() {
       return false;
     }
     
-    // Filter by search query
+    // Filter by search query (title, description or city)
     if (searchQuery && 
         !deal.title.toLowerCase().includes(searchQuery.toLowerCase()) && 
-        !deal.description.toLowerCase().includes(searchQuery.toLowerCase())) {
+        !deal.description.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        !deal.city?.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
     

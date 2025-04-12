@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { useAuth } from "../lib/firebase";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [location] = useLocation();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [location, navigate] = useLocation();
   const { currentUser, signOut } = useAuth();
 
   const toggleMobileMenu = () => {
@@ -17,6 +19,19 @@ export default function Navbar() {
       await signOut();
     } catch (error) {
       console.error("Error signing out:", error);
+    }
+  };
+  
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (searchQuery.trim()) {
+      // Determine which page to search based on current location
+      if (location.startsWith('/events')) {
+        navigate(`/events?search=${encodeURIComponent(searchQuery)}`);
+      } else {
+        navigate(`/deals?search=${encodeURIComponent(searchQuery)}`);
+      }
     }
   };
 
