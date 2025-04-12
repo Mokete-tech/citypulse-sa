@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import DealCard from "../components/DealCard";
@@ -6,17 +6,46 @@ import EventCard from "../components/EventCard";
 import { Deal, Event } from "@shared/schema";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { getFeaturedDeals, getFeaturedEvents } from "../lib/firebase-service";
 
 export default function Home() {
-  // Fetch featured deals
-  const { data: featuredDeals, isLoading: dealsLoading } = useQuery<Deal[]>({
-    queryKey: ["/api/deals?featured=true&limit=3"],
-  });
+  // State for deals and events
+  const [featuredDeals, setFeaturedDeals] = useState<Deal[]>([]);
+  const [featuredEvents, setFeaturedEvents] = useState<Event[]>([]);
+  const [dealsLoading, setDealsLoading] = useState(true);
+  const [eventsLoading, setEventsLoading] = useState(true);
 
-  // Fetch featured events
-  const { data: featuredEvents, isLoading: eventsLoading } = useQuery<Event[]>({
-    queryKey: ["/api/events?featured=true&limit=3"],
-  });
+  // Fetch featured deals from Firebase
+  useEffect(() => {
+    const fetchDeals = async () => {
+      try {
+        const deals = await getFeaturedDeals(3);
+        setFeaturedDeals(deals);
+        setDealsLoading(false);
+      } catch (error) {
+        console.error("Error fetching deals:", error);
+        setDealsLoading(false);
+      }
+    };
+    
+    fetchDeals();
+  }, []);
+
+  // Fetch featured events from Firebase
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const events = await getFeaturedEvents(3);
+        setFeaturedEvents(events);
+        setEventsLoading(false);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+        setEventsLoading(false);
+      }
+    };
+    
+    fetchEvents();
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -51,12 +80,12 @@ export default function Home() {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl md:text-3xl font-bold">Featured Deals</h2>
             <Link href="/deals">
-              <a className="text-primary hover:text-opacity-80 font-medium flex items-center">
+              <div className="text-primary hover:text-opacity-80 font-medium flex items-center cursor-pointer">
                 View All
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                 </svg>
-              </a>
+              </div>
             </Link>
           </div>
           

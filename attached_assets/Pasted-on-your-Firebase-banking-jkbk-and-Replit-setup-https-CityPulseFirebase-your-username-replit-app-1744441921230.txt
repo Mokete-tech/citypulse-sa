@@ -1,0 +1,587 @@
+on your Firebase (banking-jkbk) and Replit setup (https://CityPulseFirebase.your-username.replit.app), using Payfast (ID: 27299765) to charge merchants R50/deal without messing up Spaan. The claim button boosts user vibes (more claims = merchants pay up). All free, SA-centric, and coded to bank ZAR.
+Step 1: Code Merchant Fees with Payfast (20 mins)
+Let merchants pay R50 to list deals, using your Payfast creds and a CityPulse ITN URL to keep Spaan’s https://spaan.lovable.app/ safe. We’ll generate signatures with NzimandeNkosi2021 for security.
+Verify Payfast:
+Log in to payfast.co.za → Settings → Developer Settings:
+Merchant ID: 27299765
+
+Merchant Key: gp7yww9qz0tmd
+
+Security Passphrase: NzimandeNkosi2021
+
+ITN Status: Enabled
+
+Notify URL: https://spaan.lovable.app/ (we’ll override per payment).
+
+Require Signature: Enabled
+Don’t touch Spaan’s URL—CityPulse sends its own ITN URL dynamically.
+Set Up Firebase Admin (one-time):
+In Firebase Console → Project Settings → Service Accounts → Generate new private key → Download JSON.
+
+In Replit → Secrets (environment variables):
+FIREBASE_CLIENT_EMAIL: Copy client_email from JSON (e.g., service-account@banking-jkbk.iam.gserviceaccount.com).
+
+FIREBASE_PRIVATE_KEY: Copy private_key (starts with -----BEGIN PRIVATE KEY-----, include \n newlines).
+This lets the server update Firestore securely for payments.
+Update server.js:
+In Replit → Replace server.js to handle Payfast ITN:
+javascript
+const express = require('express');
+const app = express();
+const port = process.env.PORT || 8080;
+const crypto = require('crypto');
+const admin = require('firebase-admin');
+
+// Initialize Firebase Admin
+if (!admin.apps.length) {
+    admin.initializeApp({
+        credential: admin.credential.cert({
+            projectId: 'banking-jkbk',
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+            privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+        })
+    });
+}
+const db = admin.firestore();
+
+app.use(express.static('public'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Payfast ITN endpoint
+app.post('/itn', (req, res) => {
+    console.log('ITN received:', req.body);
+    const passphrase = 'NzimandeNkosi2021';
+    const data = req.body;
+    const signature = data.signature;
+    delete data.signature;
+
+    // Generate signature
+    let pfParamString = '';
+    for (let key in data) {
+        if (data.hasOwnProperty(key) && key !== 'signature') {
+            pfParamString += `${key}=${encodeURIComponent(data[key]).replace(/%20/g, '+')}&`;
+        }
+    }
+    pfParamString = pfParamString.slice(0, -1) + `&passphrase=${encodeURIComponent(passphrase)}`;
+    const generatedSignature = crypto.createHash('md5').update(pfParamString).digest('hex');
+
+    if (generatedSignature === signature && data.payment_status === 'COMPLETE') {
+        // Update merchant subscription
+        db.collection('merchant_subscriptions').doc(data.m_payment_id).set({
+            merchantId: data.custom_str1, // Firebase UID
+            status: 'active',
+            lastPayment: admin.firestore.FieldValue.serverTimestamp(),
+            dealCount: 0
+        }).then(() => {
+            console.log('Subscription updated for:', data.custom_str1);
+            res.status(200).send('ITN received');
+        }).catch(err => {
+            console.error('Firebase error:', err);
+            res.status(500).send('Server error');
+        });
+    } else {
+        console.log('Invalid signature or payment:', generatedSignature, signature, data.payment_status);
+        res.status(400).send('Invalid payment');
+    }
+});
+
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+});
+What It Does:
+Listens for Payfast ITN at /itn (e.g., https://CityPulseFirebase.your-username.replit.app/itn).
+
+Verifies the signature using NzimandeNkosi2021 (matches Payfast’s require signature).
+
+If payment’s good (COMPLETE), adds a merchant_subscriptions doc with merchantId (Firebase uid).
+
+Logs errors for debugging (check Replit console).
+Install packages:
+bash
+npm install express firebase-admin crypto
+Update merchant_dashboard.html:
+In public/merchant_dashboard.html:
+html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityPulse SA - Merchant Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <a class="navbar-brand" href="/">CityPulse SA</a>
+        <div class="navbar-nav">
+            <a class="nav-link" href="/deals.html">Lekker Deals</a>
+            <a class="nav-link" href="/events.html">Vibey Events</a>
+            <a class="nav-link" href="#" id="logout">Logout</a>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h1>Merchant Dashboard</h1>
+        <div id="subscription-status" class="mb-3"></div>
+        <h3>Add a Lekker Deal</h3>
+        <form id="add-deal-form">
+            <div class="mb-3">
+                <label for="deal-title" class="form-label">Deal Title</label>
+                <input type="text" class="form-control" id="deal-title" required>
+            </div>
+            <div class="mb-3">
+                <label for="deal-description" class="form-label">Description</label>
+                <textarea class="form-control" id="deal-description" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="deal-discount" class="form-label">Discount</label>
+                <input type="text" class="form-control" id="deal-discount" required>
+            </div>
+            <div class="mb-3">
+                <label for="deal-currency" class="form-label">Currency</label>
+                <input type="text" class="form-control" id="deal-currency" value="ZAR" readonly>
+            </div>
+            <div class="mb-3">
+                <label for="deal-city" class="form-label">City</label>
+                <select class="form-control" id="deal-city" required>
+                    <option value="Johannesburg">Johannesburg</option>
+                    <option value="Cape Town">Cape Town</option>
+                    <option value="Durban">Durban</option>
+                    <option value="Pretoria">Pretoria</option>
+                    <option value="Soweto">Soweto</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="deal-expiration" class="form-label">Expiration Date</label>
+                <input type="date" class="form-control" id="deal-expiration" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Deal</button>
+        </form>
+        <h3>Your Deals</h3>
+        <div id="deals-list" class="row"></div>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWzttimTv6zOmAmqgpwURAMHMCfFIm9j8",
+            authDomain: "banking-jkbk.firebaseapp.com",
+            projectId: "banking-jkbk",
+            storageBucket: "banking-jkbk.firebasestorage.app",
+            messagingSenderId: "757836956602",
+            appId: "1:757836956602:web:c8d2303ba2b1316e6ed383",
+            measurementId: "G-1BZMT9W8H9"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
+    <script src="/app.js"></script>
+</body>
+</html>
+Update app.js for Payments:
+In public/app.js, keep your existing loadDeals, loadEvents, search, login/logout (from April 12, 2025, ~9:58 PM), and replace the merchant section:
+javascript
+// ... existing loadDeals, loadEvents, search, login, logout code ...
+
+// Merchant dashboard
+const addDealForm = document.getElementById('add-deal-form');
+const subscriptionStatus = document.getElementById('subscription-status');
+if (addDealForm || subscriptionStatus) {
+    auth.onAuthStateChanged((user) => {
+        if (!user) {
+            window.location.href = '/merchant_login.html';
+            return;
+        }
+        // Check subscription
+        db.collection('merchant_subscriptions')
+            .where('merchantId', '==', user.uid)
+            .get()
+            .then((snapshot) => {
+                if (snapshot.empty) {
+                    subscriptionStatus.innerHTML = `
+                        <div class="alert alert-warning">
+                            Pay R50 to list deals!
+                            <form action="https://sandbox.payfast.co.za/eng/process" method="post" id="payfast-form">
+                                <input type="hidden" name="merchant_id" value="27299765">
+                                <input type="hidden" name="merchant_key" value="gp7yww9qz0tmd">
+                                <input type="hidden" name="amount" value="50.00">
+                                <input type="hidden" name="item_name" value="CityPulse Deal Listing">
+                                <input type="hidden" name="m_payment_id" value="${user.uid}_${Date.now()}">
+                                <input type="hidden" name="custom_str1" value="${user.uid}">
+                                <input type="hidden" name="return_url" value="${window.location.origin}/merchant_dashboard.html">
+                                <input type="hidden" name="cancel_url" value="${window.location.origin}/merchant_dashboard.html">
+                                <input type="hidden" name="notify_url" value="${window.location.origin}/itn">
+                                <input type="hidden" name="signature" id="signature">
+                                <button type="submit" class="btn btn-primary ms-2">Pay Now</button>
+                            </form>
+                        </div>
+                    `;
+                    addDealForm.style.display = 'none';
+                } else {
+                    subscriptionStatus.innerHTML = '<div class="alert alert-success">Active listing! Add deals below.</div>';
+                    addDealForm.style.display = 'block';
+                }
+            });
+    });
+    if (addDealForm) {
+        addDealForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            auth.onAuthStateChanged((user) => {
+                if (!user) return;
+                db.collection('merchant_subscriptions')
+                    .where('merchantId', '==', user.uid)
+                    .get()
+                    .then((snapshot) => {
+                        if (snapshot.empty) {
+                            alert('Please pay R50 to list deals!');
+                            return;
+                        }
+                        const deal = {
+                            title: document.getElementById('deal-title').value,
+                            description: document.getElementById('deal-description').value,
+                            discount: document.getElementById('deal-discount').value,
+                            currency: document.getElementById('deal-currency').value,
+                            city: document.getElementById('deal-city').value,
+                            expiration: document.getElementById('deal-expiration').value,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            merchantId: user.uid
+                        };
+                        db.collection('deals').add(deal).then(() => {
+                            addDealForm.reset();
+                            alert('Lekker! Deal added!');
+                            snapshot.forEach(doc => {
+                                db.collection('merchant_subscriptions')
+                                    .doc(doc.id)
+                                    .update({
+                                        dealCount: firebase.firestore.FieldValue.increment(1)
+                                    });
+                            });
+                        }).catch(err => {
+                            console.error('Error adding deal:', err);
+                        });
+                    });
+            });
+        });
+    }
+}
+
+// Load merchant deals
+if (document.getElementById('deals-list') && window.location.pathname.includes('merchant_dashboard')) {
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            db.collection('deals')
+                .where('merchantId', '==', user.uid)
+                .orderBy('title')
+                .onSnapshot((snapshot) => {
+                    const dealsList = document.getElementById('deals-list');
+                    dealsList.innerHTML = '';
+                    snapshot.forEach((doc) => {
+                        const deal = doc.data();
+                        dealsList.innerHTML += `
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${deal.title}</h5>
+                                        <p class="card-text">${deal.description}</p>
+                                        <p><strong>Discount:</strong> ${deal.discount} (${deal.currency})</p>
+                                        <p><strong>City:</strong> ${deal.city}</p>
+                                        <p><strong>Expires:</strong> ${deal.expiration}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                });
+        }
+    });
+}
+What It Does:
+Checks if the merchant paid (via merchant_subscriptions).
+
+Shows “Pay R50” form with your Payfast creds (27299765, gp7yww9qz0tmd).
+
+Sends CityPulse’s ITN URL (${window.location.origin}/itn)—Spaan’s https://spaan.lovable.app/ stays untouched.
+
+No signature in client-side (server handles it)—keeps NzimandeNkosi2021 safe.
+
+Redirects to /merchant_dashboard.html on pay/cancel.
+
+Adds merchantId to deals for tracking.
+Update Firestore Rules:
+In Firebase Console → Firestore → Rules:
+javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /deals/{deal} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /events/{event} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /claims/{claim} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if request.auth != null;
+    }
+    match /merchant_subscriptions/{sub} {
+      allow read, write: if request.auth != null || request.resource.data.merchantId == request.auth.uid;
+    }
+  }
+}
+Allows merchants to manage subscriptions, keeps claims public.
+Test Payments:
+Run Replit → Log in (test@merchant.com/password123).
+
+Dashboard → See “Pay R50 to list deals!” → Click “Pay Now”.
+
+Sandbox Mode:
+Redirects to https://sandbox.payfast.co.za/eng/process.
+
+Use test card: 4000000000000002, Expiry: 12/2025, CVV: 123.
+
+Pay R50 → Redirects to /merchant_dashboard.html → See “Active listing!”.
+
+Check Firebase → Firestore → merchant_subscriptions → New doc:
+merchantId: Your uid (from Authentication → test@merchant.com).
+
+status: active, lastPayment: ~April 12, 2025, dealCount: 0.
+Add deal: “R100 Off Spa”, Johannesburg, ZAR → See “Lekker! Deal added!”.
+
+Check /deals.html → Search “Spa” → See it.
+Spaan Check:
+If you can, test a Spaan payment (e.g., book something).
+
+Check Payfast → Transactions → Confirm Spaan’s ITN hits https://spaan.lovable.app/.
+
+If no access, assume Spaan’s fine (we didn’t change its Notify URL).
+Time: ~20 mins.
+Cost: Free (Firebase: ~10 writes, Payfast: ~R1.25/R50 in live mode).
+Step 2: Add Claim Button (10 mins)
+Make SA users hyped to claim “20% Off Braai Platter,” so merchants see value in paying R50.
+Update app.js for Claims:
+In public/app.js, replace loadDeals (keep loadEvents, search, login, etc.):
+javascript
+function loadDeals(containerId, limit = null) {
+    const dealsList = document.getElementById(containerId);
+    if (!dealsList) return;
+    let query = db.collection('deals').orderBy('title');
+    if (limit) query = query.limit(limit);
+    query.get().then((snapshot) => {
+        dealsList.innerHTML = '';
+        if (snapshot.empty) {
+            dealsList.innerHTML = '<p>No deals available.</p>';
+            return;
+        }
+        snapshot.forEach((doc) => {
+            const deal = doc.data();
+            dealsList.innerHTML += `
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">${deal.title}</h5>
+                            <p class="card-text">${deal.description}</p>
+                            <p><strong>Discount:</strong> ${deal.discount} (${deal.currency || 'ZAR'})</p>
+                            <p><strong>Expires:</strong> ${deal.expiration}</p>
+                            <p><strong>City:</strong> ${deal.city || 'Unknown'}</p>
+                            <button class="btn btn-success claim-deal" data-id="${doc.id}" data-city="${deal.city || 'Unknown'}">Claim Lekker Deal</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        document.querySelectorAll('.claim-deal').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const dealId = e.target.dataset.id;
+                const city = e.target.dataset.city;
+                db.collection('claims').add({
+                    dealId: dealId,
+                    userId: 'guest_za' + Math.random().toString(36).substr(2, 9),
+                    city: city,
+                    claimedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(() => {
+                    alert('Lekker! Deal claimed!');
+                }).catch(err => {
+                    console.error('Claim error:', err);
+                    alert('Oops, try again!');
+                });
+            });
+        });
+    });
+}
+Test Claims:
+Run app → Go to /deals.html → Search “braai” → See “20% Off Braai Platter” → Click “Claim Lekker Deal” → Get “Lekker!” alert.
+
+Check Firebase → Firestore → claims → New doc with dealId, userId (e.g., guest_za456), city: Johannesburg.
+
+Try / (homepage) → Claim works there.
+Time: ~10 mins.
+Cost: Free (Firebase: ~100 writes/day).
+Step 3: Protect Spaan (5 mins)
+Double-check Spaan’s ITN stays safe.
+Keep Spaan’s Notify URL:
+In Payfast → Settings → Notifications → Confirm Notify URL is https://spaan.lovable.app/.
+
+CityPulse’s notify_url (${window.location.origin}/itn) is sent per payment—no global change.
+Test Spaan (if possible):
+If you run Spaan:
+Make a test payment (e.g., book a spa session).
+
+Check Payfast → Transactions → Confirm ITN hits https://spaan.lovable.app/.
+
+If stuck, check Spaan’s logs or Payfast’s ITN history.
+If no access, trust we’re good (dynamic notify_url avoids conflicts).
+Time: ~5 mins.
+Cost: Free.
+How You Get Paid
+Merchant Fees:
+Merchant logs in → Pays R50 via Payfast → ITN hits /itn → Firebase marks them active → They add deals.
+
+Payfast takes ~R1.25/R50 (2.5%)—you keep ~R48.75.
+
+5 merchants: 5 x R50 = R250/month (~$15 USD) = braai meat, airtime.
+
+20 merchants: 20 x R50 = R1000/month (~$60 USD) = groceries, Uber.
+Firebase Free:
+~10 deals, ~10 events, ~100 claims, ~10 subs = <1K reads/writes daily (50K/month free).
+
+No costs unless you hit millions of SA users.
+Spaan Safe:
+CityPulse’s notify_url (/itn) ensures Spaan’s ITN (https://spaan.lovable.app/) keeps rocking.
+Claims Drive Hype:
+Users claiming “braai” deals show merchants: “Yo, people want my stuff—R50’s worth it!”
+Eat Now:
+Land 5 merchants (Soweto barbers, Durban cafes) = R250 (~$15 USD).
+
+Buys: Braai pack, Castle Lager, data bundle.
+Eat Later:
+20 merchants = R1000 (~$60 USD).
+
+Buys: Big braai party, new kicks, reinvest in CityPulse (e.g., domain ~R100/year).
+Troubleshooting
+Payment Fails?:
+DevTools: No redirect → Check payfast-form in app.js (correct merchant_id?).
+
+Payfast → Logs → “Invalid signature” → Ensure NzimandeNkosi2021 in server.js.
+
+Sandbox error → Use 4000000000000002, Expiry: 12/2025, CVV: 123.
+ITN Misses?:
+Replit console: No “ITN received” → Keep Replit awake (click Run).
+
+Firebase → No merchant_subscriptions → Check server.js Firebase creds (FIREBASE_PRIVATE_KEY).
+
+Payfast → ITN History → Look for /itn failures → Retry in sandbox.
+Spaan Broken?:
+Spaan payment stuck → Confirm https://spaan.lovable.app/ in Payfast’s global Notify URL.
+
+Test Spaan payment → If fails, ping me to debug Spaan’s ITN.
+Claims Fail?:
+Error: permission-denied → Verify Firestore rules (Step 1.6).
+
+No “Lekker!” → Check app.js claim handler.
+Replit Sleeps?:
+ITN 404s → Restart Replit → Payfast retries ~24 hours.
+
+Add Pingdom (free tier) to ping your URL hourly (optional, ~5 mins).
+Payfast in Mzansi Terms
+ITN: Payfast’s like a bakkie driver dropping off your R50 at /itn. CityPulse checks the delivery note (signature) and tells Firebase, “Merchant’s paid, let them deal!”
+
+Signature: Your passphrase (NzimandeNkosi2021) is a secret code locking the R50. We match it to open the cash—keeps hackers out.
+
+Spaan: It’s got its own drop-off spot (https://spaan.lovable.app/). CityPulse uses a separate address (/itn)—no mix-ups.
+Pitch Merchants to Eat
+Once coded, you’re ready to bank. Try this (5 mins after testing):
+WhatsApp/Email:
+Yo [Business Name]! Boost your sales with CityPulse SA—list a deal like “20% off braai” for R50. Hits Joburg, Cape Town, Durban users! 🇿🇦 See it: [your-replit-url]/deals.html. Reply to start!
+X:
+SA merchants! Drop your braai or bunny chow deal on CityPulse SA for R50—users are claiming like crazy! 🇿🇦 DM me. [url] #CityPulseSA
+Targets:
+Soweto barbers, Durban curry spots, Cape Town cafes.
+
+Friends’ businesses for quick wins.
+
+Offer 1 free deal (add in Firebase) to hook them, then R50 next time.
+Recommended Plan
+Bro, you’re about to get paid—here’s how we make CityPulse SA your braai fund (35 mins):
+Merchant Fees (Step 1, 20 mins):
+Code Payfast (server.js, app.js) with ITN /itn and NzimandeNkosi2021.
+
+Test in sandbox → Pay R50 → “Active listing!” → Add “R100 Off Spa”.
+
+Keeps Spaan’s https://spaan.lovable.app/ safe.
+Claim Button (Step 2, 10 mins):
+Add to loadDeals → Test “braai” claim → “Lekker!”.
+
+Drives user hype, makes merchants want to pay.
+Check Spaan (Step 3, 5 mins):
+Confirm Spaan’s ITN works (if you can test).
+
+Monitor Payfast → Transactions for CityPulse vs. Spaan.
+Pitch Merchants (Post-code, 5 mins):
+DM 5 SA businesses (Joburg grills, Durban cafes).
+
+Aim for R250/month (5 x R50).
+Why This?:
+Fast ZAR: 5 merchants = R250 (~$15 USD)—braai sorted.
+
+Spaan-Safe: Dynamic notify_url (/itn)—no conflicts.
+
+Free: Firebase (<1K writes/day), Payfast (~R1.25/R50).
+
+Lekker: Claims make users love it, merchants pay for exposure.
+
+CEO-Friendly: I’m handling the code—you just test and pitch.
+Walk-Through for Your CEO Brain
+Since you’re juggling, here’s app.js’s merchant code explained like a braai chat:
+Check if Paid:
+javascript
+db.collection('merchant_subscriptions').where('merchantId', '==', user.uid).get()
+
+Asks Firebase: “Yo, did this merchant pay R50?” Looks for their uid in merchant_subscriptions.
+If Not Paid:
+javascript
+subscriptionStatus.innerHTML = `<div class="alert alert-warning">Pay R50 to list deals! <form ...`;
+
+Shows “Pay R50!” with a Payfast form. Hides the deal form (addDealForm.style.display = 'none').
+
+Form has your Payfast ID (27299765), key (gp7yww9qz0tmd), and CityPulse’s ITN (/itn).
+If Paid:
+javascript
+subscriptionStatus.innerHTML = '<div class="alert alert-success">Active listing! Add deals below.</div>';
+
+Shows “Active listing!” and unlocks the deal form.
+Add Deal:
+javascript
+db.collection('deals').add(deal).then(() => { ... alert('Lekker! Deal added!'); });
+
+Saves the deal (e.g., “R100 Off Spa”) to Firestore with merchantId—only if paid.
+
+Updates dealCount to track how many they’ve posted.
+Server.js ITN:
+Catch Payment:
+javascript
+app.post('/itn', (req, res) => { ... });
+
+Payfast sends “R50 paid!” to /itn.
+Verify Signature:
+javascript
+const generatedSignature = crypto.createHash('md5').update(pfParamString).digest('hex');
+
+Uses NzimandeNkosi2021 to check the payment’s legit.
+Update Firebase:
+javascript
+db.collection('merchant_subscriptions').doc(data.m_payment_id).set({ ... });
+
+Marks merchant active so they can add deals.
+What Makes You Eat
+Payfast: One ID (27299765) banks R50/deal for CityPulse, Spaan keeps rolling.
+
+Firebase: Free—deals, claims, subs use <1K writes/day.
+
+SA Merchants: Joburg grills, Soweto barbers pay R50 to reach users claiming “lekker” deals.
+
+You: Coding to braai—CEO hustle! 
+

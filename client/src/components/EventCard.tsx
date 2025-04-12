@@ -7,10 +7,13 @@ interface EventCardProps {
 }
 
 export default function EventCard({ event }: EventCardProps) {
+  // Default image if imageUrl is null
+  const imageUrl = event.imageUrl || "https://via.placeholder.com/800x400?text=No+Image+Available";
+  
   return (
     <Card className="overflow-hidden transition transform hover:-translate-y-1 hover:shadow-lg">
       <div className="relative">
-        <img src={event.imageUrl} alt={event.title} className="w-full h-48 object-cover" />
+        <img src={imageUrl} alt={event.title} className="w-full h-48 object-cover" />
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
           <div className="text-white font-bold">{event.date} • {event.time}</div>
         </div>

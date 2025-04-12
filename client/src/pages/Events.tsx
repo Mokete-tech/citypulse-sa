@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -7,14 +6,35 @@ import EventCard from "../components/EventCard";
 import { Event } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getAllEvents } from "../lib/firebase-service";
 
 export default function Events() {
+  // State for events and loading
+  const [allEvents, setAllEvents] = useState<Event[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
   // State for filters
   const [dateFilter, setDateFilter] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("soonest");
   const [location] = useLocation();
+  
+  // Fetch all events from Firebase
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const events = await getAllEvents();
+        setAllEvents(events);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+        setIsLoading(false);
+      }
+    };
+    
+    fetchEvents();
+  }, []);
   
   // Process URL query parameters
   useEffect(() => {
@@ -40,15 +60,14 @@ export default function Events() {
     }
   }, [location]);
   
-  // Fetch all events
-  const { data: allEvents, isLoading } = useQuery<Event[]>({
-    queryKey: ["/api/events"],
-  });
-  
   // Get unique categories
-  const categories = allEvents 
-    ? [...new Set(allEvents.map(event => event.category))]
-    : [];
+  const categoriesSet = new Set<string>();
+  if (allEvents) {
+    allEvents.forEach(event => {
+      if (event.category) categoriesSet.add(event.category);
+    });
+  }
+  const categories = Array.from(categoriesSet);
   
   // Filter and sort events
   const filteredEvents = allEvents ? allEvents.filter(event => {

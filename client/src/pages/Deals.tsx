@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -8,13 +7,34 @@ import { Deal } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { getAllDeals } from "../lib/firebase-service";
 
 export default function Deals() {
+  // State for deals and loading
+  const [allDeals, setAllDeals] = useState<Deal[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
   // State for filters
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("featured");
   const [location] = useLocation();
+  
+  // Fetch all deals from Firebase
+  useEffect(() => {
+    const fetchDeals = async () => {
+      try {
+        const deals = await getAllDeals();
+        setAllDeals(deals);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error fetching deals:", error);
+        setIsLoading(false);
+      }
+    };
+    
+    fetchDeals();
+  }, []);
   
   // Process URL query parameters
   useEffect(() => {
@@ -33,11 +53,6 @@ export default function Deals() {
       setActiveCategory(categoryParam);
     }
   }, [location]);
-  
-  // Fetch all deals
-  const { data: allDeals, isLoading } = useQuery<Deal[]>({
-    queryKey: ["/api/deals"],
-  });
   
   // Filter and sort deals
   const filteredDeals = allDeals ? allDeals.filter(deal => {
@@ -59,9 +74,9 @@ export default function Deals() {
     // Sort based on selected option
     switch(sortOption) {
       case "newest":
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return new Date(b.createdAt || Date.now()).getTime() - new Date(a.createdAt || Date.now()).getTime();
       case "expiring":
-        return new Date(a.expirationDate).getTime() - new Date(b.expirationDate).getTime();
+        return new Date(a.expirationDate || Date.now()).getTime() - new Date(b.expirationDate || Date.now()).getTime();
       case "discount":
         // Simple sort by discount percentage 
         // (would need more complex parsing for accurate sorting)
@@ -73,14 +88,18 @@ export default function Deals() {
         // Featured at top, then newest
         if (a.featured && !b.featured) return -1;
         if (!a.featured && b.featured) return 1;
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return new Date(b.createdAt || Date.now()).getTime() - new Date(a.createdAt || Date.now()).getTime();
     }
   }) : [];
   
   // Get unique categories
-  const categories = allDeals 
-    ? [...new Set(allDeals.map(deal => deal.category))]
-    : [];
+  const categoriesSet = new Set<string>();
+  if (allDeals) {
+    allDeals.forEach(deal => {
+      if (deal.category) categoriesSet.add(deal.category);
+    });
+  }
+  const categories = Array.from(categoriesSet);
   
   return (
     <div className="flex flex-col min-h-screen">

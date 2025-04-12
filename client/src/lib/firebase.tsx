@@ -1,11 +1,21 @@
-import { createContext, useState, useEffect, useContext, ReactNode } from "react";
-import { signInWithEmailAndPassword, signOut as firebaseSignOut } from "firebase/auth";
-import { auth } from "./firebase-config";
-import { apiRequest } from "./queryClient";
+import { createContext, useContext, ReactNode, useState, useEffect } from "react";
+import { initializeApp } from "firebase/app";
+import { 
+  getAuth, 
+  signInWithEmailAndPassword, 
+  signOut as firebaseSignOut,
+  onAuthStateChanged
+} from "firebase/auth";
+import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import { firebaseConfig } from "./firebase-config";
 
-// Auth types
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
 interface User {
-  id: number;
+  id: string;
   email: string;
   username: string;
   merchantId: string;
@@ -19,75 +29,106 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
-// Create auth context
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null);
 
-// Provider component
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  
-  // Check local storage for saved user on initial load
+
   useEffect(() => {
-    const savedUser = localStorage.getItem('citypulse_user');
-    if (savedUser) {
-      try {
-        setCurrentUser(JSON.parse(savedUser));
-      } catch (e) {
-        localStorage.removeItem('citypulse_user');
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          // Get user data from Firestore
+          const userDoc = await getDoc(doc(db, "merchants", firebaseUser.uid));
+          
+          if (userDoc.exists()) {
+            const userData = userDoc.data() as User;
+            setCurrentUser({
+              id: firebaseUser.uid,
+              email: firebaseUser.email || "",
+              username: userData.username || "",
+              merchantId: userData.merchantId || firebaseUser.uid,
+              merchantName: userData.merchantName || ""
+            });
+          } else {
+            // Create a new merchant document if it doesn't exist
+            const newUserData: User = {
+              id: firebaseUser.uid,
+              email: firebaseUser.email || "",
+              username: firebaseUser.displayName || "",
+              merchantId: firebaseUser.uid,
+              merchantName: firebaseUser.displayName || "Merchant"
+            };
+            
+            await setDoc(doc(db, "merchants", firebaseUser.uid), newUserData);
+            setCurrentUser(newUserData);
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          setCurrentUser(null);
+        }
+      } else {
+        setCurrentUser(null);
       }
-    }
-    setLoading(false);
-  }, []);
-  
-  // Sign in function using our API and Firebase
-  const signIn = async (email: string, password: string): Promise<User> => {
-    setLoading(true);
-    try {
-      // First authenticate with Firebase
-      await signInWithEmailAndPassword(auth, email, password);
-      
-      // Then authenticate with our backend
-      const response = await apiRequest("POST", "/api/auth/login", { email, password });
-      const userData: User = await response.json();
-      
-      // Save user to state and local storage
-      setCurrentUser(userData);
-      localStorage.setItem('citypulse_user', JSON.stringify(userData));
-      
-      return userData;
-    } catch (error) {
-      console.error("Sign in error:", error);
-      throw error;
-    } finally {
       setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const signIn = async (email: string, password: string): Promise<User> => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
+      
+      // Get user data from Firestore
+      const userDoc = await getDoc(doc(db, "merchants", firebaseUser.uid));
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data() as User;
+        return {
+          id: firebaseUser.uid,
+          email: firebaseUser.email || "",
+          username: userData.username || "",
+          merchantId: userData.merchantId || firebaseUser.uid,
+          merchantName: userData.merchantName || ""
+        };
+      } else {
+        // Create a new merchant document if it doesn't exist
+        const newUserData: User = {
+          id: firebaseUser.uid,
+          email: firebaseUser.email || "",
+          username: firebaseUser.displayName || "",
+          merchantId: firebaseUser.uid,
+          merchantName: firebaseUser.displayName || "Merchant"
+        };
+        
+        await setDoc(doc(db, "merchants", firebaseUser.uid), newUserData);
+        return newUserData;
+      }
+    } catch (error) {
+      console.error("Error signing in:", error);
+      throw error;
     }
   };
-  
-  // Sign out function
+
   const signOut = async (): Promise<void> => {
-    setLoading(true);
     try {
       await firebaseSignOut(auth);
-      
-      // Clear user from state and local storage
-      setCurrentUser(null);
-      localStorage.removeItem('citypulse_user');
     } catch (error) {
-      console.error("Sign out error:", error);
+      console.error("Error signing out:", error);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
-  
-  const value = {
+
+  const value: AuthContextType = {
     currentUser,
     loading,
     signIn,
     signOut
   };
-  
+
   return (
     <AuthContext.Provider value={value}>
       {children}
@@ -95,11 +136,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Custom hook to use the auth context
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }
+
+// Export Firebase services
+export { auth, db };

@@ -7,13 +7,20 @@ interface DealCardProps {
 }
 
 export default function DealCard({ deal }: DealCardProps) {
+  // Default image if imageUrl is null
+  const imageUrl = deal.imageUrl || "https://via.placeholder.com/800x400?text=No+Image+Available";
+  
   // Format expiration date
-  const formatExpiration = (dateString: string) => {
-    const expirationDate = new Date(dateString);
+  const formatExpiration = (expirationDate: Date | string | null) => {
+    if (!expirationDate) {
+      return "No expiration";
+    }
+    
+    const expDate = new Date(expirationDate);
     const today = new Date();
     
     // Calculate days difference
-    const diffTime = expirationDate.getTime() - today.getTime();
+    const diffTime = expDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     if (diffDays <= 0) {
@@ -24,11 +31,13 @@ export default function DealCard({ deal }: DealCardProps) {
       return `Expires in ${diffDays} days`;
     } else {
       // Format date as MMM DD, YYYY
-      return `Expires ${expirationDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+      return `Expires ${expDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
     }
   };
   
   const isNew = () => {
+    if (!deal.createdAt) return false;
+    
     const createdAt = new Date(deal.createdAt);
     const today = new Date();
     const diffTime = today.getTime() - createdAt.getTime();
@@ -39,7 +48,7 @@ export default function DealCard({ deal }: DealCardProps) {
   return (
     <Card className="overflow-hidden transition transform hover:-translate-y-1 hover:shadow-lg">
       <div className="relative">
-        <img src={deal.imageUrl} alt={deal.title} className="w-full h-48 object-cover" />
+        <img src={imageUrl} alt={deal.title} className="w-full h-48 object-cover" />
         <div className="absolute top-0 right-0 bg-primary text-white px-3 py-1 rounded-bl-lg font-bold text-lg">
           {deal.discount}% OFF
         </div>
