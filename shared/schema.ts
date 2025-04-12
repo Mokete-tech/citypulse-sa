@@ -1,14 +1,16 @@
 import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Table definitions
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   email: text("email").notNull().unique(),
   merchantName: text("merchant_name"),
-  merchantId: text("merchant_id"),
+  merchantId: text("merchant_id").unique(),
 });
 
 export const deals = pgTable("deals", {
@@ -39,6 +41,28 @@ export const events = pgTable("events", {
   featured: boolean("featured").default(false),
   imageUrl: text("image_url").default("/placeholder-event.jpg"),
 });
+
+// Relations
+export const userRelations = relations(users, ({ many }) => ({
+  deals: many(deals, { relationName: "user_deals" }),
+  events: many(events, { relationName: "user_events" }),
+}));
+
+export const dealRelations = relations(deals, ({ one }) => ({
+  merchant: one(users, {
+    fields: [deals.merchantId],
+    references: [users.merchantId],
+    relationName: "user_deals",
+  }),
+}));
+
+export const eventRelations = relations(events, ({ one }) => ({
+  merchant: one(users, {
+    fields: [events.id],
+    references: [users.id],
+    relationName: "user_events",
+  }),
+}));
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,

@@ -1,4 +1,6 @@
 import { users, type User, type InsertUser, deals, type Deal, type InsertDeal, events, type Event, type InsertEvent } from "@shared/schema";
+import { db } from "./db";
+import { eq, sql } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -141,7 +143,12 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
+    const user: User = { 
+      ...insertUser, 
+      id, 
+      merchantName: insertUser.merchantName || null,
+      merchantId: insertUser.merchantId || null
+    };
     this.users.set(id, user);
     return user;
   }
@@ -239,4 +246,138 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+  
+  async getAllDeals(): Promise<Deal[]> {
+    return await db.select().from(deals);
+  }
+  
+  async getFeaturedDeals(limit?: number): Promise<Deal[]> {
+    const query = db.select().from(deals).where(eq(deals.featured, true));
+    
+    if (limit) {
+      query.limit(limit);
+    }
+    
+    return await query;
+  }
+  
+  async getDealsByMerchant(merchantId: string): Promise<Deal[]> {
+    return await db.select().from(deals).where(eq(deals.merchantId, merchantId));
+  }
+  
+  async getDealById(id: number): Promise<Deal | undefined> {
+    const [deal] = await db.select().from(deals).where(eq(deals.id, id));
+    return deal || undefined;
+  }
+  
+  async createDeal(deal: InsertDeal): Promise<Deal> {
+    const [newDeal] = await db
+      .insert(deals)
+      .values({ 
+        ...deal,
+        views: 0,
+        createdAt: new Date()
+      })
+      .returning();
+    return newDeal;
+  }
+  
+  async updateDeal(id: number, deal: Partial<InsertDeal>): Promise<Deal | undefined> {
+    const [updatedDeal] = await db
+      .update(deals)
+      .set(deal)
+      .where(eq(deals.id, id))
+      .returning();
+    return updatedDeal || undefined;
+  }
+  
+  async deleteDeal(id: number): Promise<boolean> {
+    const [deletedDeal] = await db
+      .delete(deals)
+      .where(eq(deals.id, id))
+      .returning();
+    return !!deletedDeal;
+  }
+  
+  async incrementDealViews(id: number): Promise<void> {
+    await db
+      .update(deals)
+      .set({ 
+        views: sql`${deals.views} + 1` 
+      })
+      .where(eq(deals.id, id));
+  }
+  
+  async getAllEvents(): Promise<Event[]> {
+    return await db.select().from(events);
+  }
+  
+  async getFeaturedEvents(limit?: number): Promise<Event[]> {
+    const query = db.select().from(events).where(eq(events.featured, true));
+    
+    if (limit) {
+      query.limit(limit);
+    }
+    
+    return await query;
+  }
+  
+  async getEventById(id: number): Promise<Event | undefined> {
+    const [event] = await db.select().from(events).where(eq(events.id, id));
+    return event || undefined;
+  }
+  
+  async createEvent(event: InsertEvent): Promise<Event> {
+    const [newEvent] = await db
+      .insert(events)
+      .values({ 
+        ...event,
+        createdAt: new Date()
+      })
+      .returning();
+    return newEvent;
+  }
+  
+  async updateEvent(id: number, event: Partial<InsertEvent>): Promise<Event | undefined> {
+    const [updatedEvent] = await db
+      .update(events)
+      .set(event)
+      .where(eq(events.id, id))
+      .returning();
+    return updatedEvent || undefined;
+  }
+  
+  async deleteEvent(id: number): Promise<boolean> {
+    const [deletedEvent] = await db
+      .delete(events)
+      .where(eq(events.id, id))
+      .returning();
+    return !!deletedEvent;
+  }
+}
+
+// Use DatabaseStorage instead of MemStorage
+export const storage = new DatabaseStorage();
