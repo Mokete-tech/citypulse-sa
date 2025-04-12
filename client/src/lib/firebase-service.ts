@@ -233,7 +233,7 @@ export async function initializeSampleData(): Promise<void> {
     // Check if deals collection exists and has data
     const dealsCollection = collection(db, "deals");
     const dealsSnapshot = await getDocs(dealsCollection);
-    
+
     // If no deals exist, add sample deals
     if (dealsSnapshot.empty) {
       for (const deal of sampleDeals) {
@@ -246,11 +246,11 @@ export async function initializeSampleData(): Promise<void> {
       }
       console.log("Sample deals added to Firestore");
     }
-    
+
     // Check if events collection exists and has data
     const eventsCollection = collection(db, "events");
     const eventsSnapshot = await getDocs(eventsCollection);
-    
+
     // If no events exist, add sample events
     if (eventsSnapshot.empty) {
       for (const event of sampleEvents) {
@@ -276,7 +276,7 @@ export async function getAllDeals(): Promise<Deal[]> {
     // First try to get deals from Firestore
     const dealsCollection = collection(db, "deals");
     const dealsSnapshot = await getDocs(dealsCollection);
-    
+
     // If there are deals in Firestore, return them
     if (!dealsSnapshot.empty) {
       const dealsList = dealsSnapshot.docs.map(doc => ({
@@ -285,14 +285,18 @@ export async function getAllDeals(): Promise<Deal[]> {
       })) as Deal[];
       return dealsList;
     }
-    
+
     // Otherwise, return the sample deals
     console.log("Using sample deals data");
     return sampleDeals;
   } catch (error) {
     console.error("Error fetching deals:", error);
-    // Return sample deals as fallback
-    console.log("Using sample deals fallback data");
+    // Check for specific Firebase errors
+    if (error.code === 'permission-denied') {
+      console.error("Firebase Rules preventing access - check Security Rules");
+    } else if (error.code === 'not-found') {
+      console.error("Collection or document doesn't exist");
+    }
     return sampleDeals;
   }
 }
@@ -307,7 +311,7 @@ export async function getFeaturedDeals(limitCount = 6): Promise<Deal[]> {
       limit(limitCount)
     );
     const dealsSnapshot = await getDocs(featuredQuery);
-    
+
     // If there are featured deals in Firestore, return them
     if (!dealsSnapshot.empty) {
       const dealsList = dealsSnapshot.docs.map(doc => ({
@@ -316,7 +320,7 @@ export async function getFeaturedDeals(limitCount = 6): Promise<Deal[]> {
       })) as Deal[];
       return dealsList;
     }
-    
+
     // Otherwise, filter and return sample featured deals
     console.log("Using sample featured deals data");
     return sampleDeals
@@ -356,12 +360,12 @@ export async function getDealById(id: number): Promise<Deal | undefined> {
     // Try to get deal from Firestore
     const dealQuery = query(collection(db, "deals"), where("id", "==", id));
     const dealSnap = await getDocs(dealQuery);
-    
+
     // If deal exists in Firestore, return it
     if (!dealSnap.empty) {
       return { id, ...dealSnap.docs[0].data() } as Deal;
     }
-    
+
     // Otherwise, find deal in sample data
     console.log("Using sample deal data");
     return sampleDeals.find(deal => deal.id === id);
@@ -379,13 +383,13 @@ export async function createDeal(deal: Partial<Deal>): Promise<Deal> {
     const dealsCollection = collection(db, "deals");
     const lastDealQuery = query(dealsCollection, orderBy("id", "desc"), limit(1));
     const lastDealSnapshot = await getDocs(lastDealQuery);
-    
+
     let newId = 1;
     if (!lastDealSnapshot.empty) {
       const lastDeal = lastDealSnapshot.docs[0].data() as Deal;
       newId = lastDeal.id + 1;
     }
-    
+
     const newDeal = {
       ...deal,
       id: newId,
@@ -393,7 +397,7 @@ export async function createDeal(deal: Partial<Deal>): Promise<Deal> {
       updatedAt: serverTimestamp() as unknown as Date,
       views: 0
     };
-    
+
     await addDoc(collection(db, "deals"), newDeal);
     return newDeal as Deal;
   } catch (error) {
@@ -406,15 +410,15 @@ export async function updateDeal(id: number, deal: Partial<Deal>): Promise<Deal 
   try {
     const dealQuery = query(collection(db, "deals"), where("id", "==", id));
     const dealSnap = await getDocs(dealQuery);
-    
+
     if (dealSnap.empty) return undefined;
-    
+
     const dealDocRef = doc(db, "deals", dealSnap.docs[0].id);
     const updatedDeal = {
       ...deal,
       updatedAt: serverTimestamp()
     };
-    
+
     await updateDoc(dealDocRef, updatedDeal);
     return { id, ...dealSnap.docs[0].data(), ...updatedDeal } as Deal;
   } catch (error) {
@@ -427,9 +431,9 @@ export async function deleteDeal(id: number): Promise<boolean> {
   try {
     const dealQuery = query(collection(db, "deals"), where("id", "==", id));
     const dealSnap = await getDocs(dealQuery);
-    
+
     if (dealSnap.empty) return false;
-    
+
     const dealDocRef = doc(db, "deals", dealSnap.docs[0].id);
     await deleteDoc(dealDocRef);
     return true;
@@ -443,11 +447,11 @@ export async function incrementDealViews(id: number): Promise<void> {
   try {
     const dealQuery = query(collection(db, "deals"), where("id", "==", id));
     const dealSnap = await getDocs(dealQuery);
-    
+
     if (!dealSnap.empty) {
       const dealDocRef = doc(db, "deals", dealSnap.docs[0].id);
       const dealData = dealSnap.docs[0].data() as Deal;
-      
+
       await updateDoc(dealDocRef, {
         views: (dealData.views || 0) + 1
       });
@@ -463,7 +467,7 @@ export async function getAllEvents(): Promise<Event[]> {
     // First try to get events from Firestore
     const eventsCollection = collection(db, "events");
     const eventsSnapshot = await getDocs(eventsCollection);
-    
+
     // If there are events in Firestore, return them
     if (!eventsSnapshot.empty) {
       const eventsList = eventsSnapshot.docs.map(doc => ({
@@ -472,7 +476,7 @@ export async function getAllEvents(): Promise<Event[]> {
       })) as Event[];
       return eventsList;
     }
-    
+
     // Otherwise, return the sample events
     console.log("Using sample events data");
     return sampleEvents;
@@ -494,7 +498,7 @@ export async function getFeaturedEvents(limitCount = 6): Promise<Event[]> {
       limit(limitCount)
     );
     const eventsSnapshot = await getDocs(featuredQuery);
-    
+
     // If there are featured events in Firestore, return them
     if (!eventsSnapshot.empty) {
       const eventsList = eventsSnapshot.docs.map(doc => ({
@@ -503,7 +507,7 @@ export async function getFeaturedEvents(limitCount = 6): Promise<Event[]> {
       })) as Event[];
       return eventsList;
     }
-    
+
     // Otherwise, filter and return sample featured events
     console.log("Using sample featured events data");
     return sampleEvents
@@ -524,12 +528,12 @@ export async function getEventById(id: number): Promise<Event | undefined> {
     // Try to get event from Firestore
     const eventQuery = query(collection(db, "events"), where("id", "==", id));
     const eventSnap = await getDocs(eventQuery);
-    
+
     // If event exists in Firestore, return it
     if (!eventSnap.empty) {
       return { id, ...eventSnap.docs[0].data() } as Event;
     }
-    
+
     // Otherwise, find event in sample data
     console.log("Using sample event data");
     return sampleEvents.find(event => event.id === id);
@@ -547,20 +551,20 @@ export async function createEvent(event: Partial<Event>): Promise<Event> {
     const eventsCollection = collection(db, "events");
     const lastEventQuery = query(eventsCollection, orderBy("id", "desc"), limit(1));
     const lastEventSnapshot = await getDocs(lastEventQuery);
-    
+
     let newId = 1;
     if (!lastEventSnapshot.empty) {
       const lastEvent = lastEventSnapshot.docs[0].data() as Event;
       newId = lastEvent.id + 1;
     }
-    
+
     const newEvent = {
       ...event,
       id: newId,
       createdAt: serverTimestamp() as unknown as Date,
       updatedAt: serverTimestamp() as unknown as Date
     };
-    
+
     await addDoc(collection(db, "events"), newEvent);
     return newEvent as Event;
   } catch (error) {
@@ -573,15 +577,15 @@ export async function updateEvent(id: number, event: Partial<Event>): Promise<Ev
   try {
     const eventQuery = query(collection(db, "events"), where("id", "==", id));
     const eventSnap = await getDocs(eventQuery);
-    
+
     if (eventSnap.empty) return undefined;
-    
+
     const eventDocRef = doc(db, "events", eventSnap.docs[0].id);
     const updatedEvent = {
       ...event,
       updatedAt: serverTimestamp()
     };
-    
+
     await updateDoc(eventDocRef, updatedEvent);
     return { id, ...eventSnap.docs[0].data(), ...updatedEvent } as Event;
   } catch (error) {
@@ -594,9 +598,9 @@ export async function deleteEvent(id: number): Promise<boolean> {
   try {
     const eventQuery = query(collection(db, "events"), where("id", "==", id));
     const eventSnap = await getDocs(eventQuery);
-    
+
     if (eventSnap.empty) return false;
-    
+
     const eventDocRef = doc(db, "events", eventSnap.docs[0].id);
     await deleteDoc(eventDocRef);
     return true;

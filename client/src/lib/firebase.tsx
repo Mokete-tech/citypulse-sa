@@ -10,7 +10,17 @@ import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 import { firebaseConfig } from "./firebase-config";
 
 // Initialize Firebase (only if it hasn't been initialized already)
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+let app;
+try {
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+} catch (error) {
+  if (error.code === 'app/duplicate-app') {
+    app = getApp(); // Get the already initialized app
+  } else {
+    console.error("Firebase initialization error:", error);
+    throw error;
+  }
+}
 const auth = getAuth(app);
 const db = getFirestore(app);
 
