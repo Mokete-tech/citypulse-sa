@@ -35,7 +35,7 @@ export default function Home() {
                 </Button>
               </Link>
               <Link href="/events">
-                <Button variant="default" className="bg-accent text-neutral-dark font-semibold px-6 py-3 rounded-md hover:bg-opacity-90 transition">
+                <Button variant="default" className="bg-green-500 text-white font-semibold px-6 py-3 rounded-md hover:bg-green-600 transition">
                   See Events
                 </Button>
               </Link>

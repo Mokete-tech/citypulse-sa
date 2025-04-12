@@ -26,6 +26,7 @@ export const deals = pgTable("deals", {
   featured: boolean("featured").default(false),
   views: integer("views").default(0),
   imageUrl: text("image_url").default("/placeholder-deal.jpg"),
+  city: text("city").default("Cape Town"),
 });
 
 export const events = pgTable("events", {
@@ -40,6 +41,7 @@ export const events = pgTable("events", {
   createdAt: timestamp("created_at").defaultNow(),
   featured: boolean("featured").default(false),
   imageUrl: text("image_url").default("/placeholder-event.jpg"),
+  city: text("city").default("Cape Town"),
 });
 
 // Relations

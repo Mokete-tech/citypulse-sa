@@ -1,0 +1,345 @@
+ Revert Replit to Firebase
+Replit’s PostgreSQL setup likely overwrote server.js and app.js. Let’s fix it.
+Remove PostgreSQL Dependencies:
+In Replit → Shell:
+bash
+npm uninstall pg dotenv
+npm install express firebase
+Deletes pg (PostgreSQL) and restores Firebase.
+Restore server.js:
+Replace server.js with the minimal Express setup:
+javascript
+const express = require('express');
+const app = express();
+const port = process.env.PORT || 8080;
+
+app.use(express.static('public'));
+app.use(express.json());
+
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+});
+Update app.js:
+Revert public/app.js to Firebase, adding search (merges my April 12, 2025, code with search):
+javascript
+// Initialize Firebase (loaded via <script> tags)
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+// Load deals
+function loadDeals(containerId, limit = null) {
+    const dealsList = document.getElementById(containerId);
+    if (!dealsList) return;
+    let query = db.collection('deals').orderBy('title');
+    if (limit) query = query.limit(limit);
+    query.get().then((snapshot) => {
+        dealsList.innerHTML = '';
+        if (snapshot.empty) {
+            dealsList.innerHTML = '<p>No deals available.</p>';
+            return;
+        }
+        snapshot.forEach((doc) => {
+            const deal = doc.data();
+            dealsList.innerHTML += `
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">${deal.title}</h5>
+                            <p class="card-text">${deal.description}</p>
+                            <p><strong>Discount:</strong> ${deal.discount} (${deal.currency || 'ZAR'})</p>
+                            <p><strong>Expires:</strong> ${deal.expiration}</p>
+                            <p><strong>City:</strong> ${deal.city || 'Unknown'}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    });
+}
+
+// Load events
+function loadEvents(containerId, limit = null) {
+    const eventsList = document.getElementById(containerId);
+    if (!eventsList) return;
+    let query = db.collection('events').orderBy('title');
+    if (limit) query = query.limit(limit);
+    query.get().then((snapshot) => {
+        eventsList.innerHTML = '';
+        if (snapshot.empty) {
+            eventsList.innerHTML = '<p>No events available.</p>';
+            return;
+        }
+        snapshot.forEach((doc) => {
+            const event = doc.data();
+            eventsList.innerHTML += `
+                <div class="col-md-4 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">${event.title}</h5>
+                            <p class="card-text">${event.description}</p>
+                            <p><strong>Date:</strong> ${event.date}</p>
+                            <p><strong>Time:</strong> ${event.time}</p>
+                            <p><strong>Location:</strong> ${event.location}</p>
+                            <p><strong>City:</strong> ${event.city || 'Unknown'}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    });
+}
+
+// Merchant dashboard
+const addDealForm = document.getElementById('add-deal-form');
+if (addDealForm) {
+    auth.onAuthStateChanged((user) => {
+        if (!user) {
+            window.location.href = '/merchant_login.html';
+        }
+    });
+    addDealForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const deal = {
+            title: document.getElementById('deal-title').value,
+            description: document.getElementById('deal-description').value,
+            discount: document.getElementById('deal-discount').value,
+            currency: document.getElementById('deal-currency').value,
+            city: document.getElementById('deal-city').value,
+            expiration: document.getElementById('deal-expiration').value,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        db.collection('deals').add(deal).then(() => {
+            addDealForm.reset();
+            alert('Lekker! Deal added!');
+        }).catch(err => {
+            console.error('Error adding deal:', err);
+        });
+    });
+}
+
+// Merchant login
+const loginForm = document.getElementById('login-form');
+if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        auth.signInWithEmailAndPassword(email, password)
+            .then(() => {
+                window.location.href = '/merchant_dashboard.html';
+            })
+            .catch(err => {
+                alert('Login failed: ' + err.message);
+            });
+    });
+}
+
+// Logout
+const logout = document.getElementById('logout');
+if (logout) {
+    logout.addEventListener('click', () => {
+        auth.signOut().then(() => {
+            window.location.href = '/merchant_login.html';
+        });
+    });
+}
+
+// Search deals
+const searchDeals = document.getElementById('search-deals');
+if (searchDeals) {
+    searchDeals.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        db.collection('deals').get().then((snapshot) => {
+            const dealsList = document.getElementById('deals-list');
+            dealsList.innerHTML = '';
+            let hasResults = false;
+            snapshot.forEach((doc) => {
+                const deal = doc.data();
+                if (deal.title.toLowerCase().includes(searchTerm) || (deal.city && deal.city.toLowerCase().includes(searchTerm))) {
+                    hasResults = true;
+                    dealsList.innerHTML += `
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">${deal.title}</h5>
+                                    <p class="card-text">${deal.description}</p>
+                                    <p><strong>Discount:</strong> ${deal.discount} (${deal.currency || 'ZAR'})</p>
+                                    <p><strong>Expires:</strong> ${deal.expiration}</p>
+                                    <p><strong>City:</strong> ${deal.city || 'Unknown'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            if (!hasResults) {
+                dealsList.innerHTML = '<p>No deals found.</p>';
+            }
+        });
+    });
+}
+
+// Search events
+const searchEvents = document.getElementById('search-events');
+if (searchEvents) {
+    searchEvents.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        db.collection('events').get().then((snapshot) => {
+            const eventsList = document.getElementById('events-list');
+            eventsList.innerHTML = '';
+            let hasResults = false;
+            snapshot.forEach((doc) => {
+                const event = doc.data();
+                if (event.title.toLowerCase().includes(searchTerm) || (event.city && event.city.toLowerCase().includes(searchTerm))) {
+                    hasResults = true;
+                    eventsList.innerHTML += `
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">${event.title}</h5>
+                                    <p class="card-text">${event.description}</p>
+                                    <p><strong>Date:</strong> ${event.date}</p>
+                                    <p><strong>Time:</strong> ${event.time}</p>
+                                    <p><strong>Location:</strong> ${event.location}</p>
+                                    <p><strong>City:</strong> ${event.city || 'Unknown'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            if (!hasResults) {
+                eventsList.innerHTML = '<p>No events found.</p>';
+            }
+        });
+    });
+}
+
+// Load on page start
+document.addEventListener('DOMContentLoaded', () => {
+    loadDeals('deals-list', 3);
+    loadEvents('events-list', 3);
+    if (document.getElementById('deals-list') && !searchDeals) {
+        loadDeals('deals-list');
+    }
+    if (document.getElementById('events-list') && !searchEvents) {
+        loadEvents('events-list');
+    }
+});
+Update HTML Files:
+Ensure all HTML files (index.html, deals.html, events.html, merchant_login.html, merchant_dashboard.html) have:
+Your firebaseConfig:
+javascript
+const firebaseConfig = {
+    apiKey: "AIzaSyBWzttimTv6zOmAmqgpwURAMHMCfFIm9j8",
+    authDomain: "banking-jkbk.firebaseapp.com",
+    projectId: "banking-jkbk",
+    storageBucket: "banking-jkbk.firebasestorage.app",
+    messagingSenderId: "757836956602",
+    appId: "1:757836956602:web:c8d2303ba2b1316e6ed383",
+    measurementId: "G-1BZMT9W8H9"
+};
+Firebase SDK <script> tags (from my earlier code):
+html
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
+<script>
+    firebase.initializeApp(firebaseConfig);
+</script>
+Update deals.html and events.html for Search:
+public/deals.html:
+html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityPulse SA - Lekker Deals</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <a class="navbar-brand" href="/">CityPulse SA</a>
+        <div class="navbar-nav">
+            <a class="nav-link" href="/deals.html">Lekker Deals</a>
+            <a class="nav-link" href="/events.html">Vibey Events</a>
+            <a class="nav-link" href="/merchant_login.html">Merchant Login</a>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h1>Lekker Deals</h1>
+        <input type="text" id="search-deals" class="form-control mb-3" placeholder="Search for braai deals or a city...">
+        <div id="deals-list" class="row"></div>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWzttimTv6zOmAmqgpwURAMHMCfFIm9j8",
+            authDomain: "banking-jkbk.firebaseapp.com",
+            projectId: "banking-jkbk",
+            storageBucket: "banking-jkbk.firebasestorage.app",
+            messagingSenderId: "757836956602",
+            appId: "1:757836956602:web:c8d2303ba2b1316e6ed383",
+            measurementId: "G-1BZMT9W8H9"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
+    <script src="/app.js"></script>
+</body>
+</html>
+public/events.html:
+html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityPulse SA - Vibey Events</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <a class="navbar-brand" href="/">CityPulse SA</a>
+        <div class="navbar-nav">
+            <a class="nav-link" href="/deals.html">Lekker Deals</a>
+            <a class="nav-link" href="/events.html">Vibey Events</a>
+            <a class="nav-link" href="/merchant_login.html">Merchant Login</a>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h1>Vibey Events</h1>
+        <input type="text" id="search-events" class="form-control mb-3" placeholder="Search for festivals or a city...">
+        <div id="events-list" class="row"></div>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWzttimTv6zOmAmqgpwURAMHMCfFIm9j8",
+            authDomain: "banking-jkbk.firebaseapp.com",
+            projectId: "banking-jkbk",
+            storageBucket: "banking-jkbk.firebasestorage.app",
+            messagingSenderId: "757836956602",
+            appId: "1:757836956602:web:c8d2303ba2b1316e6ed383",
+            measurementId: "G-1BZMT9W8H9"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
+    <script src="/app.js"></script>
+</body>
+</html>
+Verify Other Files:
+public/index.html, public/merchant_login.html, public/merchant_dashboard.html, public/style.css should match my earlier SA versions (April 12, 2025, 8:58 PM):
+Navbar: “CityPulse SA”, “Lekker Deals”, “Vibey Events”.
+
+Green/gold colors (#00853F, #FFB81C).
+
+Merchant form with currency: ZAR, city dropdown (Joburg, Cape Town, etc.).
+Checkpoint: Replit’s back to Firebase, no PostgreSQL. server.js serves public/, and app.js uses Firestore/auth with search. Time: ~15 mins.
+
