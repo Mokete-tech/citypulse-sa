@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, Search, Menu } from 'lucide-react';
+import { Bell, Search, Menu, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -34,7 +34,7 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
         <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input 
-            placeholder="Search cities, metrics or insights..." 
+            placeholder="Search deals, events or businesses..." 
             className="pl-10 w-full bg-gray-50"
           />
         </div>
@@ -44,12 +44,12 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
         <Button variant="ghost" size="icon" className="text-gray-500">
           <Search className="h-5 w-5 md:hidden" />
         </Button>
-        <Button variant="ghost" size="icon" className="text-gray-500">
-          <Bell className="h-5 w-5" />
-        </Button>
-        <div className="h-8 w-8 rounded-full bg-sa-blue flex items-center justify-center text-white font-medium">
-          SA
-        </div>
+        <Link to="/merchant/login">
+          <Button variant="outline" size="sm" className="hidden md:flex items-center gap-2">
+            <LogIn className="h-4 w-4" />
+            Merchant Login
+          </Button>
+        </Link>
       </div>
     </nav>
   );

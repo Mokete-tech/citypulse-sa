@@ -2,8 +2,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Home, BarChart3, Map, Building2, Newspaper, 
-  Users, Settings, ChevronRight, ChevronLeft 
+  Home, Tag, Calendar, Building2, UserPlus, 
+  LogIn, Settings, ChevronRight, ChevronLeft 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -14,13 +14,11 @@ interface SidebarProps {
 }
 
 const menuItems = [
-  { name: 'Dashboard', icon: Home, path: '/' },
-  { name: 'Analytics', icon: BarChart3, path: '/analytics' },
-  { name: 'Map Insights', icon: Map, path: '/map' },
-  { name: 'Cities', icon: Building2, path: '/cities' },
-  { name: 'News', icon: Newspaper, path: '/news' },
-  { name: 'Demographics', icon: Users, path: '/demographics' },
-  { name: 'Settings', icon: Settings, path: '/settings' },
+  { name: 'Home', icon: Home, path: '/' },
+  { name: 'Deals', icon: Tag, path: '/deals' },
+  { name: 'Events', icon: Calendar, path: '/events' },
+  { name: 'Businesses', icon: Building2, path: '/businesses' },
+  { name: 'Merchant Login', icon: LogIn, path: '/merchant/login' },
 ];
 
 const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
@@ -32,7 +30,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
       )}>
         <div className="h-full flex flex-col">
           <div className="flex items-center justify-between h-16 px-4 border-b border-sky-700">
-            <h1 className="text-xl font-bold">CityPulse SA</h1>
+            <h1 className="text-xl font-bold">CityPulse</h1>
             <Button 
               variant="ghost" 
               size="icon" 
@@ -63,11 +61,11 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
             <div className="px-4 py-2">
               <div className="flex items-center">
                 <div className="h-10 w-10 rounded-full bg-sky-700 flex items-center justify-center">
-                  <span className="font-medium text-white">SA</span>
+                  <span className="font-medium text-white">CP</span>
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-medium">South Africa</p>
-                  <p className="text-xs opacity-70">Insights Portal</p>
+                  <p className="text-sm font-medium">CityPulse</p>
+                  <p className="text-xs opacity-70">Seattle</p>
                 </div>
               </div>
             </div>
