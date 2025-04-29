@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Home, BarChart3, Map, Buildings, Newspaper, 
+  Home, BarChart3, Map, Building2, Newspaper, 
   Users, Settings, ChevronRight, ChevronLeft 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,7 @@ const menuItems = [
   { name: 'Dashboard', icon: Home, path: '/' },
   { name: 'Analytics', icon: BarChart3, path: '/analytics' },
   { name: 'Map Insights', icon: Map, path: '/map' },
-  { name: 'Cities', icon: Buildings, path: '/cities' },
+  { name: 'Cities', icon: Building2, path: '/cities' },
   { name: 'News', icon: Newspaper, path: '/news' },
   { name: 'Demographics', icon: Users, path: '/demographics' },
   { name: 'Settings', icon: Settings, path: '/settings' },

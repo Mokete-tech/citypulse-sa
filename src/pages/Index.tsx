@@ -1,6 +1,4 @@
-
 import React, { useState } from 'react';
-import { Line } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
