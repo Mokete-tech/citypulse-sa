@@ -8,6 +8,9 @@ interface AuthContextType {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  userRole: string | null;
+  isAdmin: boolean;
+  isMerchant: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   signUp: (email: string, password: string, metadata?: any) => Promise<void>;
@@ -19,13 +22,25 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Computed properties for role checks
+  const isAdmin = userRole === 'admin';
+  const isMerchant = userRole === 'merchant';
+
+  // Function to extract user role from session
+  const extractUserRole = (session: Session | null): string | null => {
+    if (!session || !session.user) return null;
+    return session.user.app_metadata?.role || null;
+  };
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      setUserRole(extractUserRole(session));
       setLoading(false);
     });
 
@@ -34,6 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        setUserRole(extractUserRole(session));
         setLoading(false);
       }
     );
@@ -47,11 +63,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      
+
       if (error) {
         throw error;
       }
-      
+
       toast.success('Signed in successfully');
     } catch (error: any) {
       handleError(error, {
@@ -68,11 +84,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       const { error } = await supabase.auth.signOut();
-      
+
       if (error) {
         throw error;
       }
-      
+
       toast.success('Signed out successfully');
     } catch (error) {
       handleError(error, {
@@ -87,18 +103,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (email: string, password: string, metadata?: any) => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signUp({ 
-        email, 
+      const { error } = await supabase.auth.signUp({
+        email,
         password,
         options: {
           data: metadata
         }
       });
-      
+
       if (error) {
         throw error;
       }
-      
+
       toast.success('Account created successfully', {
         description: 'Please check your email for a confirmation link.'
       });
@@ -117,11 +133,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       const { error } = await supabase.auth.resetPasswordForEmail(email);
-      
+
       if (error) {
         throw error;
       }
-      
+
       toast.success('Password reset email sent', {
         description: 'Please check your email for a password reset link.'
       });
@@ -140,6 +156,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     session,
     user,
     loading,
+    userRole,
+    isAdmin,
+    isMerchant,
     signIn,
     signOut,
     signUp,
@@ -155,10 +174,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  
+
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
-  
+
   return context;
 }

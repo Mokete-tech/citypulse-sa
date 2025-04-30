@@ -14,7 +14,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredRole,
   redirectTo = '/merchant/login',
 }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, userRole, isAdmin, isMerchant } = useAuth();
   const location = useLocation();
 
   // Show loading state while checking authentication
@@ -32,8 +32,21 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // If role is required, check if user has the role
-  if (requiredRole && user.app_metadata?.role !== requiredRole) {
-    return <Navigate to="/unauthorized" replace />;
+  if (requiredRole) {
+    // Check for admin role
+    if (requiredRole === 'admin' && !isAdmin) {
+      return <Navigate to="/unauthorized" replace />;
+    }
+
+    // Check for merchant role
+    if (requiredRole === 'merchant' && !isMerchant) {
+      return <Navigate to="/unauthorized" replace />;
+    }
+
+    // Check for any other role
+    if (requiredRole !== 'admin' && requiredRole !== 'merchant' && userRole !== requiredRole) {
+      return <Navigate to="/unauthorized" replace />;
+    }
   }
 
   // If authenticated and has required role, render children
