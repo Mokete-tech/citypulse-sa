@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ReactionButton } from '@/components/ui/reaction-button';
+import ShareButton from '@/components/ui/share-button';
 import { Tag } from 'lucide-react';
 
 interface DealCardProps {
@@ -31,17 +32,17 @@ export function DealCard({
   onClick
 }: DealCardProps) {
   return (
-    <Card className="h-full flex flex-col overflow-hidden">
+    <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/20 group">
       {image_url && (
         <div className="aspect-video w-full overflow-hidden">
-          <img 
-            src={image_url} 
-            alt={title} 
-            className="w-full h-full object-cover"
+          <img
+            src={image_url}
+            alt={title}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         </div>
       )}
-      
+
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
@@ -53,37 +54,50 @@ export function DealCard({
             <CardTitle>{title}</CardTitle>
             {merchant_name && <CardDescription>{merchant_name}</CardDescription>}
           </div>
-          
+
           {featured && (
-            <Badge variant="outline" className="ml-2">Featured</Badge>
+            <Badge variant="featured" className="ml-2 animate-pulse-scale">Featured</Badge>
           )}
         </div>
       </CardHeader>
-      
+
       <CardContent className="flex-grow">
         <p>{description}</p>
-        
+
         {discount && (
           <div className="mt-3">
-            <Badge variant="secondary" className="text-sm">
+            <Badge
+              variant={discount.includes('Premium') ? 'premium' : 'secondary'}
+              className="text-sm font-bold"
+            >
               {discount}
             </Badge>
           </div>
         )}
       </CardContent>
-      
+
       <CardFooter className="pt-0 flex justify-between items-center border-t pt-4">
         <div className="flex items-center gap-2">
           <ReactionButton itemId={id} itemType="deal" />
-          
+
           {expiration_date && (
             <span className="text-sm text-muted-foreground">
               Expires: {expiration_date}
             </span>
           )}
         </div>
-        
-        <Button size="sm" onClick={onClick}>View Deal</Button>
+
+        <div className="flex items-center gap-2">
+          <ShareButton
+            title={title}
+            description="deal"
+            url={`${window.location.origin}/deals/${id}`}
+            size="sm"
+            itemId={id}
+            itemType="deal"
+          />
+          <Button size="sm" onClick={onClick}>View Deal</Button>
+        </div>
       </CardFooter>
     </Card>
   );

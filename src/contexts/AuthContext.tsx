@@ -15,6 +15,11 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   signUp: (email: string, password: string, metadata?: any) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  signInWithFacebook: () => Promise<void>;
+  signInWithPhone: (phone: string) => Promise<void>;
+  verifyPhoneOtp: (phone: string, token: string) => Promise<void>;
+  signUpWithPhone: (phone: string, metadata?: any) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -132,7 +137,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const resetPassword = async (email: string) => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
+
+      if (!email || !email.trim()) {
+        throw new Error('Email is required');
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
 
       if (error) {
         throw error;
@@ -152,6 +164,140 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // No success toast here as the page will redirect to Google
+    } catch (error) {
+      handleError(error, {
+        title: 'Google sign in failed',
+        message: 'Failed to sign in with Google. Please try again.'
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signInWithFacebook = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // No success toast here as the page will redirect to Facebook
+    } catch (error) {
+      handleError(error, {
+        title: 'Facebook sign in failed',
+        message: 'Failed to sign in with Facebook. Please try again.'
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signInWithPhone = async (phone: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithOtp({
+        phone,
+        options: {
+          shouldCreateUser: false,
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('Verification code sent', {
+        description: 'Please check your phone for the verification code.'
+      });
+    } catch (error) {
+      handleError(error, {
+        title: 'Phone sign in failed',
+        message: 'Failed to send verification code. Please check the phone number and try again.'
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyPhoneOtp = async (phone: string, token: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.verifyOtp({
+        phone,
+        token,
+        type: 'sms'
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('Signed in successfully');
+    } catch (error) {
+      handleError(error, {
+        title: 'Verification failed',
+        message: 'Failed to verify the code. Please try again.'
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signUpWithPhone = async (phone: string, metadata?: any) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithOtp({
+        phone,
+        options: {
+          shouldCreateUser: true,
+          data: metadata
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('Verification code sent', {
+        description: 'Please check your phone for the verification code to complete your registration.'
+      });
+    } catch (error) {
+      handleError(error, {
+        title: 'Registration failed',
+        message: 'Failed to create account. Please try again.'
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value = {
     session,
     user,
@@ -162,7 +308,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signOut,
     signUp,
-    resetPassword
+    resetPassword,
+    signInWithGoogle,
+    signInWithFacebook,
+    signInWithPhone,
+    verifyPhoneOtp,
+    signUpWithPhone
   };
 
   return (

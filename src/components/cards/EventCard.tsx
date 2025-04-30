@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ReactionButton } from '@/components/ui/reaction-button';
+import ShareButton from '@/components/ui/share-button';
 import { Calendar, MapPin } from 'lucide-react';
 
 interface EventCardProps {
@@ -35,17 +36,17 @@ export function EventCard({
   onClick
 }: EventCardProps) {
   return (
-    <Card className="h-full flex flex-col overflow-hidden">
+    <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/20 group">
       {image_url && (
         <div className="aspect-video w-full overflow-hidden">
-          <img 
-            src={image_url} 
-            alt={title} 
-            className="w-full h-full object-cover"
+          <img
+            src={image_url}
+            alt={title}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         </div>
       )}
-      
+
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
@@ -57,16 +58,16 @@ export function EventCard({
             <CardTitle>{title}</CardTitle>
             {merchant_name && <CardDescription>{merchant_name}</CardDescription>}
           </div>
-          
+
           {featured && (
-            <Badge variant="outline" className="ml-2">Featured</Badge>
+            <Badge variant="featured" className="ml-2 animate-pulse-scale">Featured</Badge>
           )}
         </div>
       </CardHeader>
-      
+
       <CardContent className="flex-grow">
         <p>{description}</p>
-        
+
         <div className="mt-4 space-y-2">
           {date && (
             <div className="flex items-center text-sm">
@@ -74,27 +75,40 @@ export function EventCard({
               <span>{date} {time && `at ${time}`}</span>
             </div>
           )}
-          
+
           {location && (
             <div className="flex items-center text-sm">
               <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
               <span>{location}</span>
             </div>
           )}
-          
+
           {price && (
             <div className="mt-3">
-              <Badge variant="secondary" className="text-sm">
+              <Badge
+                variant={price.includes('Premium') ? 'premium' : 'secondary'}
+                className="text-sm font-bold"
+              >
                 {price}
               </Badge>
             </div>
           )}
         </div>
       </CardContent>
-      
+
       <CardFooter className="pt-0 flex justify-between items-center border-t pt-4">
         <ReactionButton itemId={id} itemType="event" />
-        <Button size="sm" onClick={onClick}>View Event</Button>
+        <div className="flex items-center gap-2">
+          <ShareButton
+            title={title}
+            description="event"
+            url={`${window.location.origin}/events/${id}`}
+            size="sm"
+            itemId={id}
+            itemType="event"
+          />
+          <Button size="sm" onClick={onClick}>View Event</Button>
+        </div>
       </CardFooter>
     </Card>
   );

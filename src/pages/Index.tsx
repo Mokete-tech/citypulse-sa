@@ -1,11 +1,10 @@
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Sidebar from '@/components/layout/Sidebar';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tag, Calendar, AlertCircle } from 'lucide-react';
 import { LoadingState } from '@/components/ui/loading-state';
@@ -13,6 +12,9 @@ import { handleError, handleSupabaseError } from '@/lib/error-handler';
 import { toast } from '@/components/ui/sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { fallbackDeals, fallbackEvents } from '@/data/fallback-data';
+import { EnvWarning } from '@/components/ui/env-warning';
+import { DealCard } from '@/components/cards/DealCard';
+import { EventCard } from '@/components/cards/EventCard';
 
 // Use the interfaces from fallback-data.ts
 import type { Deal, Event } from '@/data/fallback-data';
@@ -41,9 +43,11 @@ const Index = () => {
             title: "Error fetching deals",
             silent: true
           });
-          // Don't set error state yet, we'll still try to fetch events
+          // Set fallback data for deals
+          setDeals(fallbackDeals);
         } else {
-          setDeals(dealsData || []);
+          // If we got data but it's empty, use fallback data
+          setDeals(dealsData && dealsData.length > 0 ? dealsData : fallbackDeals);
         }
 
         // Fetch events
@@ -57,6 +61,8 @@ const Index = () => {
             title: "Error fetching events",
             silent: true
           });
+          // Set fallback data for events
+          setEvents(fallbackEvents);
 
           // If both requests failed, show an error message
           if (dealsError) {
@@ -66,7 +72,8 @@ const Index = () => {
             });
           }
         } else {
-          setEvents(eventsData || []);
+          // If we got data but it's empty, use fallback data
+          setEvents(eventsData && eventsData.length > 0 ? eventsData : fallbackEvents);
         }
       } catch (err) {
         handleError(err, {
@@ -74,6 +81,9 @@ const Index = () => {
           message: "An unexpected error occurred. Showing sample data instead."
         });
         setError("Failed to load content. Using fallback data instead.");
+        // Ensure fallback data is set in case of unexpected errors
+        setDeals(fallbackDeals);
+        setEvents(fallbackEvents);
       } finally {
         setLoading(false);
       }
@@ -116,10 +126,23 @@ const Index = () => {
         metadata: { deal_id: dealId }
       });
 
+      // First get the current views count
+      const { data: dealData, error: fetchError } = await supabase
+        .from('deals')
+        .select('views')
+        .eq('id', dealId)
+        .single();
+
+      if (fetchError) {
+        console.error('Failed to fetch view count:', fetchError);
+        return;
+      }
+
       // Update views counter in deals table
+      const currentViews = dealData?.views || 0;
       const { error } = await supabase
         .from('deals')
-        .update({ views: () => 'views + 1' })
+        .update({ views: currentViews + 1 })
         .eq('id', dealId);
 
       if (error) {
@@ -211,6 +234,9 @@ const Index = () => {
 
         <main className="flex-1 p-6">
           <div className="container mx-auto">
+            {/* Environment warning will only show in development mode */}
+            <EnvWarning />
+
             <div className="mb-8">
               <h1 className="text-3xl font-bold mb-2">Welcome to CityPulse South Africa</h1>
               <p className="text-muted-foreground">
@@ -235,30 +261,22 @@ const Index = () => {
                     <LoadingState isLoading={true} type="card" count={3} />
                   ) : (
                     displayDeals.map(deal => (
-                      <Card key={deal.id} className="overflow-hidden">
-                        <CardHeader>
-                          <CardTitle>{deal.title}</CardTitle>
-                          <CardDescription>{deal.merchant_name}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <p>{deal.description}</p>
-                          {deal.category && (
-                            <div className="mt-2 text-sm flex items-center gap-1 text-muted-foreground">
-                              <Tag className="h-3 w-3" /> {deal.category}
-                            </div>
-                          )}
-                        </CardContent>
-                        <CardFooter className="flex justify-between border-t pt-4">
-                          {deal.expiration_date && (
-                            <span className="text-sm text-muted-foreground">
-                              Expires: {deal.expiration_date}
-                            </span>
-                          )}
-                          <Link to={`/deals/${deal.id}`} onClick={() => handleDealClick(deal.id)}>
-                            <Button size="sm">View Deal</Button>
-                          </Link>
-                        </CardFooter>
-                      </Card>
+                      <DealCard
+                        key={deal.id}
+                        id={deal.id}
+                        title={deal.title}
+                        description={deal.description}
+                        merchant_name={deal.merchant_name}
+                        category={deal.category}
+                        expiration_date={deal.expiration_date}
+                        discount={deal.discount || ""}
+                        image_url={deal.image_url || "/placeholder-deal.jpg"}
+                        featured={Boolean(deal.featured)}
+                        onClick={() => {
+                          handleDealClick(deal.id);
+                          window.location.href = `/deals/${deal.id}`;
+                        }}
+                      />
                     ))
                   )}
                 </div>
@@ -280,29 +298,24 @@ const Index = () => {
                     <LoadingState isLoading={true} type="card" count={3} />
                   ) : (
                     displayEvents.map(event => (
-                      <Card key={event.id} className="overflow-hidden">
-                        <CardHeader>
-                          <CardTitle>{event.title}</CardTitle>
-                          {event.date && event.time && (
-                            <CardDescription>
-                              {event.date} at {event.time}
-                            </CardDescription>
-                          )}
-                        </CardHeader>
-                        <CardContent>
-                          <p>{event.description}</p>
-                          {event.location && (
-                            <p className="mt-2 text-sm text-muted-foreground">
-                              {event.location}
-                            </p>
-                          )}
-                        </CardContent>
-                        <CardFooter>
-                          <Link to={`/events/${event.id}`} onClick={() => handleEventClick(event.id)}>
-                            <Button size="sm">View Event</Button>
-                          </Link>
-                        </CardFooter>
-                      </Card>
+                      <EventCard
+                        key={event.id}
+                        id={event.id}
+                        title={event.title}
+                        description={event.description}
+                        merchant_name={event.merchant_name || ""}
+                        category={event.category || ""}
+                        date={event.date}
+                        time={event.time}
+                        location={event.location}
+                        price={event.price || ""}
+                        image_url={event.image_url || "/placeholder-event.jpg"}
+                        featured={Boolean(event.featured)}
+                        onClick={() => {
+                          handleEventClick(event.id);
+                          window.location.href = `/events/${event.id}`;
+                        }}
+                      />
                     ))
                   )}
                 </div>

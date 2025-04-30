@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Plus, PenLine, Trash2, Video, Image, CreditCard, Calendar } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import SharingAnalytics from '@/components/dashboard/SharingAnalytics';
 
 const MerchantDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -20,7 +21,7 @@ const MerchantDashboard = () => {
   const [activeTab, setActiveTab] = useState('deals');
   const [mediaType, setMediaType] = useState('image');
   const [isPremiumAd, setIsPremiumAd] = useState(false);
-  
+
   const [newDeal, setNewDeal] = useState({
     title: '',
     description: '',
@@ -32,24 +33,24 @@ const MerchantDashboard = () => {
     location: '',
     discount: '',
   });
-  
+
   const adPricing = {
     standard: {
-      weekly: 'R199',
-      monthly: 'R699',
+      perDeal: 'R99',
+      perEvent: 'R299',
     },
     premium: {
-      weekly: 'R499',
-      monthly: 'R1699',
+      perDeal: 'R250',
+      perEvent: 'R460',
     }
   };
-  
+
   // Sample merchant deals - in a real app, this would come from Firebase
   const [merchantDeals, setMerchantDeals] = useState([
-    { 
-      id: 1, 
-      title: "20% Off All Coffee", 
-      description: "Get 20% off any coffee drink, every Tuesday", 
+    {
+      id: 1,
+      title: "20% Off All Coffee",
+      description: "Get 20% off any coffee drink, every Tuesday",
       expiresAt: "2025-05-15",
       category: "Food & Drink",
       location: "Cape Town Café",
@@ -60,10 +61,10 @@ const MerchantDashboard = () => {
       views: 124,
       status: "Active"
     },
-    { 
-      id: 2, 
-      title: "Free Pastry with Coffee", 
-      description: "Get a free pastry with purchase of any large coffee", 
+    {
+      id: 2,
+      title: "Free Pastry with Coffee",
+      description: "Get a free pastry with purchase of any large coffee",
       expiresAt: "2025-05-30",
       category: "Food & Drink",
       location: "Johannesburg Bakery",
@@ -75,30 +76,30 @@ const MerchantDashboard = () => {
       status: "Active"
     },
   ]);
-  
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
-  
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setNewDeal(prev => ({ ...prev, [name]: value }));
   };
-  
+
   const handleSelectChange = (name: string, value: string) => {
     setNewDeal(prev => ({ ...prev, [name]: value }));
   };
-  
+
   const handleMediaTypeChange = (type: string) => {
     setMediaType(type);
     setNewDeal(prev => ({ ...prev, mediaType: type }));
   };
-  
+
   const handlePremiumToggle = (checked: boolean) => {
     setIsPremiumAd(checked);
     setNewDeal(prev => ({ ...prev, isPremium: checked }));
   };
-  
+
   const handleAddDeal = () => {
     // In a real app, you'd add the deal to Firebase here
     const newDealWithId = {
@@ -107,13 +108,13 @@ const MerchantDashboard = () => {
       views: 0,
       status: "Pending Payment"
     };
-    
+
     setMerchantDeals(prev => [...prev, newDealWithId]);
     toast({
       title: "Deal created!",
       description: "Your deal has been created and is pending payment.",
     });
-    
+
     setNewDeal({
       title: '',
       description: '',
@@ -128,7 +129,7 @@ const MerchantDashboard = () => {
     setIsAddingDeal(false);
     // In a real app, would redirect to payment page
   };
-  
+
   const handleDeleteDeal = (id: number) => {
     // In a real app, you'd delete from Firebase here
     setMerchantDeals(prev => prev.filter(deal => deal.id !== id));
@@ -137,7 +138,7 @@ const MerchantDashboard = () => {
       description: "The deal has been removed from your listings.",
     });
   };
-  
+
   const handlePaymentProcess = (id: number) => {
     // In a real app, would handle Stripe/PayFast/etc integration here
     toast({
@@ -146,21 +147,21 @@ const MerchantDashboard = () => {
     });
     // Mock payment being completed
     setTimeout(() => {
-      setMerchantDeals(prev => 
-        prev.map(deal => 
+      setMerchantDeals(prev =>
+        prev.map(deal =>
           deal.id === id ? { ...deal, status: "Active" } : deal
         )
       );
     }, 1500);
   };
-  
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
-      
+
       <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : ''}`}>
         <Navbar toggleSidebar={toggleSidebar} />
-        
+
         <main className="flex-1 overflow-y-auto px-4 py-6 md:px-6">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Merchant Dashboard</h1>
@@ -168,24 +169,24 @@ const MerchantDashboard = () => {
               Manage your deals and view analytics.
             </p>
           </div>
-          
+
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
             <TabsList>
               <TabsTrigger value="deals">My Deals</TabsTrigger>
               <TabsTrigger value="analytics">Analytics</TabsTrigger>
               <TabsTrigger value="payments">Payments</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="deals" className="space-y-6">
               <div className="mb-6">
-                <Button 
-                  onClick={() => setIsAddingDeal(true)} 
+                <Button
+                  onClick={() => setIsAddingDeal(true)}
                   className="flex items-center gap-2"
                 >
                   <Plus className="h-4 w-4" /> Add New Deal
                 </Button>
               </div>
-              
+
               {isAddingDeal && (
                 <Card className="mb-8">
                   <CardHeader>
@@ -206,7 +207,7 @@ const MerchantDashboard = () => {
                           onChange={handleInputChange}
                         />
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label htmlFor="description">Description</Label>
                         <Textarea
@@ -217,11 +218,11 @@ const MerchantDashboard = () => {
                           onChange={handleInputChange}
                         />
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="category">Category</Label>
-                          <Select 
+                          <Select
                             onValueChange={(value) => handleSelectChange('category', value)}
                             value={newDeal.category}
                           >
@@ -237,7 +238,7 @@ const MerchantDashboard = () => {
                             </SelectContent>
                           </Select>
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="location">Location</Label>
                           <Input
@@ -249,7 +250,7 @@ const MerchantDashboard = () => {
                           />
                         </div>
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="discount">Discount</Label>
@@ -261,7 +262,7 @@ const MerchantDashboard = () => {
                             onChange={handleInputChange}
                           />
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="expiresAt">Expiration Date</Label>
                           <div className="flex items-center gap-2">
@@ -276,11 +277,11 @@ const MerchantDashboard = () => {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label>Media Type</Label>
                         <div className="flex gap-4">
-                          <Button 
+                          <Button
                             type="button"
                             variant={mediaType === 'image' ? "default" : "outline"}
                             onClick={() => handleMediaTypeChange('image')}
@@ -288,7 +289,7 @@ const MerchantDashboard = () => {
                           >
                             <Image className="h-4 w-4" /> Image
                           </Button>
-                          <Button 
+                          <Button
                             type="button"
                             variant={mediaType === 'video' ? "default" : "outline"}
                             onClick={() => handleMediaTypeChange('video')}
@@ -298,7 +299,7 @@ const MerchantDashboard = () => {
                           </Button>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label htmlFor="mediaUrl">
                           {mediaType === 'image' ? 'Image URL' : 'Video URL'}
@@ -311,7 +312,7 @@ const MerchantDashboard = () => {
                           onChange={handleInputChange}
                         />
                       </div>
-                      
+
                       <div className="border rounded-md p-4 bg-gray-50">
                         <div className="flex items-center justify-between">
                           <div>
@@ -320,34 +321,38 @@ const MerchantDashboard = () => {
                               Featured placement and more visibility
                             </p>
                           </div>
-                          <Switch 
-                            checked={isPremiumAd} 
+                          <Switch
+                            checked={isPremiumAd}
                             onCheckedChange={handlePremiumToggle}
                           />
                         </div>
-                        
+
                         {isPremiumAd && (
                           <div className="mt-4 grid grid-cols-2 gap-3">
                             <div className="border rounded p-3 bg-white text-center">
-                              <p className="font-medium">Weekly</p>
-                              <p className="text-lg font-bold">{adPricing.premium.weekly}</p>
+                              <p className="font-medium">Per Deal</p>
+                              <p className="text-lg font-bold">{adPricing.premium.perDeal}</p>
+                              <p className="text-xs text-gray-500">Until end of deal</p>
                             </div>
                             <div className="border rounded p-3 bg-white text-center">
-                              <p className="font-medium">Monthly</p>
-                              <p className="text-lg font-bold">{adPricing.premium.monthly}</p>
+                              <p className="font-medium">Per Event</p>
+                              <p className="text-lg font-bold">{adPricing.premium.perEvent}</p>
+                              <p className="text-xs text-gray-500">Until event date</p>
                             </div>
                           </div>
                         )}
-                        
+
                         {!isPremiumAd && (
                           <div className="mt-4 grid grid-cols-2 gap-3">
                             <div className="border rounded p-3 bg-white text-center">
-                              <p className="font-medium">Weekly</p>
-                              <p className="text-lg font-bold">{adPricing.standard.weekly}</p>
+                              <p className="font-medium">Per Deal</p>
+                              <p className="text-lg font-bold">{adPricing.standard.perDeal}</p>
+                              <p className="text-xs text-gray-500">Max 30 days</p>
                             </div>
                             <div className="border rounded p-3 bg-white text-center">
-                              <p className="font-medium">Monthly</p>
-                              <p className="text-lg font-bold">{adPricing.standard.monthly}</p>
+                              <p className="font-medium">Per Event</p>
+                              <p className="text-lg font-bold">{adPricing.standard.perEvent}</p>
+                              <p className="text-xs text-gray-500">Until event date</p>
                             </div>
                           </div>
                         )}
@@ -362,7 +367,7 @@ const MerchantDashboard = () => {
                   </CardFooter>
                 </Card>
               )}
-              
+
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {merchantDeals.map(deal => (
                   <Card key={deal.id}>
@@ -387,10 +392,10 @@ const MerchantDashboard = () => {
                     <CardContent>
                       <div className="mb-4">
                         {deal.mediaType === 'image' ? (
-                          <img 
-                            src={deal.mediaUrl} 
-                            alt={deal.title} 
-                            className="w-full h-40 object-cover rounded-md" 
+                          <img
+                            src={deal.mediaUrl}
+                            alt={deal.title}
+                            className="w-full h-40 object-cover rounded-md"
                           />
                         ) : (
                           <div className="relative w-full h-40 bg-gray-100 rounded-md flex items-center justify-center">
@@ -401,15 +406,15 @@ const MerchantDashboard = () => {
                           </div>
                         )}
                       </div>
-                      
+
                       <p className="mb-3">{deal.description}</p>
-                      
+
                       <div className="flex flex-wrap gap-2 text-sm mb-3">
                         <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md">
                           {deal.discount}
                         </span>
                       </div>
-                      
+
                       <div className="flex justify-between text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
@@ -422,7 +427,7 @@ const MerchantDashboard = () => {
                     </CardContent>
                     <CardFooter className="flex justify-between">
                       {deal.status === "Pending Payment" ? (
-                        <Button 
+                        <Button
                           onClick={() => handlePaymentProcess(deal.id)}
                           className="flex-1 flex items-center justify-center gap-2"
                         >
@@ -433,9 +438,9 @@ const MerchantDashboard = () => {
                           <Button variant="outline" size="sm" className="flex items-center gap-1">
                             <PenLine className="h-4 w-4" /> Edit
                           </Button>
-                          <Button 
-                            variant="destructive" 
-                            size="sm" 
+                          <Button
+                            variant="destructive"
+                            size="sm"
                             className="flex items-center gap-1"
                             onClick={() => handleDeleteDeal(deal.id)}
                           >
@@ -448,23 +453,43 @@ const MerchantDashboard = () => {
                 ))}
               </div>
             </TabsContent>
-            
-            <TabsContent value="analytics">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Performance Analytics</CardTitle>
-                  <CardDescription>
-                    Track how your deals are performing.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="h-80">
-                  <div className="flex h-full items-center justify-center">
-                    <p className="text-muted-foreground">Analytics dashboard coming soon!</p>
-                  </div>
-                </CardContent>
-              </Card>
+
+            <TabsContent value="analytics" className="space-y-6">
+              <div className="grid grid-cols-1 gap-6">
+                <SharingAnalytics merchantId="current-merchant-id" />
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Performance Analytics</CardTitle>
+                    <CardDescription>
+                      Track how your deals are performing.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-white p-4 rounded-lg border shadow-sm">
+                        <h3 className="text-lg font-medium mb-2">Total Views</h3>
+                        <p className="text-3xl font-bold">202</p>
+                        <p className="text-sm text-muted-foreground mt-1">Last 30 days</p>
+                      </div>
+
+                      <div className="bg-white p-4 rounded-lg border shadow-sm">
+                        <h3 className="text-lg font-medium mb-2">Engagement Rate</h3>
+                        <p className="text-3xl font-bold">18.5%</p>
+                        <p className="text-sm text-muted-foreground mt-1">Clicks / Views</p>
+                      </div>
+
+                      <div className="bg-white p-4 rounded-lg border shadow-sm">
+                        <h3 className="text-lg font-medium mb-2">Active Deals</h3>
+                        <p className="text-3xl font-bold">{merchantDeals.filter(d => d.status === "Active").length}</p>
+                        <p className="text-sm text-muted-foreground mt-1">Currently running</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
-            
+
             <TabsContent value="payments">
               <Card>
                 <CardHeader>
@@ -487,14 +512,20 @@ const MerchantDashboard = () => {
                       <tbody className="divide-y">
                         <tr>
                           <td className="px-4 py-3">2025-04-12</td>
-                          <td className="px-4 py-3">Premium Ad - 20% Off All Coffee</td>
-                          <td className="px-4 py-3">R499</td>
+                          <td className="px-4 py-3">Premium Deal - 20% Off All Coffee</td>
+                          <td className="px-4 py-3">R250</td>
                           <td className="px-4 py-3"><span className="text-green-600">Paid</span></td>
                         </tr>
                         <tr>
                           <td className="px-4 py-3">2025-03-28</td>
-                          <td className="px-4 py-3">Standard Ad - Free Pastry with Coffee</td>
-                          <td className="px-4 py-3">R199</td>
+                          <td className="px-4 py-3">Standard Deal - Free Pastry with Coffee</td>
+                          <td className="px-4 py-3">R99</td>
+                          <td className="px-4 py-3"><span className="text-green-600">Paid</span></td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-3">2025-03-15</td>
+                          <td className="px-4 py-3">Premium Event - Jazz Night</td>
+                          <td className="px-4 py-3">R460</td>
                           <td className="px-4 py-3"><span className="text-green-600">Paid</span></td>
                         </tr>
                       </tbody>
@@ -505,7 +536,7 @@ const MerchantDashboard = () => {
             </TabsContent>
           </Tabs>
         </main>
-        
+
         <Footer />
       </div>
     </div>

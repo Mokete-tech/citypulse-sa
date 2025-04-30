@@ -13,6 +13,8 @@ import MerchantDashboard from "./pages/MerchantDashboard";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
 import AdminDashboard from "./pages/AdminDashboard";
+import AuthCallback from "./pages/AuthCallback";
+import ResetPassword from "./pages/ResetPassword";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -78,6 +80,16 @@ const App = () => (
               <Route path="/unauthorized" element={
                 <ErrorBoundary>
                   <Unauthorized />
+                </ErrorBoundary>
+              } />
+              <Route path="/auth/callback" element={
+                <ErrorBoundary>
+                  <AuthCallback />
+                </ErrorBoundary>
+              } />
+              <Route path="/auth/reset-password" element={
+                <ErrorBoundary>
+                  <ResetPassword />
                 </ErrorBoundary>
               } />
               <Route path="*" element={<NotFound />} />

@@ -11,7 +11,15 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "setup:reactions": "node scripts/setup-reactions.js",
+    "setup:reactions:ts": "npx ts-node scripts/setup-reactions.ts",
+    "setup:twilio": "node scripts/setup-twilio.js",
+    "setup:shares": "node scripts/add-shares-column.js",
+    "setup:smtp": "node scripts/setup-smtp.js",
+    "test:reactions": "node scripts/test-reactions.js",
+    "test:twilio": "node scripts/test-twilio.js",
+    "test:email": "node scripts/test-email.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -44,6 +52,7 @@
     "@radix-ui/react-tooltip": "^1.1.4",
     "@supabase/supabase-js": "^2.49.4",
     "@tanstack/react-query": "^5.56.2",
+    "axios": "^1.9.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",

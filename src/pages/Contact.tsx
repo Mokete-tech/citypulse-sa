@@ -287,10 +287,10 @@ const Contact = () => {
                     <div>
                       <h3 className="font-medium mb-1">Deal Packages</h3>
                       <p className="text-sm text-muted-foreground">
-                        <strong>Standard:</strong> R199/week - Basic listing with standard visibility until expiry
+                        <strong>Standard:</strong> R99/deal - Basic listing with standard visibility until expiry (maximum of 30 days)
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        <strong>Premium:</strong> R499/week - Featured placement, enhanced visibility, and analytics until expiry
+                        <strong>Premium:</strong> R250/deal - Featured placement, enhanced visibility, and analytics until expiry
                       </p>
                     </div>
                   </div>
@@ -305,7 +305,7 @@ const Contact = () => {
                         <strong>Standard:</strong> R299/event - Basic listing with standard visibility until event date
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        <strong>Premium:</strong> R799/event - Featured placement, homepage highlight, and social media promotion until event date
+                        <strong>Premium:</strong> R460/event - Featured placement, homepage highlight, and social media promotion until event date
                       </p>
                     </div>
                   </div>
@@ -327,11 +327,9 @@ const Contact = () => {
                       <Mail className="h-6 w-6 text-purple-600" />
                     </div>
                     <div>
-                      <h3 className="font-medium mb-1">Contact Information</h3>
+                      <h3 className="font-medium mb-1">Get Started Today</h3>
                       <p className="text-sm text-muted-foreground">
-                        Email: info@citypulse.co.za<br />
-                        Phone: +27 10 123 4567<br />
-                        Hours: Monday-Friday, 9am-5pm SAST
+                        Fill out the form to get started with advertising your deals and events on CityPulse. Our team will contact you with more information.
                       </p>
                     </div>
                   </div>

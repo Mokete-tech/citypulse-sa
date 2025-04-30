@@ -13,6 +13,8 @@ export interface Deal {
   merchant_name?: string;
   expiration_date?: string;
   location?: string;
+  featured?: boolean;
+  views?: number;
 }
 
 export interface Event {
@@ -26,6 +28,9 @@ export interface Event {
   image_url?: string;
   price?: string;
   merchant_name?: string;
+  featured?: boolean;
+  ticket_count?: number;
+  available_tickets?: number;
 }
 
 export const fallbackDeals: Deal[] = [
@@ -95,28 +100,28 @@ export const fallbackEvents: Event[] = [
 ];
 
 export const fallbackMerchantDeals: Deal[] = [
-  { 
-    id: 1, 
-    title: "20% Off All Coffee", 
-    description: "Get 20% off any coffee drink, every Tuesday", 
+  {
+    id: 1,
+    title: "20% Off All Coffee",
+    description: "Get 20% off any coffee drink, every Tuesday",
     expiration_date: "2025-05-15",
     category: "Food & Drink",
     location: "Cape Town Café",
     discount: "20%"
   },
-  { 
-    id: 2, 
-    title: "Buy One Get One Free", 
-    description: "Buy one book, get one free of equal or lesser value", 
+  {
+    id: 2,
+    title: "Buy One Get One Free",
+    description: "Buy one book, get one free of equal or lesser value",
     expiration_date: "2025-05-20",
     category: "Retail",
     location: "Johannesburg Books",
     discount: "BOGO"
   },
-  { 
-    id: 3, 
-    title: "30% Off First Visit", 
-    description: "New customers get 30% off their first service", 
+  {
+    id: 3,
+    title: "30% Off First Visit",
+    description: "New customers get 30% off their first service",
     expiration_date: "2025-06-01",
     category: "Beauty",
     location: "Durban Spa & Salon",
