@@ -17,7 +17,6 @@ const menuItems = [
   { name: 'Home', icon: Home, path: '/' },
   { name: 'Deals', icon: Tag, path: '/deals' },
   { name: 'Events', icon: Calendar, path: '/events' },
-  { name: 'Businesses', icon: Building2, path: '/businesses' },
   { name: 'Merchant Login', icon: LogIn, path: '/merchant/login' },
 ];
 
@@ -65,7 +64,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium">CityPulse</p>
-                  <p className="text-xs opacity-70">Seattle</p>
+                  <p className="text-xs opacity-70">South Africa</p>
                 </div>
               </div>
             </div>
