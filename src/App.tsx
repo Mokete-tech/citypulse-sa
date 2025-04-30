@@ -12,6 +12,7 @@ import MerchantLogin from "./pages/MerchantLogin";
 import MerchantDashboard from "./pages/MerchantDashboard";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
+import AdminDashboard from "./pages/AdminDashboard";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -64,6 +65,13 @@ const App = () => (
                 <ErrorBoundary>
                   <ProtectedRoute requiredRole="merchant">
                     <MerchantDashboard />
+                  </ProtectedRoute>
+                </ErrorBoundary>
+              } />
+              <Route path="/admin/dashboard" element={
+                <ErrorBoundary>
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminDashboard />
                   </ProtectedRoute>
                 </ErrorBoundary>
               } />
