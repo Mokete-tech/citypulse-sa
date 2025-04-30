@@ -1,12 +1,40 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
+import Sidebar from '@/components/layout/Sidebar';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tag, Calendar } from 'lucide-react';
+
+interface Deal {
+  id: number;
+  title: string;
+  description: string;
+  category?: string;
+  image_url?: string;
+  discount?: string;
+  merchant_name?: string;
+  expiration_date?: string;
+}
+
+interface Event {
+  id: number;
+  title: string;
+  description: string;
+  date?: string;
+  time?: string;
+  location?: string;
+  image_url?: string;
+}
 
 const Index = () => {
-  const [deals, setDeals] = useState([]);
-  const [events, setEvents] = useState([]);
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-  const [views, setViews] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,7 +74,7 @@ const Index = () => {
         await supabase.from('analytics').insert({
           event_type: 'page_view',
           event_source: 'home_page',
-          source_id: 0, // Adding a default source_id of 0 for page views
+          source_id: 0, // Adding source_id as required by the schema
           metadata: { page: 'home' }
         });
         console.log('Page view tracked');
@@ -58,23 +86,23 @@ const Index = () => {
     trackPageView();
   }, []);
 
-  if (loading) {
-    return <div>Loading deals and events...</div>;
-  }
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
 
   const handleDealClick = async (dealId: number) => {
     try {
       await supabase.from('analytics').insert({
         event_type: 'deal_click',
         event_source: 'home_page',
-        source_id: dealId, // Using the deal ID as the source_id
+        source_id: dealId,
         metadata: { deal_id: dealId }
       });
 
-      // Update views counter in deals table - fix the type issue by using a raw SQL update
+      // Update views counter in deals table
       const { error } = await supabase
         .from('deals')
-        .update({ views: views + 1 }) // Use a numeric value instead of a callback
+        .update({ views: () => 'views + 1' })
         .eq('id', dealId);
         
       if (error) {
@@ -90,7 +118,7 @@ const Index = () => {
       await supabase.from('analytics').insert({
         event_type: 'event_click',
         event_source: 'home_page',
-        source_id: eventId, // Using the event ID as the source_id
+        source_id: eventId,
         metadata: { event_id: eventId }
       });
     } catch (error) {
@@ -98,44 +126,176 @@ const Index = () => {
     }
   };
 
-  return (
-    <div>
-      <h1>Welcome to CityPulse South Africa</h1>
-      <section>
-        <h2>Deals</h2>
-        {deals.length > 0 ? (
-          <ul>
-            {deals.map(deal => (
-              <li key={deal.id}>
-                <Link to={`/deals/${deal.id}`} onClick={() => handleDealClick(deal.id)}>
-                  {deal.title} - {deal.description}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No deals available.</p>
-        )}
-        <Link to="/deals">View All Deals</Link>
-      </section>
+  // Fallback data in case the database fetch fails
+  const fallbackDeals: Deal[] = [
+    {
+      id: 1,
+      title: "20% Off All Coffee",
+      description: "Get 20% off any coffee drink, every Tuesday",
+      category: "Food & Drink",
+      expiration_date: "2025-05-15",
+      merchant_name: "Cape Town Café"
+    },
+    {
+      id: 2,
+      title: "Buy One Get One Free",
+      description: "Buy one book, get one free of equal or lesser value",
+      category: "Retail",
+      expiration_date: "2025-05-20",
+      merchant_name: "Johannesburg Books"
+    },
+    {
+      id: 3,
+      title: "30% Off First Visit",
+      description: "New customers get 30% off their first service",
+      category: "Beauty",
+      expiration_date: "2025-06-01",
+      merchant_name: "Durban Spa & Salon"
+    }
+  ];
 
-      <section>
-        <h2>Events</h2>
-        {events.length > 0 ? (
-          <ul>
-            {events.map(event => (
-              <li key={event.id}>
-                <Link to={`/events/${event.id}`} onClick={() => handleEventClick(event.id)}>
-                  {event.title} - {event.description}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No events available.</p>
-        )}
-        <Link to="/events">View All Events</Link>
-      </section>
+  const fallbackEvents: Event[] = [
+    {
+      id: 1,
+      title: "Jazz Night at V&A Waterfront",
+      description: "Join us for a night of live jazz music with local artists",
+      date: "2025-05-10",
+      time: "7:00 PM",
+      location: "Cape Town Waterfront"
+    },
+    {
+      id: 2,
+      title: "Farmers Market",
+      description: "Fresh local produce, handcrafted goods, and live music",
+      date: "2025-05-17",
+      time: "9:00 AM",
+      location: "Neighbourgoods Market, Johannesburg"
+    },
+    {
+      id: 3,
+      title: "Tech Meetup",
+      description: "Networking event for tech professionals and enthusiasts",
+      date: "2025-05-22",
+      time: "6:30 PM",
+      location: "Durban Digital Hub"
+    }
+  ];
+
+  // Use fallback data if no deals or events are returned from the database
+  const displayDeals = deals.length > 0 ? deals : fallbackDeals;
+  const displayEvents = events.length > 0 ? events : fallbackEvents;
+
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+      
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : ''}`}>
+        <Navbar toggleSidebar={toggleSidebar} />
+        
+        <main className="flex-1 p-6">
+          <div className="container mx-auto">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold mb-2">Welcome to CityPulse South Africa</h1>
+              <p className="text-muted-foreground">
+                Discover the best local deals and events across South Africa.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              <section>
+                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                  <Tag className="h-5 w-5" /> Featured Deals
+                </h2>
+                
+                <div className="grid grid-cols-1 gap-4">
+                  {loading ? (
+                    <div className="py-8 text-center">Loading deals...</div>
+                  ) : (
+                    displayDeals.map(deal => (
+                      <Card key={deal.id} className="overflow-hidden">
+                        <CardHeader>
+                          <CardTitle>{deal.title}</CardTitle>
+                          <CardDescription>{deal.merchant_name}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <p>{deal.description}</p>
+                          {deal.category && (
+                            <div className="mt-2 text-sm flex items-center gap-1 text-muted-foreground">
+                              <Tag className="h-3 w-3" /> {deal.category}
+                            </div>
+                          )}
+                        </CardContent>
+                        <CardFooter className="flex justify-between border-t pt-4">
+                          {deal.expiration_date && (
+                            <span className="text-sm text-muted-foreground">
+                              Expires: {deal.expiration_date}
+                            </span>
+                          )}
+                          <Link to={`/deals/${deal.id}`} onClick={() => handleDealClick(deal.id)}>
+                            <Button size="sm">View Deal</Button>
+                          </Link>
+                        </CardFooter>
+                      </Card>
+                    ))
+                  )}
+                </div>
+                
+                <div className="mt-4">
+                  <Link to="/deals">
+                    <Button variant="outline">View All Deals</Button>
+                  </Link>
+                </div>
+              </section>
+              
+              <section>
+                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                  <Calendar className="h-5 w-5" /> Upcoming Events
+                </h2>
+                
+                <div className="grid grid-cols-1 gap-4">
+                  {loading ? (
+                    <div className="py-8 text-center">Loading events...</div>
+                  ) : (
+                    displayEvents.map(event => (
+                      <Card key={event.id} className="overflow-hidden">
+                        <CardHeader>
+                          <CardTitle>{event.title}</CardTitle>
+                          {event.date && event.time && (
+                            <CardDescription>
+                              {event.date} at {event.time}
+                            </CardDescription>
+                          )}
+                        </CardHeader>
+                        <CardContent>
+                          <p>{event.description}</p>
+                          {event.location && (
+                            <p className="mt-2 text-sm text-muted-foreground">
+                              {event.location}
+                            </p>
+                          )}
+                        </CardContent>
+                        <CardFooter>
+                          <Link to={`/events/${event.id}`} onClick={() => handleEventClick(event.id)}>
+                            <Button size="sm">View Event</Button>
+                          </Link>
+                        </CardFooter>
+                      </Card>
+                    ))
+                  )}
+                </div>
+                
+                <div className="mt-4">
+                  <Link to="/events">
+                    <Button variant="outline">View All Events</Button>
+                  </Link>
+                </div>
+              </section>
+            </div>
+          </div>
+        </main>
+        
+        <Footer />
+      </div>
     </div>
   );
 };
