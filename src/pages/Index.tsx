@@ -7,59 +7,73 @@ import Footer from '@/components/layout/Footer';
 import Sidebar from '@/components/layout/Sidebar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tag, Calendar } from 'lucide-react';
+import { Tag, Calendar, AlertCircle } from 'lucide-react';
+import { LoadingState } from '@/components/ui/loading-state';
+import { handleError, handleSupabaseError } from '@/lib/error-handler';
+import { toast } from '@/components/ui/sonner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { fallbackDeals, fallbackEvents } from '@/data/fallback-data';
 
-interface Deal {
-  id: number;
-  title: string;
-  description: string;
-  category?: string;
-  image_url?: string;
-  discount?: string;
-  merchant_name?: string;
-  expiration_date?: string;
-}
-
-interface Event {
-  id: number;
-  title: string;
-  description: string;
-  date?: string;
-  time?: string;
-  location?: string;
-  image_url?: string;
-}
+// Use the interfaces from fallback-data.ts
+import type { Deal, Event } from '@/data/fallback-data';
 
 const Index = () => {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch deals
         const { data: dealsData, error: dealsError } = await supabase
           .from('deals')
           .select('*')
           .limit(3);
 
         if (dealsError) {
-          console.error("Error fetching deals:", dealsError);
+          handleSupabaseError(dealsError, {
+            title: "Error fetching deals",
+            silent: true
+          });
+          // Don't set error state yet, we'll still try to fetch events
         } else {
           setDeals(dealsData || []);
         }
 
+        // Fetch events
         const { data: eventsData, error: eventsError } = await supabase
           .from('events')
           .select('*')
           .limit(3);
 
         if (eventsError) {
-          console.error("Error fetching events:", eventsError);
+          handleSupabaseError(eventsError, {
+            title: "Error fetching events",
+            silent: true
+          });
+
+          // If both requests failed, show an error message
+          if (dealsError) {
+            setError("Failed to load content. Using fallback data instead.");
+            toast.error("Connection error", {
+              description: "Could not connect to the database. Showing sample data instead."
+            });
+          }
         } else {
           setEvents(eventsData || []);
         }
+      } catch (err) {
+        handleError(err, {
+          title: "Error loading content",
+          message: "An unexpected error occurred. Showing sample data instead."
+        });
+        setError("Failed to load content. Using fallback data instead.");
       } finally {
         setLoading(false);
       }
@@ -77,13 +91,16 @@ const Index = () => {
           source_id: 0, // Adding source_id as required by the schema
           metadata: { page: 'home' }
         });
-        console.log('Page view tracked');
       } catch (error) {
-        console.error('Failed to track page view:', error);
+        // Just log the error but don't show to user since analytics errors are non-critical
+        handleError(error, { silent: true });
       }
     };
 
-    trackPageView();
+    // Only track page views if we're not in development mode
+    if (import.meta.env.MODE !== 'development') {
+      trackPageView();
+    }
   }, []);
 
   const toggleSidebar = () => {
@@ -104,7 +121,7 @@ const Index = () => {
         .from('deals')
         .update({ views: () => 'views + 1' })
         .eq('id', dealId);
-        
+
       if (error) {
         console.error('Failed to update view count:', error);
       }
@@ -188,10 +205,10 @@ const Index = () => {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
-      
+
       <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : ''}`}>
         <Navbar toggleSidebar={toggleSidebar} />
-        
+
         <main className="flex-1 p-6">
           <div className="container mx-auto">
             <div className="mb-8">
@@ -199,17 +216,23 @@ const Index = () => {
               <p className="text-muted-foreground">
                 Discover the best local deals and events across South Africa.
               </p>
+              {error && (
+                <Alert className="mt-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
             </div>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
               <section>
                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
                   <Tag className="h-5 w-5" /> Featured Deals
                 </h2>
-                
+
                 <div className="grid grid-cols-1 gap-4">
                   {loading ? (
-                    <div className="py-8 text-center">Loading deals...</div>
+                    <LoadingState isLoading={true} type="card" count={3} />
                   ) : (
                     displayDeals.map(deal => (
                       <Card key={deal.id} className="overflow-hidden">
@@ -239,22 +262,22 @@ const Index = () => {
                     ))
                   )}
                 </div>
-                
+
                 <div className="mt-4">
                   <Link to="/deals">
                     <Button variant="outline">View All Deals</Button>
                   </Link>
                 </div>
               </section>
-              
+
               <section>
                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
                   <Calendar className="h-5 w-5" /> Upcoming Events
                 </h2>
-                
+
                 <div className="grid grid-cols-1 gap-4">
                   {loading ? (
-                    <div className="py-8 text-center">Loading events...</div>
+                    <LoadingState isLoading={true} type="card" count={3} />
                   ) : (
                     displayEvents.map(event => (
                       <Card key={event.id} className="overflow-hidden">
@@ -283,7 +306,7 @@ const Index = () => {
                     ))
                   )}
                 </div>
-                
+
                 <div className="mt-4">
                   <Link to="/events">
                     <Button variant="outline">View All Events</Button>
@@ -293,7 +316,7 @@ const Index = () => {
             </div>
           </div>
         </main>
-        
+
         <Footer />
       </div>
     </div>

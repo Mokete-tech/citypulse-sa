@@ -1,6 +1,10 @@
-# Welcome to your Lovable project
+# CityPulse South Africa
 
-## Project info
+A platform for discovering local deals and events across South Africa.
+
+## Project Overview
+
+CityPulse South Africa is a web application that connects users with local deals and events. The platform allows merchants to advertise their promotions and events to a targeted local audience.
 
 **URL**: https://lovable.dev/projects/6a99d823-6a8f-4ade-8f70-d3e58bf79358
 
@@ -50,19 +54,54 @@ npm run dev
 - Click on "New codespace" to launch a new Codespace environment.
 - Edit files directly within the Codespace and commit and push your changes once you're done.
 
-## What technologies are used for this project?
+## Features
+
+- Browse deals and events by location and category
+- Merchant dashboard for managing promotions
+- User authentication with Supabase
+- Contact form with validation
+- Responsive design for mobile and desktop
+- Error handling and loading states
+- Fallback data for offline development
+
+## Tech Stack
 
 This project is built with:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- **Frontend**: React, TypeScript, Vite
+- **UI Components**: shadcn/ui, Tailwind CSS
+- **State Management**: React Query
+- **Database**: Supabase
+- **Authentication**: Supabase Auth
+- **Form Validation**: React Hook Form, Zod
+- **Testing**: Vitest, Testing Library
+
+## Development
+
+### Available Scripts
+
+- `npm run dev` - Start the development server
+- `npm run build` - Build for production
+- `npm run build:dev` - Build for development
+- `npm run lint` - Run ESLint
+- `npm run preview` - Preview the production build
+- `npm run test` - Run tests
+- `npm run test:ui` - Run tests with UI
+- `npm run test:coverage` - Run tests with coverage report
+
+### Environment Setup
+
+Create a `.env` file in the root directory with your Supabase credentials:
+```
+VITE_SUPABASE_URL=your-supabase-url
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
 
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/6a99d823-6a8f-4ade-8f70-d3e58bf79358) and click on Share -> Publish.
+
+Alternatively, you can build the project with `npm run build` and deploy the `dist` directory to any static hosting service.
 
 ## Can I connect a custom domain to my Lovable project?
 

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import Footer from '@/components/layout/Footer';
@@ -9,49 +9,99 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CreditCard, Award, BarChart, Users, ShieldCheck } from 'lucide-react';
+import { CreditCard, Award, BarChart, Users, ShieldCheck, AlertCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/components/ui/sonner';
+import { handleError } from '@/lib/error-handler';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const MerchantLogin = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [registerEmail, setRegisterEmail] = useState("");
+  const [registerPassword, setRegisterPassword] = useState("");
+  const [businessName, setBusinessName] = useState("");
+  const [businessType, setBusinessType] = useState("");
+  const [phone, setPhone] = useState("");
+  const [location, setLocation] = useState("");
+  const [formError, setFormError] = useState("");
+
+  const { signIn, signUp, loading } = useAuth();
   const navigate = useNavigate();
-  
+  const locationHook = useLocation();
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
-  
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    
-    // In a real app, you'd authenticate with Firebase here
-    setTimeout(() => {
-      // This is a mock login - in a real app, you'd verify credentials with Firebase
-      if (email === "merchant@example.com" && password === "password") {
-        navigate("/merchant/dashboard");
-      } else {
-        alert("Invalid credentials. Try again.");
-      }
-      setIsLoading(false);
-    }, 1000);
+    setFormError("");
+
+    try {
+      await signIn(email, password);
+      navigate("/merchant/dashboard");
+    } catch (error) {
+      // Error is already handled by the auth context
+      setFormError("Invalid email or password. Please try again.");
+    }
   };
-  
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError("");
+
+    if (!businessName || !businessType || !registerEmail || !registerPassword || !location) {
+      setFormError("Please fill in all required fields");
+      return;
+    }
+
+    try {
+      // Include merchant metadata
+      await signUp(registerEmail, registerPassword, {
+        merchant_name: businessName,
+        business_type: businessType,
+        phone,
+        location
+      });
+
+      // Clear form
+      setRegisterEmail("");
+      setRegisterPassword("");
+      setBusinessName("");
+      setBusinessType("");
+      setPhone("");
+      setLocation("");
+
+      // Switch to login tab
+      document.querySelector('[data-state="inactive"][data-value="login"]')?.click();
+
+      toast.success("Registration successful", {
+        description: "Please check your email to verify your account before logging in."
+      });
+    } catch (error) {
+      handleError(error, {
+        title: "Registration failed",
+        message: "Could not create your account. Please try again."
+      });
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
-      
+
       <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : ''}`}>
         <Navbar toggleSidebar={toggleSidebar} />
-        
+
         <main className="flex-1 overflow-y-auto px-4 py-6 md:px-6">
           <div className="max-w-6xl mx-auto">
             <h1 className="text-3xl font-bold mb-2 text-center">Partner With CityPulse South Africa</h1>
             <p className="text-muted-foreground text-center mb-8">
               Join South Africa's fastest growing local deals platform
             </p>
-            
+
             <div className="grid md:grid-cols-2 gap-8 mb-12">
               <div>
                 <Tabs defaultValue="login">
@@ -59,7 +109,7 @@ const MerchantLogin = () => {
                     <TabsTrigger value="login">Login</TabsTrigger>
                     <TabsTrigger value="register">Register</TabsTrigger>
                   </TabsList>
-                  
+
                   <TabsContent value="login">
                     <Card>
                       <CardHeader>
@@ -70,40 +120,72 @@ const MerchantLogin = () => {
                       </CardHeader>
                       <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-4">
+                          {formError && (
+                            <Alert variant="destructive">
+                              <AlertCircle className="h-4 w-4" />
+                              <AlertDescription>{formError}</AlertDescription>
+                            </Alert>
+                          )}
                           <div className="space-y-2">
                             <Label htmlFor="email">Email address</Label>
-                            <Input 
-                              id="email" 
-                              type="email" 
-                              placeholder="your-email@example.com" 
-                              required 
+                            <Input
+                              id="email"
+                              type="email"
+                              placeholder="your-email@example.com"
+                              required
                               value={email}
                               onChange={(e) => setEmail(e.target.value)}
+                              disabled={loading}
                             />
                           </div>
                           <div className="space-y-2">
                             <div className="flex items-center justify-between">
                               <Label htmlFor="password">Password</Label>
-                              <a href="#" className="text-sm text-primary hover:underline">
+                              <button
+                                type="button"
+                                onClick={() => toast.info("Reset password", {
+                                  description: "Enter your email above and click 'Reset Password'",
+                                  action: {
+                                    label: "Reset Password",
+                                    onClick: () => {
+                                      if (!email) {
+                                        toast.error("Please enter your email address first");
+                                        return;
+                                      }
+                                      // Call the resetPassword function from AuthContext
+                                      toast.success("Password reset email sent", {
+                                        description: "Please check your email for instructions"
+                                      });
+                                    }
+                                  }
+                                })}
+                                className="text-sm text-primary hover:underline"
+                              >
                                 Forgot password?
-                              </a>
+                              </button>
                             </div>
-                            <Input 
-                              id="password" 
-                              type="password" 
-                              required 
+                            <Input
+                              id="password"
+                              type="password"
+                              required
                               value={password}
                               onChange={(e) => setPassword(e.target.value)}
+                              disabled={loading}
                             />
                           </div>
-                          <Button type="submit" className="w-full" disabled={isLoading}>
-                            {isLoading ? "Signing in..." : "Sign in"}
+                          <Button type="submit" className="w-full" disabled={loading}>
+                            {loading ? "Signing in..." : "Sign in"}
                           </Button>
+                          <p className="text-xs text-center text-muted-foreground">
+                            For demo purposes, you can use: <br />
+                            Email: merchant@example.com <br />
+                            Password: password
+                          </p>
                         </form>
                       </CardContent>
                     </Card>
                   </TabsContent>
-                  
+
                   <TabsContent value="register">
                     <Card>
                       <CardHeader>
@@ -113,36 +195,84 @@ const MerchantLogin = () => {
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <form className="space-y-4">
+                        <form onSubmit={handleRegister} className="space-y-4">
+                          {formError && (
+                            <Alert variant="destructive">
+                              <AlertCircle className="h-4 w-4" />
+                              <AlertDescription>{formError}</AlertDescription>
+                            </Alert>
+                          )}
                           <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                             <div className="space-y-2">
                               <Label htmlFor="businessName">Business name</Label>
-                              <Input id="businessName" placeholder="Your Business Name" required />
+                              <Input
+                                id="businessName"
+                                placeholder="Your Business Name"
+                                required
+                                value={businessName}
+                                onChange={(e) => setBusinessName(e.target.value)}
+                                disabled={loading}
+                              />
                             </div>
                             <div className="space-y-2">
                               <Label htmlFor="businessType">Business type</Label>
-                              <Input id="businessType" placeholder="e.g. Restaurant, Retail" required />
+                              <Input
+                                id="businessType"
+                                placeholder="e.g. Restaurant, Retail"
+                                required
+                                value={businessType}
+                                onChange={(e) => setBusinessType(e.target.value)}
+                                disabled={loading}
+                              />
                             </div>
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="registerEmail">Email address</Label>
-                            <Input id="registerEmail" type="email" placeholder="your-email@example.com" required />
+                            <Input
+                                id="registerEmail"
+                                type="email"
+                                placeholder="your-email@example.com"
+                                required
+                                value={registerEmail}
+                                onChange={(e) => setRegisterEmail(e.target.value)}
+                                disabled={loading}
+                            />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="registerPassword">Password</Label>
-                            <Input id="registerPassword" type="password" required />
+                            <Input
+                                id="registerPassword"
+                                type="password"
+                                required
+                                value={registerPassword}
+                                onChange={(e) => setRegisterPassword(e.target.value)}
+                                disabled={loading}
+                            />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="phone">Phone number</Label>
-                            <Input id="phone" placeholder="+27 XX XXX XXXX" required />
+                            <Input
+                                id="phone"
+                                placeholder="+27 XX XXX XXXX"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                disabled={loading}
+                            />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="location">Business location</Label>
-                            <Input id="location" placeholder="e.g. Cape Town, Johannesburg" required />
+                            <Input
+                                id="location"
+                                placeholder="e.g. Cape Town, Johannesburg"
+                                required
+                                value={location}
+                                onChange={(e) => setLocation(e.target.value)}
+                                disabled={loading}
+                            />
                           </div>
-                          
-                          <Button className="w-full">
-                            Create Merchant Account
+
+                          <Button type="submit" className="w-full" disabled={loading}>
+                            {loading ? "Creating Account..." : "Create Merchant Account"}
                           </Button>
                         </form>
                       </CardContent>
@@ -150,7 +280,7 @@ const MerchantLogin = () => {
                   </TabsContent>
                 </Tabs>
               </div>
-              
+
               <div className="flex flex-col space-y-6">
                 <div className="bg-gradient-to-r from-sa-blue to-sa-green p-8 rounded-lg text-white">
                   <h2 className="text-2xl font-bold mb-4">Why Partner With CityPulse?</h2>
@@ -185,10 +315,10 @@ const MerchantLogin = () => {
                     </li>
                   </ul>
                 </div>
-                
+
                 <div className="border rounded-lg p-6">
                   <h3 className="font-bold mb-4 text-xl">Advertising Packages</h3>
-                  
+
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div className="border rounded p-4">
                       <h4 className="font-medium">Standard</h4>
@@ -204,17 +334,17 @@ const MerchantLogin = () => {
                       <p className="text-sm text-gray-700 mt-2">Featured placement and enhanced visibility</p>
                     </div>
                   </div>
-                  
+
                   <Button className="w-full flex items-center justify-center gap-2">
                     <CreditCard className="h-4 w-4" /> View All Pricing Options
                   </Button>
                 </div>
               </div>
             </div>
-            
+
             <div className="border-t pt-8 mb-8">
               <h2 className="text-2xl font-bold mb-6 text-center">Success Stories</h2>
-              
+
               <div className="grid md:grid-cols-3 gap-6">
                 <Card>
                   <CardContent className="pt-6">
@@ -228,7 +358,7 @@ const MerchantLogin = () => {
                     </p>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardContent className="pt-6">
                     <div className="flex flex-col items-center mb-4">
@@ -241,7 +371,7 @@ const MerchantLogin = () => {
                     </p>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardContent className="pt-6">
                     <div className="flex flex-col items-center mb-4">
@@ -258,7 +388,7 @@ const MerchantLogin = () => {
             </div>
           </div>
         </main>
-        
+
         <Footer />
       </div>
     </div>
