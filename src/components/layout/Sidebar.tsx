@@ -3,7 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Home, Tag, Calendar, Building2, UserPlus, 
-  LogIn, Settings, ChevronRight, ChevronLeft 
+  LogIn, Settings, ChevronRight, ChevronLeft, Mail
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -17,6 +17,7 @@ const menuItems = [
   { name: 'Home', icon: Home, path: '/' },
   { name: 'Deals', icon: Tag, path: '/deals' },
   { name: 'Events', icon: Calendar, path: '/events' },
+  { name: 'Contact Us', icon: Mail, path: '/contact' },
   { name: 'Merchant Login', icon: LogIn, path: '/merchant/login' },
 ];
 

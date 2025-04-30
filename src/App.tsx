@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Deals from "./pages/Deals";
 import Events from "./pages/Events";
+import Contact from "./pages/Contact";
 import MerchantLogin from "./pages/MerchantLogin";
 import MerchantDashboard from "./pages/MerchantDashboard";
 import NotFound from "./pages/NotFound";
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/deals" element={<Deals />} />
           <Route path="/events" element={<Events />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/merchant/login" element={<MerchantLogin />} />
           <Route path="/merchant/dashboard" element={<MerchantDashboard />} />
           <Route path="*" element={<NotFound />} />
