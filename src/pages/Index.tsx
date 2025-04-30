@@ -28,6 +28,7 @@ const Index = () => {
         await supabase.from('analytics').insert({
           event_type: 'page_view',
           event_source: 'home_page',
+          source_id: 0, // Adding a default source_id of 0 for page views
           metadata: { page: 'home' }
         });
         console.log('Page view tracked');
@@ -179,15 +180,19 @@ const Index = () => {
       await supabase.from('analytics').insert({
         event_type: 'deal_click',
         event_source: 'home_page',
-        source_id: dealId,
+        source_id: dealId, // Using the deal ID as the source_id
         metadata: { deal_id: dealId }
       });
 
-      // Also increment views counter in deals table
-      await supabase
+      // Update views counter in deals table - fix the type issue
+      const { error } = await supabase
         .from('deals')
-        .update({ views: supabase.rpc('increment', { row_id: dealId, amount: 1 }) })
+        .update({ views: (currentViews) => currentViews + 1 })
         .eq('id', dealId);
+        
+      if (error) {
+        console.error('Failed to update view count:', error);
+      }
     } catch (error) {
       console.error('Failed to track deal click:', error);
     }
@@ -199,7 +204,7 @@ const Index = () => {
       await supabase.from('analytics').insert({
         event_type: 'event_click',
         event_source: 'home_page',
-        source_id: eventId,
+        source_id: eventId, // Using the event ID as the source_id
         metadata: { event_id: eventId }
       });
     } catch (error) {
