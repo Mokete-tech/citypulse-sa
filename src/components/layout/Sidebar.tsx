@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Home, Tag, Calendar, Building2, UserPlus, 
+  Tag, Calendar, Building2, UserPlus, 
   LogIn, Settings, ChevronRight, ChevronLeft, Mail
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,10 +14,8 @@ interface SidebarProps {
 }
 
 const menuItems = [
-  { name: 'Home', icon: Home, path: '/' },
   { name: 'Deals', icon: Tag, path: '/deals' },
   { name: 'Events', icon: Calendar, path: '/events' },
-  { name: 'Contact Us', icon: Mail, path: '/contact' },
   { name: 'Merchant Login', icon: LogIn, path: '/merchant/login' },
 ];
 
@@ -30,7 +28,12 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
       )}>
         <div className="h-full flex flex-col">
           <div className="flex items-center justify-between h-16 px-4 border-b border-sky-700">
-            <h1 className="text-xl font-bold">CityPulse</h1>
+            <Link to="/" className="text-xl font-bold flex items-center gap-2">
+              <div className="bg-gradient-to-r from-white to-gray-200 p-1.5 rounded-md">
+                <span className="text-sa-blue font-bold">CP</span>
+              </div>
+              <span>CityPulse</span>
+            </Link>
             <Button 
               variant="ghost" 
               size="icon" 

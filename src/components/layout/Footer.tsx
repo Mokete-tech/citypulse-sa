@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Github, Twitter } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
@@ -14,10 +15,10 @@ const Footer = () => {
           </div>
           
           <div className="flex items-center space-x-6">
-            <a href="#" className="text-gray-600 hover:text-sa-blue transition-colors">
+            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-sa-blue transition-colors">
               <Github className="h-5 w-5" />
             </a>
-            <a href="#" className="text-gray-600 hover:text-sa-blue transition-colors">
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-sa-blue transition-colors">
               <Twitter className="h-5 w-5" />
             </a>
           </div>
@@ -35,9 +36,9 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-600 hover:text-sa-blue transition-colors">
+                <Link to="/contact" className="text-gray-600 hover:text-sa-blue transition-colors">
                   Contact
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
