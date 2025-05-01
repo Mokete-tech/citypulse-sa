@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -132,7 +131,7 @@ const Index = () => {
 
       // Increment view count using RPC function or fallback
       if (rpcAvailable) {
-        const { error } = await supabase.rpc('increment_deal_views', { deal_id: dealId } as any);
+        const { error } = await supabase.rpc('increment_deal_views' as any, { deal_id: dealId } as any);
         if (error) {
           console.error('Failed to update view count with RPC:', error);
           await incrementDealViewsFallback(dealId);

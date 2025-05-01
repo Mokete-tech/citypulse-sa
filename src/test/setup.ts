@@ -1,7 +1,7 @@
 
 import { expect, afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
-import matchers from '@testing-library/jest-dom/matchers';
+import * as matchers from '@testing-library/jest-dom/matchers';
 
 // Extend Vitest's expect method with methods from react-testing-library
 expect.extend(matchers);
@@ -11,5 +11,5 @@ afterEach(() => {
   cleanup();
 });
 
-// Add global mocks or setup here
+// Make beforeEach available globally
 global.beforeEach = vi.beforeEach;
