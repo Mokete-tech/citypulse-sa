@@ -37,6 +37,9 @@ VITE_SENDGRID_API_KEY=your-sendgrid-api-key
 VITE_SENDGRID_FROM_EMAIL=noreply@citypulse-sa.com
 VITE_SENDGRID_FROM_NAME=CityPulse South Africa
 
+# Payment Configuration (Stripe)
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_51IRNxfHieGkyNl5wOGvmEAtaXxZ6VHEPmHcXuwfsfOPTt0umFFEY9QpsJMXo4IAo0uzl0R66CpaJFRKCaXo0k5DZ00uGSXCeCN
+
 # Application Settings
 VITE_APP_NAME=CityPulse South Africa
 VITE_APP_ENV=production
