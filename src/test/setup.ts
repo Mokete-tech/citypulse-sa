@@ -1,5 +1,5 @@
 
-import { expect, afterEach, vi } from 'vitest';
+import { expect, afterEach, beforeEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import * as matchers from '@testing-library/jest-dom/matchers';
 
@@ -11,6 +11,4 @@ afterEach(() => {
   cleanup();
 });
 
-// Make beforeEach available globally
-global.beforeEach = vi.beforeEach;
-
+// No need to make beforeEach available globally as it's already exported by Vitest
