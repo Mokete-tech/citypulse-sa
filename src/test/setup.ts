@@ -12,4 +12,5 @@ afterEach(() => {
 });
 
 // Make beforeEach available globally
-global.beforeEach = vi.beforeEach as any;
+global.beforeEach = vi.beforeEach;
+

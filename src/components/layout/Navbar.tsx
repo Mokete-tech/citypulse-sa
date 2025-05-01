@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, Search, Menu, LogIn } from 'lucide-react';
+import { Bell, Search, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -44,12 +44,6 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
         <Button variant="ghost" size="icon" className="text-gray-500">
           <Search className="h-5 w-5 md:hidden" />
         </Button>
-        <Link to="/merchant/login">
-          <Button variant="outline" size="sm" className="hidden md:flex items-center gap-2">
-            <LogIn className="h-4 w-4" />
-            Merchant Login
-          </Button>
-        </Link>
       </div>
     </nav>
   );

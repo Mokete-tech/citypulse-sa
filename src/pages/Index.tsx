@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -57,34 +58,15 @@ const Index = () => {
   };
 
   const incrementDealViews = async (dealId: number) => {
-  // Check if RPC function is available
-  let rpcAvailable = true;
-  try {
-    // Try to get a list of available functions
-    const { data: functions, error } = await supabase.rpc('get_available_functions' as any);
-    if (error || !functions || !functions.includes('increment_deal_views')) {
-      rpcAvailable = false;
-    }
-  } catch {
-    rpcAvailable = false;
-  }
-
-  try {
-    // Increment view count using RPC function or fallback
-    if (rpcAvailable) {
-      const { error } = await supabase.rpc('increment_deal_views' as any, { deal_id: dealId } as any);
-      if (error) {
-        console.error('Failed to update view count with RPC:', error);
-        await incrementDealViewsFallback(dealId);
-      }
-    } else {
+    // Check if RPC function is available using direct DB call instead of RPC
+    try {
+      // Try to increment using direct DB update
       await incrementDealViewsFallback(dealId);
+    } catch (error) {
+      console.error('Error incrementing deal views:', error);
+      // Silent failure for view counts - don't affect user experience
     }
-  } catch (error) {
-    console.error('Error incrementing deal views:', error);
-    // Silent failure for view counts - don't affect user experience
-  }
-};
+  };
 
   const incrementDealViewsFallback = async (dealId: number) => {
     try {

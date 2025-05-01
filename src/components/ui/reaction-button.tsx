@@ -28,6 +28,7 @@ export function ReactionButton({
   const [count, setCount] = useState(0);
   const [hasReacted, setHasReacted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -38,7 +39,7 @@ export function ReactionButton({
     try {
       // Get reaction count
       const { data: countData, error: countError } = await supabase
-        .rpc('get_reaction_count' as any, {
+        .rpc('get_reaction_count', {
           p_item_id: itemId,
           p_item_type: itemType
         });
@@ -49,7 +50,7 @@ export function ReactionButton({
       // Check if user has reacted
       if (user) {
         const { data: hasReactedData, error: hasReactedError } = await supabase
-          .rpc('has_user_reacted' as any, {
+          .rpc('has_user_reacted', {
             p_user_id: user.id,
             p_item_id: itemId,
             p_item_type: itemType
@@ -72,6 +73,7 @@ export function ReactionButton({
     }
 
     setIsLoading(true);
+    setIsAnimating(true);
 
     try {
       if (hasReacted) {
@@ -110,6 +112,11 @@ export function ReactionButton({
       });
     } finally {
       setIsLoading(false);
+      
+      // Reset animation state after animation completes
+      setTimeout(() => {
+        setIsAnimating(false);
+      }, 500);
     }
   };
 
@@ -119,20 +126,38 @@ export function ReactionButton({
       size={size}
       className={cn(
         className,
-        'transition-all duration-200',
-        hasReacted && 'bg-green-500 hover:bg-green-600 text-white border-green-500'
+        'transition-all duration-300',
+        hasReacted && 'bg-green-500 hover:bg-green-600 text-white border-green-500',
+        isAnimating && 'scale-110'
       )}
       onClick={handleReaction}
       disabled={isLoading}
     >
       <Check 
         className={cn(
-          'h-4 w-4 transition-transform', 
+          'h-4 w-4 transition-all duration-300', 
           showCount && 'mr-2',
-          hasReacted && 'animate-[scale_0.2s_ease-out] scale-110 stroke-[3]'
+          hasReacted && 'stroke-[3]',
+          isAnimating && 'animate-[wiggle_0.5s_ease-in-out]'
         )}
       />
-      {showCount && count > 0 && <span className={cn(hasReacted && 'font-medium')}>{count}</span>}
+      {showCount && <span className={cn('transition-all duration-300', hasReacted && 'font-medium')}>{count}</span>}
     </Button>
   );
+}
+
+// Add wiggle animation to tailwind config via CSS
+if (document.head && !document.getElementById('wiggle-animation')) {
+  const style = document.createElement('style');
+  style.id = 'wiggle-animation';
+  style.textContent = `
+    @keyframes wiggle {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(-15deg) scale(1.2); }
+      50% { transform: rotate(10deg) scale(1.2); }
+      75% { transform: rotate(-5deg) scale(1.1); }
+      100% { transform: rotate(0deg); }
+    }
+  `;
+  document.head.appendChild(style);
 }

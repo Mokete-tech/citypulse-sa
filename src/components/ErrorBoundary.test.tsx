@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@/test/utils';
 import ErrorBoundary from './ErrorBoundary';
+import '@testing-library/jest-dom';
 
 // Create a component that throws an error
 const ErrorComponent = () => {
