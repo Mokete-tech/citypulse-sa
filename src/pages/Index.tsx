@@ -132,7 +132,7 @@ const Index = () => {
 
       // Increment view count using RPC function or fallback
       if (rpcAvailable) {
-        const { error } = await supabase.rpc('increment_deal_views', { deal_id: dealId });
+        const { error } = await supabase.rpc('increment_deal_views', { deal_id: dealId } as any);
         if (error) {
           console.error('Failed to update view count with RPC:', error);
           await incrementDealViewsFallback(dealId);

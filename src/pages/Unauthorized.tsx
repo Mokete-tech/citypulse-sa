@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
@@ -6,9 +7,15 @@ import { Button } from '@/components/ui/button';
 import { ShieldAlert } from 'lucide-react';
 
 const Unauthorized = () => {
+  // Add a toggleSidebar function to fix the TypeScript error
+  const toggleSidebar = () => {
+    // This is a dummy function since the sidebar isn't actually used on this page
+    console.log('Sidebar toggle called on Unauthorized page');
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar />
+      <Navbar toggleSidebar={toggleSidebar} />
       
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">

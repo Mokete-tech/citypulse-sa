@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { handleError } from "./error-handler";
 
@@ -8,7 +9,7 @@ export const ensureRpcFunctionsExist = async () => {
   try {
     // Check if the function exists by calling it with an invalid ID
     // This is just to detect if the function exists, it should fail with a constraint error rather than function not found
-    await supabase.rpc('increment_deal_views', { deal_id: -1 });
+    await supabase.rpc('increment_deal_views', { deal_id: -1 } as any);
     console.log("RPC functions are available");
     return true;
   } catch (error: any) {
