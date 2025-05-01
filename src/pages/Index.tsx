@@ -1,291 +1,144 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
-import Sidebar from '@/components/layout/Sidebar';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tag, Calendar, AlertCircle } from 'lucide-react';
-import { LoadingState } from '@/components/ui/loading-state';
-import { handleError, handleSupabaseError } from '@/lib/error-handler';
 import { toast } from '@/components/ui/sonner';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ReactionButton } from '@/components/ui/reaction-button';
-import { fallbackDeals, fallbackEvents } from '@/data/fallback-data';
-import { ensureRpcFunctionsExist, incrementDealViewsFallback } from '@/lib/supabase-utils';
-
-// Use the interfaces from fallback-data.ts
-import type { Deal, Event } from '@/data/fallback-data';
+import { handleSupabaseError } from '@/lib/error-handler';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
-  const [deals, setDeals] = useState<Deal[]>([]);
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [rpcAvailable, setRpcAvailable] = useState(true);
+  const [deals, setDeals] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
 
   useEffect(() => {
-    // Check if RPC functions are available
-    ensureRpcFunctionsExist().then(available => {
-      setRpcAvailable(available);
-      if (!available) {
-        console.log("Using fallback method for incrementing deal views");
-      }
-    });
-    
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Fetch deals
-        const { data: dealsData, error: dealsError } = await supabase
-          .from('deals')
-          .select('*')
-          .order('views', { ascending: false })
-          .limit(3);
-
-        if (dealsError) {
-          handleSupabaseError(dealsError, {
-            title: "Error fetching deals",
-            silent: true
-          });
-          // Don't set error state yet, we'll still try to fetch events
-        } else {
-          setDeals(dealsData || []);
-        }
-
-        // Fetch events
-        const { data: eventsData, error: eventsError } = await supabase
-          .from('events')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(3);
-
-        if (eventsError) {
-          handleSupabaseError(eventsError, {
-            title: "Error fetching events",
-            silent: true
-          });
-
-          // If both requests failed, show an error message
-          if (dealsError) {
-            setError("Failed to load content. Using fallback data instead.");
-            toast.error("Connection error", {
-              description: "Could not connect to the database. Showing sample data instead."
-            });
-          }
-        } else {
-          setEvents(eventsData || []);
-        }
-      } catch (err) {
-        handleError(err, {
-          title: "Error loading content",
-          message: "An unexpected error occurred. Showing sample data instead."
-        });
-        setError("Failed to load content. Using fallback data instead.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    fetchDeals();
+    fetchEvents();
   }, []);
 
-  useEffect(() => {
-    const trackPageView = async () => {
-      try {
-        await supabase.from('analytics').insert({
-          event_type: 'page_view',
-          event_source: 'home_page',
-          source_id: 0, // Adding source_id as required by the schema
-          metadata: { page: 'home' }
-        });
-      } catch (error) {
-        // Just log the error but don't show to user since analytics errors are non-critical
-        handleError(error, { silent: true });
-      }
-    };
+  const fetchDeals = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('deals')
+        .select('*')
+        .limit(3);
 
-    // Only track page views if we're not in development mode
-    if (import.meta.env.MODE !== 'development') {
-      trackPageView();
+      if (error) {
+        throw error;
+      }
+
+      setDeals(data || []);
+    } catch (error) {
+      handleSupabaseError(error, {
+        title: 'Error loading deals',
+        message: 'Could not load deals.',
+        silent: true
+      });
     }
-  }, []);
-
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
   };
 
-  const handleDealClick = async (dealId: number) => {
+  const fetchEvents = async () => {
     try {
-      // Track analytics
-      await supabase.from('analytics').insert({
-        event_type: 'deal_click',
-        event_source: 'home_page',
-        source_id: dealId,
-        metadata: { deal_id: dealId }
-      });
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .limit(3);
 
-      // Increment view count using RPC function or fallback
-      if (rpcAvailable) {
-        const { error } = await supabase.rpc('increment_deal_views' as any, { deal_id: dealId } as any);
-        if (error) {
-          console.error('Failed to update view count with RPC:', error);
-          await incrementDealViewsFallback(dealId);
-        }
-      } else {
+      if (error) {
+        throw error;
+      }
+
+      setEvents(data || []);
+    } catch (error) {
+      handleSupabaseError(error, {
+        title: 'Error loading events',
+        message: 'Could not load events.',
+        silent: true
+      });
+    }
+  };
+
+  const incrementDealViews = async (dealId: number) => {
+  // Check if RPC function is available
+  let rpcAvailable = true;
+  try {
+    // Try to get a list of available functions
+    const { data: functions, error } = await supabase.rpc('get_available_functions' as any);
+    if (error || !functions || !functions.includes('increment_deal_views')) {
+      rpcAvailable = false;
+    }
+  } catch {
+    rpcAvailable = false;
+  }
+
+  try {
+    // Increment view count using RPC function or fallback
+    if (rpcAvailable) {
+      const { error } = await supabase.rpc('increment_deal_views' as any, { deal_id: dealId } as any);
+      if (error) {
+        console.error('Failed to update view count with RPC:', error);
         await incrementDealViewsFallback(dealId);
       }
-    } catch (error) {
-      console.error('Failed to track deal click:', error);
+    } else {
+      await incrementDealViewsFallback(dealId);
     }
-  };
+  } catch (error) {
+    console.error('Error incrementing deal views:', error);
+    // Silent failure for view counts - don't affect user experience
+  }
+};
 
-  const handleEventClick = async (eventId: number) => {
+  const incrementDealViewsFallback = async (dealId: number) => {
     try {
-      await supabase.from('analytics').insert({
-        event_type: 'event_click',
-        event_source: 'home_page',
-        source_id: eventId,
-        metadata: { event_id: eventId }
-      });
+      const { data: existingViews, error: selectError } = await supabase
+        .from('deals')
+        .select('views')
+        .eq('id', dealId)
+        .single();
+
+      if (selectError) {
+        throw selectError;
+      }
+
+      const currentViews = existingViews?.views || 0;
+      const newViews = currentViews + 1;
+
+      const { error: updateError } = await supabase
+        .from('deals')
+        .update({ views: newViews })
+        .eq('id', dealId);
+
+      if (updateError) {
+        throw updateError;
+      }
     } catch (error) {
-      console.error('Failed to track event click:', error);
+      console.error('Fallback failed to update view count:', error);
+      // Still a silent failure - don't disrupt user experience
     }
   };
-
-  // Use fallback data in case the database fetch fails
-  const displayDeals = deals.length > 0 ? deals : fallbackDeals;
-  const displayEvents = events.length > 0 ? events : fallbackEvents;
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
-
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : ''}`}>
-        <Navbar toggleSidebar={toggleSidebar} />
-
-        <main className="flex-1 p-6">
-          <div className="container mx-auto">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold mb-2">Welcome to CityPulse South Africa</h1>
-              <p className="text-muted-foreground">
-                Discover the best local deals and events across South Africa.
-              </p>
-              {error && (
-                <Alert className="mt-4">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-              <section>
-                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                  <Tag className="h-5 w-5" /> Featured Deals
-                </h2>
-
-                <div className="grid grid-cols-1 gap-4">
-                  {loading ? (
-                    <LoadingState isLoading={true} type="card" count={3} />
-                  ) : (
-                    displayDeals.map(deal => (
-                      <Card key={deal.id} className="overflow-hidden">
-                        <CardHeader>
-                          <CardTitle>{deal.title}</CardTitle>
-                          <CardDescription>{deal.merchant_name}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <p>{deal.description}</p>
-                          {deal.category && (
-                            <div className="mt-2 text-sm flex items-center gap-1 text-muted-foreground">
-                              <Tag className="h-3 w-3" /> {deal.category}
-                            </div>
-                          )}
-                        </CardContent>
-                        <CardFooter className="flex justify-between border-t pt-4">
-                          {deal.expiration_date && (
-                            <span className="text-sm text-muted-foreground">
-                              Expires: {deal.expiration_date}
-                            </span>
-                          )}
-                          <div className="flex gap-2">
-                            <ReactionButton 
-                              itemId={deal.id} 
-                              itemType="deal" 
-                              size="sm"
-                              showCount={true}
-                            />
-                            <Link to={`/deals/${deal.id}`} onClick={() => handleDealClick(deal.id)}>
-                              <Button size="sm">View Deal</Button>
-                            </Link>
-                          </div>
-                        </CardFooter>
-                      </Card>
-                    ))
-                  )}
-                </div>
-
-                <div className="mt-4">
-                  <Link to="/deals">
-                    <Button variant="outline">View All Deals</Button>
-                  </Link>
-                </div>
-              </section>
-
-              <section>
-                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                  <Calendar className="h-5 w-5" /> Upcoming Events
-                </h2>
-
-                <div className="grid grid-cols-1 gap-4">
-                  {loading ? (
-                    <LoadingState isLoading={true} type="card" count={3} />
-                  ) : (
-                    displayEvents.map(event => (
-                      <Card key={event.id} className="overflow-hidden">
-                        <CardHeader>
-                          <CardTitle>{event.title}</CardTitle>
-                          {event.date && event.time && (
-                            <CardDescription>
-                              {event.date} at {event.time}
-                            </CardDescription>
-                          )}
-                        </CardHeader>
-                        <CardContent>
-                          <p>{event.description}</p>
-                          {event.location && (
-                            <p className="mt-2 text-sm text-muted-foreground">
-                              {event.location}
-                            </p>
-                          )}
-                        </CardContent>
-                        <CardFooter>
-                          <Link to={`/events/${event.id}`} onClick={() => handleEventClick(event.id)}>
-                            <Button size="sm">View Event</Button>
-                          </Link>
-                        </CardFooter>
-                      </Card>
-                    ))
-                  )}
-                </div>
-
-                <div className="mt-4">
-                  <Link to="/events">
-                    <Button variant="outline">View All Events</Button>
-                  </Link>
-                </div>
-              </section>
-            </div>
-          </div>
-        </main>
-
-        <Footer />
-      </div>
+    <div>
+      <h1>Welcome to Our App</h1>
+      <p>Check out these deals:</p>
+      <ul>
+        {deals.map(deal => (
+          <li key={deal.id}>
+            <Link to={`/deals/${deal.id}`} onClick={() => incrementDealViews(deal.id)}>
+              {deal.title}
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <p>Upcoming Events:</p>
+      <ul>
+        {events.map(event => (
+          <li key={event.id}>
+            <Link to={`/events/${event.id}`}>{event.title}</Link>
+          </li>
+        ))}
+      </ul>
+      <Button asChild>
+        <Link to="/deals">View All Deals</Link>
+      </Button>
     </div>
   );
 };

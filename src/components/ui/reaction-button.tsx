@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Check } from 'lucide-react';
@@ -5,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/sonner';
 import { handleSupabaseError } from '@/lib/error-handler';
+import { cn } from '@/lib/utils';
 
 interface ReactionButtonProps {
   itemId: number;
@@ -36,7 +38,7 @@ export function ReactionButton({
     try {
       // Get reaction count
       const { data: countData, error: countError } = await supabase
-        .rpc('get_reaction_count', {
+        .rpc('get_reaction_count' as any, {
           p_item_id: itemId,
           p_item_type: itemType
         });
@@ -47,7 +49,7 @@ export function ReactionButton({
       // Check if user has reacted
       if (user) {
         const { data: hasReactedData, error: hasReactedError } = await supabase
-          .rpc('has_user_reacted', {
+          .rpc('has_user_reacted' as any, {
             p_user_id: user.id,
             p_item_id: itemId,
             p_item_type: itemType
@@ -113,14 +115,24 @@ export function ReactionButton({
 
   return (
     <Button
-      variant={hasReacted ? 'default' : variant}
+      variant={hasReacted ? 'secondary' : variant}
       size={size}
-      className={className}
+      className={cn(
+        className,
+        'transition-all duration-200',
+        hasReacted && 'bg-green-500 hover:bg-green-600 text-white border-green-500'
+      )}
       onClick={handleReaction}
       disabled={isLoading}
     >
-      <Check className={`h-4 w-4 ${showCount ? 'mr-2' : ''}`} />
-      {showCount && count > 0 && count}
+      <Check 
+        className={cn(
+          'h-4 w-4 transition-transform', 
+          showCount && 'mr-2',
+          hasReacted && 'animate-[scale_0.2s_ease-out] scale-110 stroke-[3]'
+        )}
+      />
+      {showCount && count > 0 && <span className={cn(hasReacted && 'font-medium')}>{count}</span>}
     </Button>
   );
 }
