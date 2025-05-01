@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ReactionButton } from '@/components/ui/reaction-button';
 import ShareButton from '@/components/ui/share-button';
-import { Calendar, MapPin } from 'lucide-react';
+import { Calendar, MapPin, Star, Clock } from 'lucide-react';
 
 interface EventCardProps {
   id: number;
@@ -36,7 +36,13 @@ export function EventCard({
   onClick
 }: EventCardProps) {
   return (
-    <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/20 group">
+    <Card className={`h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg group ${featured ? 'border-purple-300 shadow-md' : 'hover:border-primary/20'}`}>
+      {featured && (
+        <div className="bg-gradient-to-r from-purple-600 to-purple-400 text-white text-xs font-bold px-3 py-1 flex items-center justify-center">
+          <Star className="h-3 w-3 mr-1 fill-white" /> PREMIUM EVENT
+        </div>
+      )}
+
       {image_url && (
         <div className="aspect-video w-full overflow-hidden">
           <img
@@ -51,17 +57,13 @@ export function EventCard({
         <div className="flex justify-between items-start">
           <div>
             {category && (
-              <div className="text-sm text-muted-foreground mb-1">
+              <div className="text-sm flex items-center gap-1 text-muted-foreground mb-1">
                 {category}
               </div>
             )}
             <CardTitle>{title}</CardTitle>
             {merchant_name && <CardDescription>{merchant_name}</CardDescription>}
           </div>
-
-          {featured && (
-            <Badge variant="featured" className="ml-2 animate-pulse-scale">Featured</Badge>
-          )}
         </div>
       </CardHeader>
 
@@ -72,7 +74,14 @@ export function EventCard({
           {date && (
             <div className="flex items-center text-sm">
               <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-              <span>{date} {time && `at ${time}`}</span>
+              <span>{date}</span>
+            </div>
+          )}
+
+          {time && (
+            <div className="flex items-center text-sm">
+              <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+              <span>{time}</span>
             </div>
           )}
 
@@ -86,7 +95,7 @@ export function EventCard({
           {price && (
             <div className="mt-3">
               <Badge
-                variant={price.includes('Premium') ? 'premium' : 'secondary'}
+                variant={featured ? 'premium' : 'secondary'}
                 className="text-sm font-bold"
               >
                 {price}
@@ -107,7 +116,7 @@ export function EventCard({
             itemId={id}
             itemType="event"
           />
-          <Button size="sm" onClick={onClick}>View Event</Button>
+          <Button size="sm" onClick={onClick} variant={featured ? "default" : "outline"}>View Event</Button>
         </div>
       </CardFooter>
     </Card>

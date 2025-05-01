@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ReactionButton } from '@/components/ui/reaction-button';
 import ShareButton from '@/components/ui/share-button';
-import { Tag } from 'lucide-react';
+import { Tag, Star, Calendar } from 'lucide-react';
 
 interface DealCardProps {
   id: number;
@@ -32,7 +32,13 @@ export function DealCard({
   onClick
 }: DealCardProps) {
   return (
-    <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/20 group">
+    <Card className={`h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg group ${featured ? 'border-amber-300 shadow-md' : 'hover:border-primary/20'}`}>
+      {featured && (
+        <div className="bg-gradient-to-r from-amber-500 to-amber-300 text-white text-xs font-bold px-3 py-1 flex items-center justify-center">
+          <Star className="h-3 w-3 mr-1 fill-white" /> PREMIUM DEAL
+        </div>
+      )}
+
       {image_url && (
         <div className="aspect-video w-full overflow-hidden">
           <img
@@ -54,10 +60,6 @@ export function DealCard({
             <CardTitle>{title}</CardTitle>
             {merchant_name && <CardDescription>{merchant_name}</CardDescription>}
           </div>
-
-          {featured && (
-            <Badge variant="featured" className="ml-2 animate-pulse-scale">Featured</Badge>
-          )}
         </div>
       </CardHeader>
 
@@ -67,7 +69,7 @@ export function DealCard({
         {discount && (
           <div className="mt-3">
             <Badge
-              variant={discount.includes('Premium') ? 'premium' : 'secondary'}
+              variant={featured ? 'premium' : 'secondary'}
               className="text-sm font-bold"
             >
               {discount}
@@ -81,9 +83,10 @@ export function DealCard({
           <ReactionButton itemId={id} itemType="deal" />
 
           {expiration_date && (
-            <span className="text-sm text-muted-foreground">
-              Expires: {expiration_date}
-            </span>
+            <div className="flex items-center text-sm text-muted-foreground">
+              <Calendar className="h-3 w-3 mr-1" />
+              <span>Expires: {expiration_date}</span>
+            </div>
           )}
         </div>
 
@@ -96,7 +99,7 @@ export function DealCard({
             itemId={id}
             itemType="deal"
           />
-          <Button size="sm" onClick={onClick}>View Deal</Button>
+          <Button size="sm" onClick={onClick} variant={featured ? "default" : "outline"}>View Deal</Button>
         </div>
       </CardFooter>
     </Card>

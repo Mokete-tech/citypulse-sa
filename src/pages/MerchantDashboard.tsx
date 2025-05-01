@@ -85,6 +85,40 @@ const MerchantDashboard = () => {
     },
   ]);
 
+  // Sample merchant events
+  const [merchantEvents, setMerchantEvents] = useState([
+    {
+      id: 1,
+      title: "Coffee Tasting Workshop",
+      description: "Join us for a coffee tasting workshop with our expert baristas",
+      date: "2025-06-15",
+      time: "14:00",
+      category: "Workshop",
+      location: "Cape Town Café",
+      mediaType: "image",
+      mediaUrl: "https://images.unsplash.com/photo-1511920170033-f8396924c348",
+      isPremium: true,
+      price: "R299",
+      views: 89,
+      status: "Active"
+    },
+    {
+      id: 2,
+      title: "Live Jazz Night",
+      description: "Enjoy live jazz music with your evening coffee",
+      date: "2025-06-22",
+      time: "19:00",
+      category: "Entertainment",
+      location: "Johannesburg Bakery",
+      mediaType: "image",
+      mediaUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819",
+      isPremium: false,
+      price: "R150",
+      views: 42,
+      status: "Pending Payment"
+    },
+  ]);
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
@@ -167,35 +201,74 @@ const MerchantDashboard = () => {
     fetchPayments();
   }, []);
 
-  const handlePaymentProcess = (id: number) => {
-    const dealToPay = merchantDeals.find(deal => deal.id === id);
+  const handlePaymentProcess = (id: number, type: 'deal' | 'event' = 'deal') => {
+    if (type === 'deal') {
+      const dealToPay = merchantDeals.find(deal => deal.id === id);
 
-    if (!dealToPay) {
-      toast.error("Deal not found");
-      return;
+      if (!dealToPay) {
+        toast.error("Deal not found");
+        return;
+      }
+
+      // Set the current deal being paid for
+      setCurrentPaymentDeal({
+        ...dealToPay,
+        type: 'deal'
+      });
+    } else {
+      // Handle event payment (would be implemented similarly)
+      const eventToPay = merchantEvents.find(event => event.id === id);
+
+      if (!eventToPay) {
+        toast.error("Event not found");
+        return;
+      }
+
+      // Set the current event being paid for
+      setCurrentPaymentDeal({
+        ...eventToPay,
+        type: 'event'
+      });
     }
-
-    // Set the current deal being paid for
-    setCurrentPaymentDeal(dealToPay);
 
     // Show payment modal
     setShowPaymentModal(true);
   };
 
+  // Function to determine the payment amount based on the item type and premium status
+  const getPaymentAmount = (item: any) => {
+    if (item.type === 'event') {
+      return item.isPremium ? 460 : 299; // Premium Event: R460, Standard Event: R299
+    } else {
+      return item.isPremium ? 250 : 99; // Premium Deal: R250, Standard Deal: R99
+    }
+  };
+
   const handlePaymentSuccess = (paymentId: string) => {
-    // Update the deal status
-    setMerchantDeals(prev =>
-      prev.map(deal =>
-        deal.id === currentPaymentDeal?.id ? { ...deal, status: "Active" } : deal
-      )
-    );
+    if (currentPaymentDeal?.type === 'event') {
+      // Update the event status
+      setMerchantEvents(prev =>
+        prev.map(event =>
+          event.id === currentPaymentDeal?.id
+            ? { ...event, status: 'Active' }
+            : event
+        )
+      );
+    } else {
+      // Update the deal status
+      setMerchantDeals(prev =>
+        prev.map(deal =>
+          deal.id === currentPaymentDeal?.id ? { ...deal, status: "Active" } : deal
+        )
+      );
+    }
 
     // Add the payment to the payment history
     const newPayment = {
       id: paymentId,
       created_at: new Date().toISOString(),
       description: currentPaymentDeal?.title,
-      amount: currentPaymentDeal?.isPremium ? 250 : 99,
+      amount: getPaymentAmount(currentPaymentDeal),
       status: 'Paid'
     };
 
@@ -215,14 +288,14 @@ const MerchantDashboard = () => {
         <DialogContent className="sm:max-w-md">
           {currentPaymentDeal && (
             <StripePaymentForm
-              amount={currentPaymentDeal.isPremium ? 250 : 99}
+              amount={getPaymentAmount(currentPaymentDeal)}
               itemName={currentPaymentDeal.title}
-              itemDescription={`${currentPaymentDeal.isPremium ? 'Premium' : 'Standard'} deal listing`}
+              itemDescription={`${currentPaymentDeal.isPremium ? 'Premium' : 'Standard'} ${currentPaymentDeal.type === 'event' ? 'event' : 'deal'} listing`}
               onSuccess={handlePaymentSuccess}
               onCancel={() => setShowPaymentModal(false)}
               email={user?.email || ''}
               itemId={currentPaymentDeal.id}
-              itemType="deal"
+              itemType={currentPaymentDeal.type || 'deal'}
             />
           )}
         </DialogContent>

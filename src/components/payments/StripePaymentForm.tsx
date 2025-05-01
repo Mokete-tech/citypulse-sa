@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,13 @@ import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/sonner';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { supabase } from '@/integrations/supabase/client';
+
+// Define the Stripe global variable
+declare global {
+  interface Window {
+    Stripe?: any;
+  }
+}
 
 interface StripePaymentFormProps {
   amount: number;
@@ -29,22 +36,104 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
   itemType,
 }) => {
   const [loading, setLoading] = useState(false);
-  const [cardNumber, setCardNumber] = useState('');
-  const [expiryDate, setExpiryDate] = useState('');
-  const [cvc, setCvc] = useState('');
+  const [cardElement, setCardElement] = useState<any>(null);
+  const [stripe, setStripe] = useState<any>(null);
   const [nameOnCard, setNameOnCard] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  // Initialize Stripe
+  useEffect(() => {
+    // Load Stripe.js script
+    if (!document.querySelector('#stripe-js')) {
+      const script = document.createElement('script');
+      script.id = 'stripe-js';
+      script.src = 'https://js.stripe.com/v3/';
+      script.async = true;
+      script.onload = initializeStripe;
+      document.body.appendChild(script);
+    } else {
+      initializeStripe();
+    }
+
+    return () => {
+      // Clean up card element if it exists
+      if (cardElement) {
+        cardElement.unmount();
+      }
+    };
+  }, []);
+
+  const initializeStripe = () => {
+    if (window.Stripe) {
+      // Use the publishable key from environment variables
+      const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ||
+        'pk_live_51IRNxfHieGkyNl5wOGvmEAtaXxZ6VHEPmHcXuwfsfOPTt0umFFEY9QpsJMXo4IAo0uzl0R66CpaJFRKCaXo0k5DZ00uGSXCeCN';
+
+      const stripeInstance = window.Stripe(stripePublishableKey);
+      setStripe(stripeInstance);
+
+      // Create card element
+      const elements = stripeInstance.elements();
+      const card = elements.create('card', {
+        style: {
+          base: {
+            fontSize: '16px',
+            color: '#32325d',
+            fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
+            '::placeholder': {
+              color: '#aab7c4',
+            },
+          },
+          invalid: {
+            color: '#fa755a',
+            iconColor: '#fa755a',
+          },
+        },
+      });
+
+      // Wait for the next render cycle to ensure the DOM element exists
+      setTimeout(() => {
+        const cardElement = document.getElementById('card-element');
+        if (cardElement) {
+          card.mount('#card-element');
+          setCardElement(card);
+        }
+      }, 100);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
+
+    if (!stripe || !cardElement) {
+      setError('Stripe has not been initialized. Please try again.');
+      setLoading(false);
+      return;
+    }
 
     try {
-      // In a real implementation, you would use Stripe.js to securely collect card details
-      // and create a payment intent on your server. This is a simplified mock implementation.
-      
-      // Generate a mock payment ID
-      const paymentId = `stripe_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
-      
+      // Create a payment method
+      const { error: stripeError, paymentMethod } = await stripe.createPaymentMethod({
+        type: 'card',
+        card: cardElement,
+        billing_details: {
+          name: nameOnCard,
+          email: email,
+        },
+      });
+
+      if (stripeError) {
+        throw new Error(stripeError.message);
+      }
+
+      // In a production environment, you would send the payment method ID to your server
+      // and create a payment intent. For this demo, we'll simulate a successful payment.
+
+      // Generate a payment ID using the payment method ID
+      const paymentId = paymentMethod.id;
+
       // Record the payment in Supabase
       const { error } = await supabase.from('payments').insert({
         id: paymentId,
@@ -64,7 +153,7 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
       // Update the item status in the database
       const { error: updateError } = await supabase
         .from(itemType === 'deal' ? 'deals' : 'events')
-        .update({ 
+        .update({
           status: 'Active',
           paid: true,
           payment_id: paymentId
@@ -82,10 +171,11 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
 
       // Call the success callback
       onSuccess(paymentId);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Payment error:', error);
+      setError(error.message || 'There was an error processing your payment. Please try again.');
       toast.error('Payment failed', {
-        description: 'There was an error processing your payment. Please try again.'
+        description: error.message || 'There was an error processing your payment. Please try again.'
       });
     } finally {
       setLoading(false);
@@ -112,42 +202,23 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
               required
             />
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="card-number">Card number</Label>
-            <Input
-              id="card-number"
-              placeholder="4242 4242 4242 4242"
-              value={cardNumber}
-              onChange={(e) => setCardNumber(e.target.value)}
-              required
-              maxLength={19}
-            />
+            <Label htmlFor="card-element">Card details</Label>
+            <div
+              id="card-element"
+              className="border rounded-md p-3 h-10 flex items-center"
+            >
+              {/* Stripe Card Element will be mounted here */}
+            </div>
+            {error && (
+              <div className="text-sm text-red-500 mt-1">{error}</div>
+            )}
           </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="expiry">Expiry date</Label>
-              <Input
-                id="expiry"
-                placeholder="MM/YY"
-                value={expiryDate}
-                onChange={(e) => setExpiryDate(e.target.value)}
-                required
-                maxLength={5}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cvc">CVC</Label>
-              <Input
-                id="cvc"
-                placeholder="123"
-                value={cvc}
-                onChange={(e) => setCvc(e.target.value)}
-                required
-                maxLength={3}
-              />
-            </div>
+
+          <div className="text-sm text-muted-foreground mt-4">
+            <p>Test card: 4242 4242 4242 4242</p>
+            <p>Use any future expiry date, any 3-digit CVC, and any postal code.</p>
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
