@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,8 +21,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { PhoneInput } from 'react-international-phone';
-import 'react-international-phone/style.css';
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -114,7 +113,7 @@ const MerchantLogin = () => {
           <CardTitle className="text-3xl font-bold">Merchant Portal</CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs defaultvalue="login" className="space-y-4">
+          <Tabs defaultValue="login" className="space-y-4">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="register">Register</TabsTrigger>
@@ -221,11 +220,11 @@ const MerchantLogin = () => {
                     />
                     <div className="space-y-2">
                       <FormLabel>Phone number</FormLabel>
-                      <PhoneInput
-                        defaultCountry="za"
+                      <Input 
+                        placeholder="Enter your phone number" 
                         value={phone}
-                        onChange={setPhone}
-                        inputClassName="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="w-full"
                       />
                     </div>
                     <FormField

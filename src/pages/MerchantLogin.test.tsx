@@ -1,3 +1,4 @@
+
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@/test/utils';
 import MerchantLogin from './MerchantLogin';
@@ -27,7 +28,7 @@ describe('MerchantLogin', () => {
     render(<MerchantLogin />);
     
     // Check for login form elements
-    expect(screen.getByText('Merchant Login')).toBeInTheDocument();
+    expect(screen.getByText('Merchant Portal')).toBeInTheDocument();
     expect(screen.getByLabelText(/Email address/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Password/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Sign in/i })).toBeInTheDocument();
