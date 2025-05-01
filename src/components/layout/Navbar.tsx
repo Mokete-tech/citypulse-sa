@@ -64,11 +64,9 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
           <Search className="h-5 w-5 md:hidden" />
         </Button>
 
-        {/* User is not logged in */}
+        {/* Client Login Button - Always visible and prominent in top right */}
         {!user && (
-          <>
-            <UserLoginDialog className="hidden md:flex items-center gap-2" />
-          </>
+          <UserLoginDialog className="flex items-center gap-2" />
         )}
 
         {/* User is logged in */}
@@ -103,16 +101,6 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        )}
-
-        {/* Always show Merchant Login in sidebar for mobile */}
-        {!isMerchant && (
-          <Link to="/merchant/login" className="md:hidden">
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
-              <LogIn className="h-4 w-4" />
-              <span className="sr-only md:not-sr-only">Merchant</span>
-            </Button>
-          </Link>
         )}
       </div>
     </nav>

@@ -19,7 +19,11 @@
     "setup:smtp": "node scripts/setup-smtp.js",
     "test:reactions": "node scripts/test-reactions.js",
     "test:twilio": "node scripts/test-twilio.js",
-    "test:email": "node scripts/test-email.js"
+    "test:email": "node scripts/test-email.js",
+    "deploy": "node vercel-deploy.js",
+    "deploy:vercel": "vercel --prod",
+    "deploy:preview": "vercel",
+    "check:deployment": "node scripts/check-vercel-deployment.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

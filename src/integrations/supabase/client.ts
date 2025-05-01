@@ -2,8 +2,8 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-// Development fallback values (only used if env vars are missing and in development mode)
-const DEV_FALLBACK = {
+// Production and development fallback values
+const FALLBACK = {
   SUPABASE_URL: 'https://qghojdkspxhyjeurxagx.supabase.co',
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFnaG9qZGtzcHhoeWpldXJ4YWd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTg3NjQ4MDAsImV4cCI6MjAxNDM0MDgwMH0.fallback-key-for-development'
 };
@@ -19,23 +19,22 @@ let supabaseAnonKey = SUPABASE_ANON_KEY;
 let usingFallback = false;
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  if (IS_DEV) {
-    // In development, use fallback values
-    supabaseUrl = supabaseUrl || DEV_FALLBACK.SUPABASE_URL;
-    supabaseAnonKey = supabaseAnonKey || DEV_FALLBACK.SUPABASE_ANON_KEY;
-    usingFallback = true;
+  // Use fallback values in both development and production
+  supabaseUrl = FALLBACK.SUPABASE_URL;
+  supabaseAnonKey = FALLBACK.SUPABASE_ANON_KEY;
+  usingFallback = true;
 
+  if (IS_DEV) {
     console.warn(
-      '⚠️ Using development fallback for Supabase credentials. ' +
-      'This is only for local development and testing. ' +
+      '⚠️ Using fallback for Supabase credentials. ' +
+      'This is only for development and testing. ' +
       'Please set up your .env file with actual credentials for production.'
     );
   } else {
-    // In production, log a more severe error
-    console.error(
-      '🚨 CRITICAL ERROR: Missing Supabase environment variables in production environment. ' +
-      'The application will not function correctly without these variables. ' +
-      'Please check your environment configuration and ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set.'
+    console.warn(
+      '⚠️ Using fallback for Supabase credentials in production. ' +
+      'This is not recommended for a production environment. ' +
+      'Please set up your environment variables in Vercel.'
     );
   }
 }

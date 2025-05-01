@@ -65,6 +65,8 @@ npm run dev
 - Social sharing for deals and events (Facebook, X, LinkedIn, WhatsApp)
 - Sharing analytics dashboard for merchants
 - User reactions system for deals and events
+- Secure payment processing with Stripe (or alternative providers)
+- Merchant payment history and transaction tracking
 - Contact form with validation
 - Responsive design for mobile and desktop
 - Error handling and loading states
@@ -129,6 +131,11 @@ SMTP_USER=your-smtp-username
 SMTP_PASS=your-smtp-password
 SMTP_ADMIN_EMAIL=admin@yourdomain.com
 SMTP_SENDER_NAME=Your App Name
+
+# Payment Configuration (Stripe)
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key
+STRIPE_SECRET_KEY=sk_test_your_secret_key
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
 
 # Other Configuration
 VITE_APP_NAME=CityPulse South Africa
@@ -238,6 +245,19 @@ npm run setup:smtp
 ```
 
 For detailed instructions and provider recommendations, see the [SMTP Setup Guide](docs/smtp-setup-guide.md).
+
+### Payment Integration
+
+The application includes payment processing for merchant deals and events. By default, it uses Stripe for payment processing, but it can be configured to use other payment providers like PayFast or Yoco.
+
+To set up payment processing:
+
+1. Create an account with your preferred payment provider (Stripe recommended)
+2. Get your API keys from the provider
+3. Add the API keys to your `.env` file
+4. Configure webhook endpoints for payment notifications
+
+For detailed instructions on setting up payment processing, see the [Payment Integration Guide](docs/payment-integration.md).
 
 ## How can I deploy this project?
 

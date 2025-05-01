@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import Footer from '@/components/layout/Footer';
@@ -11,16 +11,24 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Plus, PenLine, Trash2, Video, Image, CreditCard, Calendar } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/components/ui/sonner';
 import SharingAnalytics from '@/components/dashboard/SharingAnalytics';
+import { StripePaymentForm } from '@/components/payments/StripePaymentForm';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const MerchantDashboard = () => {
+  const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isAddingDeal, setIsAddingDeal] = useState(false);
   const [activeTab, setActiveTab] = useState('deals');
   const [mediaType, setMediaType] = useState('image');
   const [isPremiumAd, setIsPremiumAd] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [currentPaymentDeal, setCurrentPaymentDeal] = useState<any>(null);
+  const [payments, setPayments] = useState<any[]>([]);
 
   const [newDeal, setNewDeal] = useState({
     title: '',
@@ -110,8 +118,7 @@ const MerchantDashboard = () => {
     };
 
     setMerchantDeals(prev => [...prev, newDealWithId]);
-    toast({
-      title: "Deal created!",
+    toast.success("Deal created!", {
       description: "Your deal has been created and is pending payment.",
     });
 
@@ -133,31 +140,93 @@ const MerchantDashboard = () => {
   const handleDeleteDeal = (id: number) => {
     // In a real app, you'd delete from Firebase here
     setMerchantDeals(prev => prev.filter(deal => deal.id !== id));
-    toast({
-      title: "Deal deleted",
+    toast.success("Deal deleted", {
       description: "The deal has been removed from your listings.",
     });
   };
 
+  // Fetch payment history when component mounts
+  useEffect(() => {
+    const fetchPayments = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('payments')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          throw error;
+        }
+
+        setPayments(data || []);
+      } catch (error) {
+        console.error('Error fetching payments:', error);
+      }
+    };
+
+    fetchPayments();
+  }, []);
+
   const handlePaymentProcess = (id: number) => {
-    // In a real app, would handle Stripe/PayFast/etc integration here
-    toast({
-      title: "Redirecting to payment",
-      description: "You will be redirected to complete your payment.",
-    });
-    // Mock payment being completed
-    setTimeout(() => {
-      setMerchantDeals(prev =>
-        prev.map(deal =>
-          deal.id === id ? { ...deal, status: "Active" } : deal
-        )
-      );
-    }, 1500);
+    const dealToPay = merchantDeals.find(deal => deal.id === id);
+
+    if (!dealToPay) {
+      toast.error("Deal not found");
+      return;
+    }
+
+    // Set the current deal being paid for
+    setCurrentPaymentDeal(dealToPay);
+
+    // Show payment modal
+    setShowPaymentModal(true);
+  };
+
+  const handlePaymentSuccess = (paymentId: string) => {
+    // Update the deal status
+    setMerchantDeals(prev =>
+      prev.map(deal =>
+        deal.id === currentPaymentDeal?.id ? { ...deal, status: "Active" } : deal
+      )
+    );
+
+    // Add the payment to the payment history
+    const newPayment = {
+      id: paymentId,
+      created_at: new Date().toISOString(),
+      description: currentPaymentDeal?.title,
+      amount: currentPaymentDeal?.isPremium ? 250 : 99,
+      status: 'Paid'
+    };
+
+    setPayments(prev => [newPayment, ...prev]);
+
+    // Close the payment modal
+    setShowPaymentModal(false);
+    setCurrentPaymentDeal(null);
   };
 
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+
+      {/* Payment Modal */}
+      <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+        <DialogContent className="sm:max-w-md">
+          {currentPaymentDeal && (
+            <StripePaymentForm
+              amount={currentPaymentDeal.isPremium ? 250 : 99}
+              itemName={currentPaymentDeal.title}
+              itemDescription={`${currentPaymentDeal.isPremium ? 'Premium' : 'Standard'} deal listing`}
+              onSuccess={handlePaymentSuccess}
+              onCancel={() => setShowPaymentModal(false)}
+              email={user?.email || ''}
+              itemId={currentPaymentDeal.id}
+              itemType="deal"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : ''}`}>
         <Navbar toggleSidebar={toggleSidebar} />
@@ -510,24 +579,50 @@ const MerchantDashboard = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y">
-                        <tr>
-                          <td className="px-4 py-3">2025-04-12</td>
-                          <td className="px-4 py-3">Premium Deal - 20% Off All Coffee</td>
-                          <td className="px-4 py-3">R250</td>
-                          <td className="px-4 py-3"><span className="text-green-600">Paid</span></td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-3">2025-03-28</td>
-                          <td className="px-4 py-3">Standard Deal - Free Pastry with Coffee</td>
-                          <td className="px-4 py-3">R99</td>
-                          <td className="px-4 py-3"><span className="text-green-600">Paid</span></td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-3">2025-03-15</td>
-                          <td className="px-4 py-3">Premium Event - Jazz Night</td>
-                          <td className="px-4 py-3">R460</td>
-                          <td className="px-4 py-3"><span className="text-green-600">Paid</span></td>
-                        </tr>
+                        {payments.length > 0 ? (
+                          payments.map((payment) => (
+                            <tr key={payment.id}>
+                              <td className="px-4 py-3">
+                                {new Date(payment.created_at).toLocaleDateString()}
+                              </td>
+                              <td className="px-4 py-3">
+                                {payment.item_name || payment.description}
+                              </td>
+                              <td className="px-4 py-3">
+                                R{payment.amount.toFixed(2)}
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className="text-green-600">
+                                  {payment.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={4} className="px-4 py-3 text-center text-muted-foreground">
+                              No payment history found
+                            </td>
+                          </tr>
+                        )}
+
+                        {/* Sample payments for demonstration */}
+                        {payments.length === 0 && (
+                          <>
+                            <tr>
+                              <td className="px-4 py-3">2025-04-12</td>
+                              <td className="px-4 py-3">Premium Deal - 20% Off All Coffee</td>
+                              <td className="px-4 py-3">R250</td>
+                              <td className="px-4 py-3"><span className="text-green-600">Paid</span></td>
+                            </tr>
+                            <tr>
+                              <td className="px-4 py-3">2025-03-28</td>
+                              <td className="px-4 py-3">Standard Deal - Free Pastry with Coffee</td>
+                              <td className="px-4 py-3">R99</td>
+                              <td className="px-4 py-3"><span className="text-green-600">Paid</span></td>
+                            </tr>
+                          </>
+                        )}
                       </tbody>
                     </table>
                   </div>

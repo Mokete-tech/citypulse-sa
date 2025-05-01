@@ -23,15 +23,15 @@ const UserLoginDialog = ({ trigger, className }: UserLoginDialogProps) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button variant="outline" size="sm" className={className}>
+          <Button variant="default" size="sm" className={`bg-sa-blue text-white hover:bg-sa-blue/90 font-bold shadow-md ${className}`}>
             <LogIn className="h-4 w-4 mr-2" />
-            Sign In
+            Client Login
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Sign In or Create Account</DialogTitle>
+          <DialogTitle>Client Login</DialogTitle>
           <DialogDescription>
             Sign in to your CityPulse account to save your favorite deals and events.
           </DialogDescription>
