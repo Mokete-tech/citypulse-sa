@@ -132,6 +132,7 @@ export type Database = {
           merchant_id: string
           merchant_name: string
           purchase_count: number | null
+          shares: number | null
           title: string
           updated_at: string | null
           views: number | null
@@ -151,6 +152,7 @@ export type Database = {
           merchant_id: string
           merchant_name: string
           purchase_count?: number | null
+          shares?: number | null
           title: string
           updated_at?: string | null
           views?: number | null
@@ -170,6 +172,7 @@ export type Database = {
           merchant_id?: string
           merchant_name?: string
           purchase_count?: number | null
+          shares?: number | null
           title?: string
           updated_at?: string | null
           views?: number | null
@@ -242,6 +245,7 @@ export type Database = {
           merchant_id: string
           merchant_name: string
           price: string | null
+          shares: number | null
           ticket_count: number | null
           time: string
           title: string
@@ -263,6 +267,7 @@ export type Database = {
           merchant_id: string
           merchant_name: string
           price?: string | null
+          shares?: number | null
           ticket_count?: number | null
           time: string
           title: string
@@ -284,6 +289,7 @@ export type Database = {
           merchant_id?: string
           merchant_name?: string
           price?: string | null
+          shares?: number | null
           ticket_count?: number | null
           time?: string
           title?: string
@@ -389,6 +395,33 @@ export type Database = {
           reference_id?: string
           status?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      reactions: {
+        Row: {
+          created_at: string | null
+          id: number
+          item_id: number
+          item_type: string
+          reaction_type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          item_id: number
+          item_type: string
+          reaction_type?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          item_id?: number
+          item_type?: string
+          reaction_type?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -505,7 +538,47 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      add_column_if_not_exists: {
+        Args: {
+          table_name: string
+          column_name: string
+          column_type: string
+          column_default?: string
+        }
+        Returns: undefined
+      }
+      get_reaction_count: {
+        Args: { p_item_id: number; p_item_type: string }
+        Returns: number
+      }
+      get_users_with_roles: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          email: string
+          role: string
+          created_at: string
+          last_sign_in_at: string
+          merchant_name: string
+          business_type: string
+        }[]
+      }
+      has_user_reacted: {
+        Args: { p_user_id: string; p_item_id: number; p_item_type: string }
+        Returns: boolean
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_merchant: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      set_user_role: {
+        Args: { user_id: string; role: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

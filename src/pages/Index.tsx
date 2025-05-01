@@ -12,7 +12,9 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { handleError, handleSupabaseError } from '@/lib/error-handler';
 import { toast } from '@/components/ui/sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ReactionButton } from '@/components/ui/reaction-button';
 import { fallbackDeals, fallbackEvents } from '@/data/fallback-data';
+import { ensureRpcFunctionsExist, incrementDealViewsFallback } from '@/lib/supabase-utils';
 
 // Use the interfaces from fallback-data.ts
 import type { Deal, Event } from '@/data/fallback-data';
@@ -23,8 +25,17 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [rpcAvailable, setRpcAvailable] = useState(true);
 
   useEffect(() => {
+    // Check if RPC functions are available
+    ensureRpcFunctionsExist().then(available => {
+      setRpcAvailable(available);
+      if (!available) {
+        console.log("Using fallback method for incrementing deal views");
+      }
+    });
+    
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -34,6 +45,7 @@ const Index = () => {
         const { data: dealsData, error: dealsError } = await supabase
           .from('deals')
           .select('*')
+          .order('views', { ascending: false })
           .limit(3);
 
         if (dealsError) {
@@ -50,6 +62,7 @@ const Index = () => {
         const { data: eventsData, error: eventsError } = await supabase
           .from('events')
           .select('*')
+          .order('created_at', { ascending: false })
           .limit(3);
 
         if (eventsError) {
@@ -109,6 +122,7 @@ const Index = () => {
 
   const handleDealClick = async (dealId: number) => {
     try {
+      // Track analytics
       await supabase.from('analytics').insert({
         event_type: 'deal_click',
         event_source: 'home_page',
@@ -116,14 +130,15 @@ const Index = () => {
         metadata: { deal_id: dealId }
       });
 
-      // Update views counter in deals table
-      const { error } = await supabase
-        .from('deals')
-        .update({ views: () => 'views + 1' })
-        .eq('id', dealId);
-
-      if (error) {
-        console.error('Failed to update view count:', error);
+      // Increment view count using RPC function or fallback
+      if (rpcAvailable) {
+        const { error } = await supabase.rpc('increment_deal_views', { deal_id: dealId });
+        if (error) {
+          console.error('Failed to update view count with RPC:', error);
+          await incrementDealViewsFallback(dealId);
+        }
+      } else {
+        await incrementDealViewsFallback(dealId);
       }
     } catch (error) {
       console.error('Failed to track deal click:', error);
@@ -143,62 +158,7 @@ const Index = () => {
     }
   };
 
-  // Fallback data in case the database fetch fails
-  const fallbackDeals: Deal[] = [
-    {
-      id: 1,
-      title: "20% Off All Coffee",
-      description: "Get 20% off any coffee drink, every Tuesday",
-      category: "Food & Drink",
-      expiration_date: "2025-05-15",
-      merchant_name: "Cape Town Café"
-    },
-    {
-      id: 2,
-      title: "Buy One Get One Free",
-      description: "Buy one book, get one free of equal or lesser value",
-      category: "Retail",
-      expiration_date: "2025-05-20",
-      merchant_name: "Johannesburg Books"
-    },
-    {
-      id: 3,
-      title: "30% Off First Visit",
-      description: "New customers get 30% off their first service",
-      category: "Beauty",
-      expiration_date: "2025-06-01",
-      merchant_name: "Durban Spa & Salon"
-    }
-  ];
-
-  const fallbackEvents: Event[] = [
-    {
-      id: 1,
-      title: "Jazz Night at V&A Waterfront",
-      description: "Join us for a night of live jazz music with local artists",
-      date: "2025-05-10",
-      time: "7:00 PM",
-      location: "Cape Town Waterfront"
-    },
-    {
-      id: 2,
-      title: "Farmers Market",
-      description: "Fresh local produce, handcrafted goods, and live music",
-      date: "2025-05-17",
-      time: "9:00 AM",
-      location: "Neighbourgoods Market, Johannesburg"
-    },
-    {
-      id: 3,
-      title: "Tech Meetup",
-      description: "Networking event for tech professionals and enthusiasts",
-      date: "2025-05-22",
-      time: "6:30 PM",
-      location: "Durban Digital Hub"
-    }
-  ];
-
-  // Use fallback data if no deals or events are returned from the database
+  // Use fallback data in case the database fetch fails
   const displayDeals = deals.length > 0 ? deals : fallbackDeals;
   const displayEvents = events.length > 0 ? events : fallbackEvents;
 
@@ -254,9 +214,17 @@ const Index = () => {
                               Expires: {deal.expiration_date}
                             </span>
                           )}
-                          <Link to={`/deals/${deal.id}`} onClick={() => handleDealClick(deal.id)}>
-                            <Button size="sm">View Deal</Button>
-                          </Link>
+                          <div className="flex gap-2">
+                            <ReactionButton 
+                              itemId={deal.id} 
+                              itemType="deal" 
+                              size="sm"
+                              showCount={true}
+                            />
+                            <Link to={`/deals/${deal.id}`} onClick={() => handleDealClick(deal.id)}>
+                              <Button size="sm">View Deal</Button>
+                            </Link>
+                          </div>
                         </CardFooter>
                       </Card>
                     ))
