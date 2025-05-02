@@ -2,6 +2,41 @@
 
 This guide provides step-by-step instructions for deploying CityPulse South Africa to Vercel.
 
+## New Features
+
+The CityPulse South Africa application now includes several enhanced features:
+
+### 1. Geolocation for Nearby Deals and Events
+
+- Users can see deals and events near their location
+- Distance calculation and sorting based on user's current position
+- Location-based search functionality with adjustable radius
+- Visual indicators showing distance to each deal or event
+
+### 2. User Accounts and Authentication
+
+- Enhanced user profiles with preferences and saved items
+- Social authentication options (Facebook, Google)
+- Mobile number authentication
+- Stylish tick buttons for reactions and saving items
+- User dashboard with personalized content
+
+### 3. Multiple Payment Methods
+
+- Credit/debit cards via Stripe
+- EFT/Bank transfer with account details
+- Mobile payment options (SnapScan, Zapper)
+- Instant EFT for immediate payment processing
+- Secure payment processing with confirmation
+
+### 4. E-Statements for Merchants
+
+- PDF generation with detailed transaction information
+- Date range selection for custom reporting periods
+- Detailed and summary statement options
+- Transaction categorization by type and status
+- Professional formatting with merchant branding
+
 ## Prerequisites
 
 - A Vercel account (sign up at [vercel.com](https://vercel.com))
