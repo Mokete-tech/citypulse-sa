@@ -6,7 +6,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Sidebar from '@/components/layout/Sidebar';
 import { Button } from '@/components/ui/button';
-import { Tag, Calendar, AlertCircle, MapPin } from 'lucide-react';
+import { Tag, Calendar, AlertCircle } from 'lucide-react';
 import { LoadingState } from '@/components/ui/loading-state';
 import { handleError, handleSupabaseError } from '@/lib/error-handler';
 import { toast } from '@/components/ui/sonner';
@@ -15,8 +15,9 @@ import { fallbackDeals, fallbackEvents } from '@/data/fallback-data';
 import { EnvWarning } from '@/components/ui/env-warning';
 import { DealCard } from '@/components/cards/DealCard';
 import { EventCard } from '@/components/cards/EventCard';
-import { NearbyDeals } from '@/components/location/NearbyDeals';
-import { NearbyEvents } from '@/components/location/NearbyEvents';
+// These components will be implemented later
+// import { NearbyDeals } from '@/components/location/NearbyDeals';
+// import { NearbyEvents } from '@/components/location/NearbyEvents';
 
 // Use the interfaces from fallback-data.ts
 import type { Deal, Event } from '@/data/fallback-data';
@@ -168,60 +169,7 @@ const Index = () => {
     }
   };
 
-  // Fallback data in case the database fetch fails
-  const fallbackDeals: Deal[] = [
-    {
-      id: 1,
-      title: "20% Off All Coffee",
-      description: "Get 20% off any coffee drink, every Tuesday",
-      category: "Food & Drink",
-      expiration_date: "2025-05-15",
-      merchant_name: "Cape Town Café"
-    },
-    {
-      id: 2,
-      title: "Buy One Get One Free",
-      description: "Buy one book, get one free of equal or lesser value",
-      category: "Retail",
-      expiration_date: "2025-05-20",
-      merchant_name: "Johannesburg Books"
-    },
-    {
-      id: 3,
-      title: "30% Off First Visit",
-      description: "New customers get 30% off their first service",
-      category: "Beauty",
-      expiration_date: "2025-06-01",
-      merchant_name: "Durban Spa & Salon"
-    }
-  ];
-
-  const fallbackEvents: Event[] = [
-    {
-      id: 1,
-      title: "Jazz Night at V&A Waterfront",
-      description: "Join us for a night of live jazz music with local artists",
-      date: "2025-05-10",
-      time: "7:00 PM",
-      location: "Cape Town Waterfront"
-    },
-    {
-      id: 2,
-      title: "Farmers Market",
-      description: "Fresh local produce, handcrafted goods, and live music",
-      date: "2025-05-17",
-      time: "9:00 AM",
-      location: "Neighbourgoods Market, Johannesburg"
-    },
-    {
-      id: 3,
-      title: "Tech Meetup",
-      description: "Networking event for tech professionals and enthusiasts",
-      date: "2025-05-22",
-      time: "6:30 PM",
-      location: "Durban Digital Hub"
-    }
-  ];
+  // Using fallback data imported from @/data/fallback-data
 
   // Use fallback data if no deals or events are returned from the database
   const displayDeals = deals.length > 0 ? deals : fallbackDeals;
@@ -252,13 +200,13 @@ const Index = () => {
               )}
             </div>
 
-            {/* Nearby Deals and Events Section */}
-            <div className="mb-12">
+            {/* Nearby Deals and Events Section - To be implemented later */}
+            {/* <div className="mb-12">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <NearbyDeals initialRadius={5} maxDeals={3} />
                 <NearbyEvents initialRadius={5} maxEvents={3} />
               </div>
-            </div>
+            </div> */}
 
             {/* Featured Deals and Events Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
