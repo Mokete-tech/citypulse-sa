@@ -1,0 +1,45 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "VITE_SUPABASE_URL": "https://qghojdkspxhyjeurxagx.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "@supabase-anon-key",
+    "VITE_STRIPE_PUBLISHABLE_KEY": "pk_live_51IRNxfHieGkyNl5wOGvmEAtaXxZ6VHEPmHcXuwfsfOPTt0umFFEY9QpsJMXo4IAo0uzl0R66CpaJFRKCaXo0k5DZ00uGSXCeCN",
+    "STRIPE_SECRET_KEY": "@stripe-secret-key",
+    "MAILERSEND_API_KEY": "MS_ckXYQU@test-q3enl6kk0z042vwr.mlsender.net",
+    "MAILERSEND_FROM_EMAIL": "noreply@citypulse-sa.com",
+    "MAILERSEND_FROM_NAME": "CityPulse South Africa",
+    "MAILERSEND_DOMAIN": "test-q3enl6kk0z042vwr.mlsender.net",
+    "TWILIO_ACCOUNT_SID": "@twilio-account-sid",
+    "TWILIO_AUTH_TOKEN": "@twilio-auth-token",
+    "TWILIO_VERIFY_SERVICE_SID": "@twilio-verify-service-sid",
+    "TWILIO_PHONE_NUMBER": "@twilio-phone-number",
+    "VITE_APP_NAME": "CityPulse South Africa",
+    "VITE_APP_ENV": "production",
+    "VITE_APP_URL": "https://citypulse-sa.vercel.app"
+  },
+  "build": {
+    "env": {
+      "VITE_SUPABASE_URL": "https://qghojdkspxhyjeurxagx.supabase.co",
+      "VITE_SUPABASE_ANON_KEY": "@supabase-anon-key",
+      "VITE_STRIPE_PUBLISHABLE_KEY": "pk_live_51IRNxfHieGkyNl5wOGvmEAtaXxZ6VHEPmHcXuwfsfOPTt0umFFEY9QpsJMXo4IAo0uzl0R66CpaJFRKCaXo0k5DZ00uGSXCeCN",
+      "VITE_APP_NAME": "CityPulse South Africa",
+      "VITE_APP_ENV": "production",
+      "VITE_APP_URL": "https://citypulse-sa.vercel.app"
+    }
+  }
+}
