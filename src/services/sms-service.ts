@@ -1,10 +1,10 @@
 import { supabase } from '@/integrations/supabase/client';
 
-interface SMSOptions {
+export interface SMSOptions {
   to: string;
-  message: string;
+  message?: string;
   templateId?: string;
-  variables?: Record<string, string>;
+  variables?: Record<string, any>;
 }
 
 /**
@@ -61,7 +61,7 @@ export const smsService = {
   async sendVerificationCode(phoneNumber: string): Promise<{ success: boolean; error?: string }> {
     // Generate a random 6-digit code
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    
+
     // Store the code in Supabase with expiration
     const { error: storeError } = await supabase.from('verification_codes').insert({
       phone_number: phoneNumber,
@@ -102,9 +102,9 @@ export const smsService = {
         .single();
 
       if (error || !data) {
-        return { 
-          success: false, 
-          error: 'Invalid or expired verification code. Please try again.' 
+        return {
+          success: false,
+          error: 'Invalid or expired verification code. Please try again.'
         };
       }
 
@@ -119,5 +119,43 @@ export const smsService = {
       console.error('Error verifying code:', error);
       return { success: false, error: error.message };
     }
+  },
+
+  /**
+   * Send a deal notification via SMS
+   * @param phoneNumber User's phone number
+   * @param dealName Name of the deal
+   * @returns Promise resolving to success status
+   */
+  async sendDealNotification(phoneNumber: string, dealName: string): Promise<{ success: boolean; error?: string }> {
+    return this.sendSMS({
+      to: phoneNumber,
+      message: `New deal alert! Check out "${dealName}" on CityPulse. Open the app to view details.`,
+      templateId: 'deal-notification',
+      variables: {
+        deal_name: dealName
+      }
+    });
+  },
+
+  /**
+   * Send an event reminder via SMS
+   * @param phoneNumber User's phone number
+   * @param eventName Name of the event
+   * @param eventDate Date of the event
+   * @returns Promise resolving to success status
+   */
+  async sendEventReminder(phoneNumber: string, eventName: string, eventDate: string): Promise<{ success: boolean; error?: string }> {
+    return this.sendSMS({
+      to: phoneNumber,
+      message: `Reminder: "${eventName}" is happening on ${eventDate}. Don't miss it!`,
+      templateId: 'event-reminder',
+      variables: {
+        event_name: eventName,
+        event_date: eventDate
+      }
+    });
   }
 };
+
+export default smsService;
