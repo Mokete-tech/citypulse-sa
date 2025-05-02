@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Deals from "./pages/Deals";
+import DealDetail from "./pages/DealDetail";
 import Events from "./pages/Events";
 import Contact from "./pages/Contact";
 import MerchantLogin from "./pages/MerchantLogin";
@@ -44,6 +45,11 @@ const App = () => (
               <Route path="/deals" element={
                 <ErrorBoundary>
                   <Deals />
+                </ErrorBoundary>
+              } />
+              <Route path="/deals/:id" element={
+                <ErrorBoundary>
+                  <DealDetail />
                 </ErrorBoundary>
               } />
               <Route path="/events" element={

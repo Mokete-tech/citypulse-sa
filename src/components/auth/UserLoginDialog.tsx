@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { LogIn, Mail, Phone, AlertCircle } from 'lucide-react';
+import { LogIn, Mail, Phone } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/sonner';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+
 import { useAuth } from '@/contexts/AuthContext';
 
 interface UserLoginDialogProps {
@@ -149,11 +149,32 @@ const UserLoginDialog = ({ className }: UserLoginDialogProps) => {
               <Button
                 type="button"
                 className="w-full bg-[#1877F2] hover:bg-[#0C63D4]"
-                onClick={handleFacebookLogin}
+                onClick={() => {
+                  toast.info("Facebook login is coming soon");
+                }}
                 disabled={loading}
               >
-                <Facebook className="h-4 w-4 mr-2" />
+                <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="#FFFFFF">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
                 Continue with Facebook
+              </Button>
+            </div>
+          </TabsContent>
+          <TabsContent value="google">
+            <div className="space-y-4 pt-4">
+              <p className="text-sm text-muted-foreground">
+                Login or create an account using your Google account.
+              </p>
+              <Button
+                type="button"
+                className="w-full bg-[#4285F4] hover:bg-[#3367D6]"
+                onClick={() => {
+                  toast.info("Google login is coming soon");
+                }}
+                disabled={loading}
+              >
+                Continue with Google
               </Button>
             </div>
           </TabsContent>

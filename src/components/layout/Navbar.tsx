@@ -67,7 +67,7 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
         {/* User is not logged in */}
         {!user && (
           <>
-            <UserLoginDialog className="hidden md:flex items-center gap-2" />
+            <UserLoginDialog className="flex items-center gap-2" />
           </>
         )}
 

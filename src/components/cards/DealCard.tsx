@@ -1,9 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ReactionButton } from '@/components/ui/reaction-button';
-import { Tag } from 'lucide-react';
+import { Tag, Share2 } from 'lucide-react';
 
 interface DealCardProps {
   id: number;
@@ -30,18 +31,27 @@ export function DealCard({
   featured,
   onClick
 }: DealCardProps) {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      navigate(`/deals/${id}`);
+    }
+  };
   return (
     <Card className="h-full flex flex-col overflow-hidden">
       {image_url && (
         <div className="aspect-video w-full overflow-hidden">
-          <img 
-            src={image_url} 
-            alt={title} 
+          <img
+            src={image_url}
+            alt={title}
             className="w-full h-full object-cover"
           />
         </div>
       )}
-      
+
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
@@ -53,16 +63,16 @@ export function DealCard({
             <CardTitle>{title}</CardTitle>
             {merchant_name && <CardDescription>{merchant_name}</CardDescription>}
           </div>
-          
+
           {featured && (
             <Badge variant="outline" className="ml-2">Featured</Badge>
           )}
         </div>
       </CardHeader>
-      
+
       <CardContent className="flex-grow">
         <p>{description}</p>
-        
+
         {discount && (
           <div className="mt-3">
             <Badge variant="secondary" className="text-sm">
@@ -71,19 +81,27 @@ export function DealCard({
           </div>
         )}
       </CardContent>
-      
+
       <CardFooter className="pt-0 flex justify-between items-center border-t pt-4">
         <div className="flex items-center gap-2">
           <ReactionButton itemId={id} itemType="deal" />
-          
+
           {expiration_date && (
             <span className="text-sm text-muted-foreground">
               Expires: {expiration_date}
             </span>
           )}
         </div>
-        
-        <Button size="sm" onClick={onClick}>View Deal</Button>
+
+        <div className="flex items-center gap-2">
+          <Button size="sm" onClick={handleClick}>View Deal</Button>
+          <Button size="sm" variant="ghost" onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/deals/${id}`);
+          }}>
+            <Share2 className="h-4 w-4" />
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );
