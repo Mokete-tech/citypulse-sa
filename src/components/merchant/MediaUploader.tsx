@@ -37,12 +37,40 @@ export function MediaUploader({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file size (limit to 10MB)
-    if (file.size > 10 * 1024 * 1024) {
+    // Check file size (limit to 50MB for videos, 10MB for images)
+    const isVideo = file.type.startsWith('video/');
+    const maxSize = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+
+    if (file.size > maxSize) {
       toast.error('File too large', {
-        description: 'Maximum file size is 10MB'
+        description: `Maximum file size is ${isVideo ? '50MB for videos' : '10MB for images'}`
       });
       return;
+    }
+
+    // Check video duration if it's a video file
+    if (isVideo) {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+
+      video.onloadedmetadata = () => {
+        window.URL.revokeObjectURL(video.src);
+
+        // Check if video is longer than 2 minutes (120 seconds)
+        if (video.duration > 120) {
+          toast.error('Video too long', {
+            description: 'Maximum video duration is 2 minutes'
+          });
+          setSelectedFile(null);
+          setPreviewUrl(null);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+          return;
+        }
+      };
+
+      video.src = URL.createObjectURL(file);
     }
 
     // Determine file type
@@ -124,7 +152,7 @@ export function MediaUploader({
         .getPublicUrl(filePath);
 
       const publicUrl = publicUrlData.publicUrl;
-      
+
       // Log the upload in analytics
       await supabase.from('analytics').insert({
         event_type: 'media_upload',
@@ -141,7 +169,7 @@ export function MediaUploader({
 
       // Call the callback with the URL
       onMediaSelected(publicUrl, mediaType);
-      
+
       toast.success('Upload complete', {
         description: `Your ${mediaType} has been uploaded successfully`
       });
@@ -178,7 +206,7 @@ export function MediaUploader({
             <TabsTrigger value="upload">Upload File</TabsTrigger>
             <TabsTrigger value="url">Use URL</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="upload" className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="file-upload">Select File</Label>
@@ -194,10 +222,11 @@ export function MediaUploader({
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Supported formats: JPG, PNG, GIF, MP4, WEBM. Max size: 10MB
+                Supported formats: JPG, PNG, GIF, MP4, WEBM, MOV.
+                Max size: 10MB for images, 50MB for videos. Max video duration: 2 minutes.
               </p>
             </div>
-            
+
             {previewUrl && selectedFile && (
               <div className="space-y-4">
                 <div className="border rounded-md p-2 relative">
@@ -209,7 +238,7 @@ export function MediaUploader({
                   >
                     <X className="h-4 w-4" />
                   </Button>
-                  
+
                   {mediaType === 'image' ? (
                     <img
                       src={previewUrl}
@@ -223,7 +252,7 @@ export function MediaUploader({
                       className="w-full h-auto max-h-[200px] rounded-md"
                     />
                   )}
-                  
+
                   <div className="mt-2 text-sm">
                     <p className="font-medium truncate">{selectedFile.name}</p>
                     <p className="text-muted-foreground">
@@ -231,7 +260,7 @@ export function MediaUploader({
                     </p>
                   </div>
                 </div>
-                
+
                 {isUploading && (
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
@@ -241,7 +270,7 @@ export function MediaUploader({
                     <Progress value={uploadProgress} className="h-2" />
                   </div>
                 )}
-                
+
                 <Button
                   onClick={uploadFile}
                   disabled={isUploading}
@@ -262,7 +291,7 @@ export function MediaUploader({
               </div>
             )}
           </TabsContent>
-          
+
           <TabsContent value="url" className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="media-url">Media URL</Label>
@@ -315,7 +344,7 @@ export function MediaUploader({
                 </div>
               </div>
             </div>
-            
+
             {previewUrl && activeTab === 'url' && (
               <div className="border rounded-md p-2">
                 {mediaType === 'image' ? (

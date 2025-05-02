@@ -9,6 +9,7 @@ import { CreditCard, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { mailerSendService } from '@/services/mailersend-service';
+import { stripeService } from '@/services/stripe-service';
 
 interface PaymentIntegrationProps {
   amount: number;
@@ -46,10 +47,10 @@ export function PaymentIntegration({
   const formatCardNumber = (value: string) => {
     // Remove all non-digits
     const digits = value.replace(/\D/g, '');
-    
+
     // Add space after every 4 digits
     const formatted = digits.replace(/(\d{4})(?=\d)/g, '$1 ');
-    
+
     // Limit to 19 characters (16 digits + 3 spaces)
     return formatted.slice(0, 19);
   };
@@ -57,12 +58,12 @@ export function PaymentIntegration({
   const formatExpiry = (value: string) => {
     // Remove all non-digits
     const digits = value.replace(/\D/g, '');
-    
+
     // Format as MM/YY
     if (digits.length > 2) {
       return `${digits.slice(0, 2)}/${digits.slice(2, 4)}`;
     }
-    
+
     return digits;
   };
 
@@ -86,41 +87,95 @@ export function PaymentIntegration({
         setError('Please enter a valid card number');
         return false;
       }
-      
+
       if (!cardName) {
         setError('Please enter the name on card');
         return false;
       }
-      
+
       if (!cardExpiry || cardExpiry.length < 5) {
         setError('Please enter a valid expiry date (MM/YY)');
         return false;
       }
-      
+
       if (!cardCvc || cardCvc.length < 3) {
         setError('Please enter a valid CVC code');
         return false;
       }
     }
-    
+
     setError(null);
     return true;
   };
 
   const processPayment = async () => {
     if (!validateForm()) return;
-    
+
     setIsProcessing(true);
     setError(null);
-    
+
     try {
-      // In a real app, this would call a secure payment processor
-      // For demo purposes, we'll simulate a successful payment
-      
-      // Generate a transaction ID
-      const newTransactionId = `TX-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      let newTransactionId;
+
+      if (paymentMethod === 'credit_card') {
+        // For credit card payments, use Stripe
+        const amountInCents = Math.round(amount * 100); // Convert to cents
+
+        // Create a payment element container if it doesn't exist
+        let cardElement = document.getElementById('card-element');
+        if (!cardElement) {
+          cardElement = document.createElement('div');
+          cardElement.id = 'card-element';
+          cardElement.style.display = 'none';
+          document.body.appendChild(cardElement);
+        }
+
+        // Process payment with Stripe
+        const result = await stripeService.processPayment(
+          amountInCents,
+          itemId,
+          itemType,
+          `Payment for ${itemTitle}`
+        );
+
+        if (!result.success) {
+          throw new Error(result.error || 'Payment failed');
+        }
+
+        newTransactionId = result.paymentIntentId || `TX-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      } else if (paymentMethod === 'payfast') {
+        // For PayFast, we use Stripe Checkout
+        const amountInCents = Math.round(amount * 100); // Convert to cents
+
+        // Create a checkout session
+        const { sessionId, error } = await stripeService.createCheckoutSession(
+          'price_1OXYZABCDEFGHIJKLMNOPQRSt', // This would be a real price ID in production
+          `${window.location.origin}/payment/success?item_id=${itemId}&item_type=${itemType}`,
+          `${window.location.origin}/payment/cancel`,
+          {
+            item_id: itemId,
+            item_type: itemType,
+            merchant_id: merchantId,
+            title: itemTitle
+          }
+        );
+
+        if (error || !sessionId) {
+          throw new Error(error || 'Failed to create checkout session');
+        }
+
+        // Redirect to Stripe Checkout
+        await stripeService.redirectToCheckout(sessionId);
+
+        // This code will only run if the redirect fails
+        newTransactionId = `SC-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      } else {
+        // For EFT, we'll generate a reference number
+        newTransactionId = `EFT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      }
+
       setTransactionId(newTransactionId);
-      
+
       // Record the payment in Supabase
       const { error: paymentError } = await supabase.from('payments').insert({
         merchant_id: merchantId,
@@ -129,21 +184,24 @@ export function PaymentIntegration({
         amount: amount,
         payment_method: paymentMethod,
         transaction_id: newTransactionId,
-        status: 'completed'
+        status: paymentMethod === 'eft' ? 'pending' : 'completed'
       });
-      
+
       if (paymentError) throw new Error(paymentError.message);
-      
+
       // Update the item status based on type
       if (itemType === 'deal' || itemType === 'event') {
         const { error: itemError } = await supabase
           .from(itemType === 'deal' ? 'deals' : 'events')
-          .update({ status: 'active', paid: true })
+          .update({
+            status: paymentMethod === 'eft' ? 'pending_verification' : 'active',
+            paid: paymentMethod !== 'eft'
+          })
           .eq('id', itemId);
-          
+
         if (itemError) throw new Error(itemError.message);
       }
-      
+
       // Send receipt email
       const { data: userData } = await supabase.auth.getUser();
       if (userData?.user?.email) {
@@ -155,7 +213,7 @@ export function PaymentIntegration({
           newTransactionId
         );
       }
-      
+
       // Log analytics
       await supabase.from('analytics').insert({
         event_type: 'payment_completed',
@@ -165,27 +223,30 @@ export function PaymentIntegration({
           amount,
           item_type: itemType,
           payment_method: paymentMethod,
-          merchant_id: merchantId
+          merchant_id: merchantId,
+          transaction_id: newTransactionId
         }
       });
-      
+
       setIsSuccess(true);
-      
+
       // Notify parent component
       if (onSuccess) {
         setTimeout(() => {
           onSuccess(newTransactionId);
         }, 2000);
       }
-      
+
       toast.success('Payment successful!', {
-        description: `Your payment of R${amount.toFixed(2)} has been processed.`
+        description: paymentMethod === 'eft'
+          ? 'Your EFT payment has been recorded. Your listing will be activated once payment is verified.'
+          : `Your payment of R${amount.toFixed(2)} has been processed.`
       });
-      
+
     } catch (err: any) {
       console.error('Payment error:', err);
       setError(err.message || 'An error occurred while processing your payment');
-      
+
       toast.error('Payment failed', {
         description: 'There was a problem processing your payment. Please try again.'
       });
@@ -215,7 +276,7 @@ export function PaymentIntegration({
               Transaction ID: {transactionId}
             </AlertDescription>
           </Alert>
-          
+
           <div className="rounded-md bg-green-50 p-4 border border-green-200">
             <div className="flex">
               <div className="flex-shrink-0">
@@ -260,7 +321,7 @@ export function PaymentIntegration({
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        
+
         <div>
           <h3 className="text-lg font-medium">Payment Summary</h3>
           <div className="mt-2 space-y-2">
@@ -278,12 +339,12 @@ export function PaymentIntegration({
             </div>
           </div>
         </div>
-        
+
         <div className="space-y-4">
           <div>
             <Label>Payment Method</Label>
-            <RadioGroup 
-              value={paymentMethod} 
+            <RadioGroup
+              value={paymentMethod}
               onValueChange={(value) => setPaymentMethod(value as any)}
               className="mt-2 space-y-2"
             >
@@ -302,7 +363,7 @@ export function PaymentIntegration({
               </div>
             </RadioGroup>
           </div>
-          
+
           {paymentMethod === 'credit_card' && (
             <div className="space-y-4">
               <div className="space-y-2">
@@ -315,7 +376,7 @@ export function PaymentIntegration({
                   maxLength={19}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="card-name">Name on Card</Label>
                 <Input
@@ -325,7 +386,7 @@ export function PaymentIntegration({
                   onChange={(e) => setCardName(e.target.value)}
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="expiry">Expiry Date</Label>
@@ -337,7 +398,7 @@ export function PaymentIntegration({
                     maxLength={5}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="cvc">CVC</Label>
                   <Input
@@ -351,7 +412,7 @@ export function PaymentIntegration({
               </div>
             </div>
           )}
-          
+
           {paymentMethod === 'eft' && (
             <div className="rounded-md bg-blue-50 p-4 border border-blue-200">
               <div className="flex">
@@ -372,27 +433,30 @@ export function PaymentIntegration({
               </div>
             </div>
           )}
-          
+
           {paymentMethod === 'payfast' && (
             <div className="rounded-md bg-blue-50 p-4 border border-blue-200">
               <p className="text-sm text-blue-700">
-                You will be redirected to PayFast to complete your payment securely.
+                You will be redirected to Stripe Checkout to complete your payment securely.
+              </p>
+              <p className="text-sm text-blue-700 mt-2">
+                Stripe provides a secure payment environment and supports all major credit cards.
               </p>
             </div>
           )}
         </div>
       </CardContent>
       <CardFooter className="flex flex-col sm:flex-row gap-2">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={onCancel}
           disabled={isProcessing}
           className="w-full sm:w-auto"
         >
           Cancel
         </Button>
-        <Button 
-          onClick={processPayment} 
+        <Button
+          onClick={processPayment}
           disabled={isProcessing}
           className="w-full sm:w-auto"
         >
