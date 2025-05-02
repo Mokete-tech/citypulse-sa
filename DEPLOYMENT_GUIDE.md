@@ -138,9 +138,44 @@ To update your deployment after making changes:
 2. Check the Supabase dashboard for database usage and performance
 3. Set up error tracking with a service like Sentry
 
+## New Features
+
+The CityPulse South Africa application now includes several enhanced features:
+
+### 1. Geolocation for Nearby Deals and Events
+
+- Users can see deals and events near their location
+- Distance calculation and sorting based on user's current position
+- Location-based search functionality with adjustable radius
+- Visual indicators showing distance to each deal or event
+
+### 2. User Accounts and Authentication
+
+- Enhanced user profiles with preferences and saved items
+- Social authentication options (Facebook, Google)
+- Mobile number authentication
+- Stylish tick buttons for reactions and saving items
+- User dashboard with personalized content
+
+### 3. Multiple Payment Methods
+
+- Credit/debit cards via Stripe
+- EFT/Bank transfer with account details
+- Mobile payment options (SnapScan, Zapper)
+- Instant EFT for immediate payment processing
+- Secure payment processing with confirmation
+
+### 4. E-Statements for Merchants
+
+- PDF generation with detailed transaction information
+- Date range selection for custom reporting periods
+- Detailed and summary statement options
+- Transaction categorization by type and status
+- Professional formatting with merchant branding
+
 ## Payment System
 
-The CityPulse South Africa application includes a fully functional payment system using Stripe:
+The CityPulse South Africa application includes a fully functional payment system:
 
 1. **Pricing Structure**:
    - Standard Deal: R99
@@ -149,6 +184,7 @@ The CityPulse South Africa application includes a fully functional payment syste
    - Premium Event: R460
 
 2. **Payment Processing**:
+   - Multiple payment methods (cards, EFT, mobile payments)
    - Secure payment collection using Stripe Elements
    - Payment records stored in Supabase database
    - Support for both deal and event payments
@@ -160,9 +196,10 @@ The CityPulse South Africa application includes a fully functional payment syste
    - Check payment records in the Supabase database
 
 4. **Getting Paid**:
-   - Payments are processed through your Stripe account
-   - Funds will be deposited according to your Stripe payout schedule
-   - Monitor revenue through the Stripe dashboard
+   - Payments are processed through your preferred payment processor
+   - E-statements available for financial record-keeping
+   - Funds will be deposited according to your payment processor's schedule
+   - Monitor revenue through the dashboard
 
 ## Support
 
