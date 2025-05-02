@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Session, User } from '@supabase/supabase-js';
+import { Session, User, Provider } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { handleError } from '@/lib/error-handler';
+import { handleError, handleSupabaseError } from '@/lib/error-handler';
 import { toast } from '@/components/ui/sonner';
 
 interface AuthContextType {
@@ -12,9 +12,14 @@ interface AuthContextType {
   isAdmin: boolean;
   isMerchant: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithPhone: (phone: string, code: string) => Promise<void>;
+  signInWithFacebook: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   signUp: (email: string, password: string, metadata?: any) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  sendPhoneVerification: (phone: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -60,6 +65,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    return signInWithEmail(email, password);
+  };
+
+  const signInWithEmail = async (email: string, password: string) => {
     try {
       setLoading(true);
       const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -73,6 +82,106 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       handleError(error, {
         title: 'Authentication failed',
         message: error.message || 'Failed to sign in. Please check your credentials and try again.'
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signInWithPhone = async (phone: string, code: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.verifyOtp({
+        phone,
+        token: code,
+        type: 'sms'
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('Signed in successfully');
+    } catch (error: any) {
+      handleError(error, {
+        title: 'Authentication failed',
+        message: error.message || 'Failed to verify phone number. Please check the code and try again.'
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sendPhoneVerification = async (phone: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithOtp({
+        phone
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('Verification code sent', {
+        description: 'Please check your phone for the verification code.'
+      });
+
+      return { success: true };
+    } catch (error: any) {
+      handleError(error, {
+        title: 'Failed to send verification code',
+        message: error.message || 'Failed to send verification code. Please try again.'
+      });
+      return { success: false, error: error.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signInWithFacebook = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+    } catch (error: any) {
+      handleError(error, {
+        title: 'Facebook login failed',
+        message: error.message || 'Failed to sign in with Facebook. Please try again.'
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+    } catch (error: any) {
+      handleError(error, {
+        title: 'Google login failed',
+        message: error.message || 'Failed to sign in with Google. Please try again.'
       });
       throw error;
     } finally {
@@ -160,9 +269,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isAdmin,
     isMerchant,
     signIn,
+    signInWithEmail,
+    signInWithPhone,
+    signInWithFacebook,
+    signInWithGoogle,
     signOut,
     signUp,
-    resetPassword
+    resetPassword,
+    sendPhoneVerification
   };
 
   return (

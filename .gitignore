@@ -22,3 +22,19 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+supabase/.env
+
+# Supabase
+.supabase/
+
+# Build files
+deployment-package/
+vercel-deploy/
+*.zip

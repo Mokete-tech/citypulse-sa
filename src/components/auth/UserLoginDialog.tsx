@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { LogIn, Facebook, Mail, Phone } from 'lucide-react';
+import { LogIn, Mail, Phone, AlertCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from '@/components/ui/sonner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface UserLoginDialogProps {
@@ -19,10 +21,12 @@ interface UserLoginDialogProps {
 }
 
 const UserLoginDialog = ({ className }: UserLoginDialogProps) => {
-  const { signInWithEmail, signInWithFacebook, loading } = useAuth();
+  const { signInWithEmail, signInWithFacebook, signInWithGoogle, signInWithPhone, sendPhoneVerification, loading } = useAuth();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [phone, setPhone] = React.useState('');
+  const [verificationCode, setVerificationCode] = React.useState('');
+  const [codeSent, setCodeSent] = React.useState(false);
   const [open, setOpen] = React.useState(false);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
@@ -44,10 +48,46 @@ const UserLoginDialog = ({ className }: UserLoginDialogProps) => {
     }
   };
 
+  const handleSendVerificationCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const { success, error } = await sendPhoneVerification(phone);
+
+      if (success) {
+        setCodeSent(true);
+        toast.success('Verification code sent', {
+          description: 'Please check your phone for the verification code.'
+        });
+      } else {
+        toast.error('Failed to send verification code', {
+          description: error || 'Please check the phone number and try again.'
+        });
+      }
+    } catch (error) {
+      console.error('Error sending verification code:', error);
+      toast.error('Failed to send verification code', {
+        description: 'An unexpected error occurred. Please try again.'
+      });
+    }
+  };
+
   const handlePhoneLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Phone login implementation will be added later
-    console.log('Phone login with:', phone);
+    try {
+      if (!codeSent) {
+        await handleSendVerificationCode(e);
+        return;
+      }
+
+      await signInWithPhone(phone, verificationCode);
+      setOpen(false);
+      toast.success('Signed in successfully');
+    } catch (error) {
+      console.error('Phone login error:', error);
+      toast.error('Authentication failed', {
+        description: 'Failed to verify the code. Please try again.'
+      });
+    }
   };
 
   return (
@@ -66,9 +106,10 @@ const UserLoginDialog = ({ className }: UserLoginDialogProps) => {
           </DialogDescription>
         </DialogHeader>
         <Tabs defaultValue="email" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="email">Email</TabsTrigger>
             <TabsTrigger value="facebook">Facebook</TabsTrigger>
+            <TabsTrigger value="google">Google</TabsTrigger>
             <TabsTrigger value="phone">Phone</TabsTrigger>
           </TabsList>
           <TabsContent value="email">
