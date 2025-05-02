@@ -194,7 +194,7 @@ export const mailerSendService = {
           </div>
           <div style="background-color: #f3f4f6; padding: 15px; text-align: center; font-size: 12px; color: #6b7280;">
             <p>© ${new Date().getFullYear()} CityPulse South Africa. All rights reserved.</p>
-            <p>If you have any questions, please contact us at <a href="mailto:support@citypulse-sa.com" style="color: #0EA5E9;">support@citypulse-sa.com</a></p>
+            <p>If you have any questions, please contact us at <a href="mailto:info@citypulse.co.za" style="color: #0EA5E9;">info@citypulse.co.za</a></p>
           </div>
         </div>
       `,

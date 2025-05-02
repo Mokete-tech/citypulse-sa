@@ -330,7 +330,6 @@ const Contact = () => {
                       <h3 className="font-medium mb-1">Contact Information</h3>
                       <p className="text-sm text-muted-foreground">
                         Email: info@citypulse.co.za<br />
-                        Phone: +27 10 123 4567<br />
                         Hours: Monday-Friday, 9am-5pm SAST
                       </p>
                     </div>

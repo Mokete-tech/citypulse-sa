@@ -1,12 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { 
-  Facebook, 
-  Twitter, 
-  Linkedin, 
-  Mail, 
-  Share2, 
-  Copy, 
-  Check 
+import {
+  Facebook,
+  Twitter,
+  Linkedin,
+  Mail,
+  Share2,
+  Copy,
+  Check
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -123,12 +123,12 @@ const SocialShare = ({
           <Facebook className="h-4 w-4" />
         </Button>
 
-        {/* Twitter/X */}
+        {/* X (formerly Twitter) */}
         <Button
           variant="outline"
           size="icon"
           onClick={() => window.open(twitterUrl, "_blank")}
-          title="Share on X (Twitter)"
+          title="Share on X"
         >
           <Twitter className="h-4 w-4" />
         </Button>

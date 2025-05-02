@@ -10,6 +10,7 @@ import Deals from "./pages/Deals";
 import DealDetail from "./pages/DealDetail";
 import Events from "./pages/Events";
 import Contact from "./pages/Contact";
+import Terms from "./pages/Terms";
 import MerchantLogin from "./pages/MerchantLogin";
 import MerchantDashboard from "./pages/MerchantDashboard";
 import NotFound from "./pages/NotFound";
@@ -62,6 +63,11 @@ const App = () => (
               <Route path="/contact" element={
                 <ErrorBoundary>
                   <Contact />
+                </ErrorBoundary>
+              } />
+              <Route path="/terms" element={
+                <ErrorBoundary>
+                  <Terms />
                 </ErrorBoundary>
               } />
               <Route path="/merchant/login" element={

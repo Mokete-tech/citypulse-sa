@@ -189,7 +189,7 @@ const UserLoginDialog = ({ className }: UserLoginDialogProps) => {
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="+27 XX XXX XXXX"
+                  placeholder="Enter your phone number"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   required
