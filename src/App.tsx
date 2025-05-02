@@ -10,6 +10,7 @@ import Events from "./pages/Events";
 import Contact from "./pages/Contact";
 import MerchantLogin from "./pages/MerchantLogin";
 import MerchantDashboard from "./pages/MerchantDashboard";
+import UserProfile from "./pages/UserProfile";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -90,6 +91,13 @@ const App = () => (
               <Route path="/auth/reset-password" element={
                 <ErrorBoundary>
                   <ResetPassword />
+                </ErrorBoundary>
+              } />
+              <Route path="/profile" element={
+                <ErrorBoundary>
+                  <ProtectedRoute>
+                    <UserProfile />
+                  </ProtectedRoute>
                 </ErrorBoundary>
               } />
               <Route path="*" element={<NotFound />} />
