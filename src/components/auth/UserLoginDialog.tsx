@@ -102,7 +102,7 @@ const UserLoginDialog = ({ className }: UserLoginDialogProps) => {
         <DialogHeader>
           <DialogTitle>Login to CityPulse</DialogTitle>
           <DialogDescription>
-            Access your account to save deals, track events, and more.
+            Access your account to save deals, track events, and more. New users will be automatically registered.
           </DialogDescription>
         </DialogHeader>
         <Tabs defaultValue="email" className="w-full">
@@ -139,6 +139,10 @@ const UserLoginDialog = ({ className }: UserLoginDialogProps) => {
                 <Mail className="h-4 w-4 mr-2" />
                 Login with Email
               </Button>
+
+              <div className="text-center text-sm text-muted-foreground mt-4">
+                <p>Don't have an account? New users will be automatically registered when you login.</p>
+              </div>
             </form>
           </TabsContent>
           <TabsContent value="facebook">
@@ -191,9 +195,24 @@ const UserLoginDialog = ({ className }: UserLoginDialogProps) => {
                   required
                 />
               </div>
+
+              {codeSent && (
+                <div className="space-y-2">
+                  <Label htmlFor="verificationCode">Verification Code</Label>
+                  <Input
+                    id="verificationCode"
+                    type="text"
+                    placeholder="Enter the code sent to your phone"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    required
+                  />
+                </div>
+              )}
+
               <Button type="submit" className="w-full" disabled={loading}>
                 <Phone className="h-4 w-4 mr-2" />
-                Login with Phone
+                {codeSent ? 'Verify Code' : 'Send Verification Code'}
               </Button>
             </form>
           </TabsContent>

@@ -18,5 +18,29 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 
 export const supabase = createClient<Database>(
   SUPABASE_URL as string,
-  SUPABASE_ANON_KEY as string
+  SUPABASE_ANON_KEY as string,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  }
 );
+
+// Function to check Supabase connection
+export const checkSupabaseConnection = async (): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.from('health_check').select('*').limit(1);
+
+    if (error) {
+      console.error('Supabase connection error:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Failed to connect to Supabase:', error);
+    return false;
+  }
+};

@@ -159,7 +159,7 @@ export function ReactionButton({
         setCount(prev => prev + 1);
 
         // Show success toast for adding tick
-        toast.success('Tick added!', {
+        toast.success('Give it a tick!', {
           description: `You've given this ${itemType} a tick! It's now saved to your profile.`
         });
       }
@@ -183,7 +183,7 @@ export function ReactionButton({
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
-            variant="custom"
+            variant="outline"
             size={size}
             className={cn(
               reactionButtonVariants({
@@ -204,14 +204,14 @@ export function ReactionButton({
                 <Check className={cn(
                   'transition-all duration-300',
                   buttonSize === 'sm' ? 'h-4 w-4' : buttonSize === 'lg' ? 'h-6 w-6' : 'h-5 w-5',
-                  hasReacted ? 'text-white scale-125 stroke-[3] drop-shadow-md' : 'text-gray-600',
+                  hasReacted ? 'text-white scale-125 stroke-[4] drop-shadow-md' : 'text-gray-600 stroke-[2]',
                   showCount ? 'mr-2' : ''
                 )} />
               ) : (
                 <ThumbsUp className={cn(
                   'transition-all duration-300',
                   buttonSize === 'sm' ? 'h-4 w-4' : buttonSize === 'lg' ? 'h-6 w-6' : 'h-5 w-5',
-                  hasReacted ? 'text-white scale-125 stroke-[3] drop-shadow-md' : 'text-gray-600',
+                  hasReacted ? 'text-white scale-125 stroke-[4] drop-shadow-md' : 'text-gray-600 stroke-[2]',
                   showCount ? 'mr-2' : ''
                 )} />
               )}
