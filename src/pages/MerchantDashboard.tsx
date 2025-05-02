@@ -11,16 +11,26 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { Plus, PenLine, Trash2, Video, Image, CreditCard, Calendar } from 'lucide-react';
+import { Plus, PenLine, Trash2, Video, Image, CreditCard, Calendar, FileText } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { StatementGenerator } from '@/components/merchant/StatementGenerator';
+import { AnalyticsDashboard } from '@/components/merchant/AnalyticsDashboard';
+import { PaymentIntegration } from '@/components/merchant/PaymentIntegration';
+import { MediaUploader } from '@/components/merchant/MediaUploader';
+import { useAuth } from '@/contexts/AuthContext';
 
 const MerchantDashboard = () => {
+  const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isAddingDeal, setIsAddingDeal] = useState(false);
   const [activeTab, setActiveTab] = useState('deals');
   const [mediaType, setMediaType] = useState('image');
   const [isPremiumAd, setIsPremiumAd] = useState(false);
-  
+
+  // Mock merchant data - in a real app, this would come from Supabase
+  const merchantId = "merchant-123";
+  const merchantName = "Cape Town Café";
+
   const [newDeal, setNewDeal] = useState({
     title: '',
     description: '',
@@ -32,7 +42,7 @@ const MerchantDashboard = () => {
     location: '',
     discount: '',
   });
-  
+
   const adPricing = {
     standard: {
       weekly: 'R199',
@@ -43,13 +53,13 @@ const MerchantDashboard = () => {
       monthly: 'R1699',
     }
   };
-  
+
   // Sample merchant deals - in a real app, this would come from Firebase
   const [merchantDeals, setMerchantDeals] = useState([
-    { 
-      id: 1, 
-      title: "20% Off All Coffee", 
-      description: "Get 20% off any coffee drink, every Tuesday", 
+    {
+      id: 1,
+      title: "20% Off All Coffee",
+      description: "Get 20% off any coffee drink, every Tuesday",
       expiresAt: "2025-05-15",
       category: "Food & Drink",
       location: "Cape Town Café",
@@ -60,10 +70,10 @@ const MerchantDashboard = () => {
       views: 124,
       status: "Active"
     },
-    { 
-      id: 2, 
-      title: "Free Pastry with Coffee", 
-      description: "Get a free pastry with purchase of any large coffee", 
+    {
+      id: 2,
+      title: "Free Pastry with Coffee",
+      description: "Get a free pastry with purchase of any large coffee",
       expiresAt: "2025-05-30",
       category: "Food & Drink",
       location: "Johannesburg Bakery",
@@ -75,30 +85,30 @@ const MerchantDashboard = () => {
       status: "Active"
     },
   ]);
-  
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
-  
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setNewDeal(prev => ({ ...prev, [name]: value }));
   };
-  
+
   const handleSelectChange = (name: string, value: string) => {
     setNewDeal(prev => ({ ...prev, [name]: value }));
   };
-  
+
   const handleMediaTypeChange = (type: string) => {
     setMediaType(type);
     setNewDeal(prev => ({ ...prev, mediaType: type }));
   };
-  
+
   const handlePremiumToggle = (checked: boolean) => {
     setIsPremiumAd(checked);
     setNewDeal(prev => ({ ...prev, isPremium: checked }));
   };
-  
+
   const handleAddDeal = () => {
     // In a real app, you'd add the deal to Firebase here
     const newDealWithId = {
@@ -107,13 +117,13 @@ const MerchantDashboard = () => {
       views: 0,
       status: "Pending Payment"
     };
-    
+
     setMerchantDeals(prev => [...prev, newDealWithId]);
     toast({
       title: "Deal created!",
       description: "Your deal has been created and is pending payment.",
     });
-    
+
     setNewDeal({
       title: '',
       description: '',
@@ -128,7 +138,7 @@ const MerchantDashboard = () => {
     setIsAddingDeal(false);
     // In a real app, would redirect to payment page
   };
-  
+
   const handleDeleteDeal = (id: number) => {
     // In a real app, you'd delete from Firebase here
     setMerchantDeals(prev => prev.filter(deal => deal.id !== id));
@@ -137,30 +147,59 @@ const MerchantDashboard = () => {
       description: "The deal has been removed from your listings.",
     });
   };
-  
-  const handlePaymentProcess = (id: number) => {
-    // In a real app, would handle Stripe/PayFast/etc integration here
-    toast({
-      title: "Redirecting to payment",
-      description: "You will be redirected to complete your payment.",
-    });
-    // Mock payment being completed
-    setTimeout(() => {
-      setMerchantDeals(prev => 
-        prev.map(deal => 
-          deal.id === id ? { ...deal, status: "Active" } : deal
-        )
-      );
-    }, 1500);
+
+  const [showPayment, setShowPayment] = useState(false);
+  const [selectedDealForPayment, setSelectedDealForPayment] = useState<any>(null);
+
+  const handlePaymentProcess = (deal: any) => {
+    setSelectedDealForPayment(deal);
+    setShowPayment(true);
   };
-  
+
+  const handlePaymentSuccess = (transactionId: string) => {
+    // Update the deal status
+    setMerchantDeals(prev =>
+      prev.map(deal =>
+        deal.id === selectedDealForPayment.id ? { ...deal, status: "Active" } : deal
+      )
+    );
+
+    toast({
+      title: "Payment successful!",
+      description: `Transaction ID: ${transactionId}`,
+    });
+
+    // Hide payment form after success
+    setTimeout(() => {
+      setShowPayment(false);
+      setSelectedDealForPayment(null);
+    }, 3000);
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
-      
+
+      {showPayment && selectedDealForPayment && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="max-w-md w-full">
+            <PaymentIntegration
+              amount={selectedDealForPayment.isPremium ? 499 : 199}
+              itemId={selectedDealForPayment.id.toString()}
+              itemType="deal"
+              itemTitle={selectedDealForPayment.title}
+              merchantId={merchantId}
+              merchantName={merchantName}
+              onSuccess={handlePaymentSuccess}
+              onCancel={() => setShowPayment(false)}
+            />
+          </div>
+        </div>
+      )}
+
       <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : ''}`}>
         <Navbar toggleSidebar={toggleSidebar} />
-        
+
         <main className="flex-1 overflow-y-auto px-4 py-6 md:px-6">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Merchant Dashboard</h1>
@@ -168,24 +207,25 @@ const MerchantDashboard = () => {
               Manage your deals and view analytics.
             </p>
           </div>
-          
+
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
             <TabsList>
               <TabsTrigger value="deals">My Deals</TabsTrigger>
               <TabsTrigger value="analytics">Analytics</TabsTrigger>
               <TabsTrigger value="payments">Payments</TabsTrigger>
+              <TabsTrigger value="statements">Statements</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="deals" className="space-y-6">
               <div className="mb-6">
-                <Button 
-                  onClick={() => setIsAddingDeal(true)} 
+                <Button
+                  onClick={() => setIsAddingDeal(true)}
                   className="flex items-center gap-2"
                 >
                   <Plus className="h-4 w-4" /> Add New Deal
                 </Button>
               </div>
-              
+
               {isAddingDeal && (
                 <Card className="mb-8">
                   <CardHeader>
@@ -206,7 +246,7 @@ const MerchantDashboard = () => {
                           onChange={handleInputChange}
                         />
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label htmlFor="description">Description</Label>
                         <Textarea
@@ -217,11 +257,11 @@ const MerchantDashboard = () => {
                           onChange={handleInputChange}
                         />
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="category">Category</Label>
-                          <Select 
+                          <Select
                             onValueChange={(value) => handleSelectChange('category', value)}
                             value={newDeal.category}
                           >
@@ -237,7 +277,7 @@ const MerchantDashboard = () => {
                             </SelectContent>
                           </Select>
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="location">Location</Label>
                           <Input
@@ -249,7 +289,7 @@ const MerchantDashboard = () => {
                           />
                         </div>
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="discount">Discount</Label>
@@ -261,7 +301,7 @@ const MerchantDashboard = () => {
                             onChange={handleInputChange}
                           />
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="expiresAt">Expiration Date</Label>
                           <div className="flex items-center gap-2">
@@ -276,11 +316,11 @@ const MerchantDashboard = () => {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label>Media Type</Label>
                         <div className="flex gap-4">
-                          <Button 
+                          <Button
                             type="button"
                             variant={mediaType === 'image' ? "default" : "outline"}
                             onClick={() => handleMediaTypeChange('image')}
@@ -288,7 +328,7 @@ const MerchantDashboard = () => {
                           >
                             <Image className="h-4 w-4" /> Image
                           </Button>
-                          <Button 
+                          <Button
                             type="button"
                             variant={mediaType === 'video' ? "default" : "outline"}
                             onClick={() => handleMediaTypeChange('video')}
@@ -298,20 +338,23 @@ const MerchantDashboard = () => {
                           </Button>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-2">
-                        <Label htmlFor="mediaUrl">
-                          {mediaType === 'image' ? 'Image URL' : 'Video URL'}
-                        </Label>
-                        <Input
-                          id="mediaUrl"
-                          name="mediaUrl"
-                          placeholder={mediaType === 'image' ? 'https://example.com/image.jpg' : 'https://example.com/video.mp4'}
-                          value={newDeal.mediaUrl}
-                          onChange={handleInputChange}
+                        <Label>Media</Label>
+                        <MediaUploader
+                          merchantId={merchantId}
+                          itemType="deal"
+                          onMediaSelected={(url, type) => {
+                            setNewDeal(prev => ({
+                              ...prev,
+                              mediaUrl: url,
+                              mediaType: type
+                            }));
+                            setMediaType(type);
+                          }}
                         />
                       </div>
-                      
+
                       <div className="border rounded-md p-4 bg-gray-50">
                         <div className="flex items-center justify-between">
                           <div>
@@ -320,12 +363,12 @@ const MerchantDashboard = () => {
                               Featured placement and more visibility
                             </p>
                           </div>
-                          <Switch 
-                            checked={isPremiumAd} 
+                          <Switch
+                            checked={isPremiumAd}
                             onCheckedChange={handlePremiumToggle}
                           />
                         </div>
-                        
+
                         {isPremiumAd && (
                           <div className="mt-4 grid grid-cols-2 gap-3">
                             <div className="border rounded p-3 bg-white text-center">
@@ -338,7 +381,7 @@ const MerchantDashboard = () => {
                             </div>
                           </div>
                         )}
-                        
+
                         {!isPremiumAd && (
                           <div className="mt-4 grid grid-cols-2 gap-3">
                             <div className="border rounded p-3 bg-white text-center">
@@ -362,7 +405,7 @@ const MerchantDashboard = () => {
                   </CardFooter>
                 </Card>
               )}
-              
+
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {merchantDeals.map(deal => (
                   <Card key={deal.id}>
@@ -387,10 +430,10 @@ const MerchantDashboard = () => {
                     <CardContent>
                       <div className="mb-4">
                         {deal.mediaType === 'image' ? (
-                          <img 
-                            src={deal.mediaUrl} 
-                            alt={deal.title} 
-                            className="w-full h-40 object-cover rounded-md" 
+                          <img
+                            src={deal.mediaUrl}
+                            alt={deal.title}
+                            className="w-full h-40 object-cover rounded-md"
                           />
                         ) : (
                           <div className="relative w-full h-40 bg-gray-100 rounded-md flex items-center justify-center">
@@ -401,15 +444,15 @@ const MerchantDashboard = () => {
                           </div>
                         )}
                       </div>
-                      
+
                       <p className="mb-3">{deal.description}</p>
-                      
+
                       <div className="flex flex-wrap gap-2 text-sm mb-3">
                         <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-md">
                           {deal.discount}
                         </span>
                       </div>
-                      
+
                       <div className="flex justify-between text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
@@ -422,8 +465,8 @@ const MerchantDashboard = () => {
                     </CardContent>
                     <CardFooter className="flex justify-between">
                       {deal.status === "Pending Payment" ? (
-                        <Button 
-                          onClick={() => handlePaymentProcess(deal.id)}
+                        <Button
+                          onClick={() => handlePaymentProcess(deal)}
                           className="flex-1 flex items-center justify-center gap-2"
                         >
                           <CreditCard className="h-4 w-4" /> Complete Payment
@@ -433,9 +476,9 @@ const MerchantDashboard = () => {
                           <Button variant="outline" size="sm" className="flex items-center gap-1">
                             <PenLine className="h-4 w-4" /> Edit
                           </Button>
-                          <Button 
-                            variant="destructive" 
-                            size="sm" 
+                          <Button
+                            variant="destructive"
+                            size="sm"
                             className="flex items-center gap-1"
                             onClick={() => handleDeleteDeal(deal.id)}
                           >
@@ -448,23 +491,11 @@ const MerchantDashboard = () => {
                 ))}
               </div>
             </TabsContent>
-            
+
             <TabsContent value="analytics">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Performance Analytics</CardTitle>
-                  <CardDescription>
-                    Track how your deals are performing.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="h-80">
-                  <div className="flex h-full items-center justify-center">
-                    <p className="text-muted-foreground">Analytics dashboard coming soon!</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <AnalyticsDashboard merchantId={merchantId} />
             </TabsContent>
-            
+
             <TabsContent value="payments">
               <Card>
                 <CardHeader>
@@ -503,9 +534,85 @@ const MerchantDashboard = () => {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            <TabsContent value="statements">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold">Financial Statements</h2>
+                    <p className="text-muted-foreground">
+                      Generate and download statements for your business
+                    </p>
+                  </div>
+                  <Button className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" /> View All Statements
+                  </Button>
+                </div>
+
+                <StatementGenerator
+                  merchantId={merchantId}
+                  merchantName={merchantName}
+                />
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Recent Statements</CardTitle>
+                    <CardDescription>
+                      Your previously generated statements
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="border rounded-md overflow-hidden">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left">Date Generated</th>
+                            <th className="px-4 py-3 text-left">Period</th>
+                            <th className="px-4 py-3 text-left">Type</th>
+                            <th className="px-4 py-3 text-left">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          <tr>
+                            <td className="px-4 py-3">2025-04-15</td>
+                            <td className="px-4 py-3">March 2025</td>
+                            <td className="px-4 py-3">Detailed</td>
+                            <td className="px-4 py-3">
+                              <div className="flex gap-2">
+                                <Button variant="outline" size="sm">
+                                  <FileText className="h-3.5 w-3.5 mr-1" /> View
+                                </Button>
+                                <Button variant="ghost" size="sm">
+                                  <CreditCard className="h-3.5 w-3.5 mr-1" /> Email
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="px-4 py-3">2025-03-10</td>
+                            <td className="px-4 py-3">February 2025</td>
+                            <td className="px-4 py-3">Summary</td>
+                            <td className="px-4 py-3">
+                              <div className="flex gap-2">
+                                <Button variant="outline" size="sm">
+                                  <FileText className="h-3.5 w-3.5 mr-1" /> View
+                                </Button>
+                                <Button variant="ghost" size="sm">
+                                  <CreditCard className="h-3.5 w-3.5 mr-1" /> Email
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
           </Tabs>
         </main>
-        
+
         <Footer />
       </div>
     </div>
