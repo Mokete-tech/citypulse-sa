@@ -81,8 +81,13 @@ export function DealCard({
       </CardContent>
 
       <CardFooter className="pt-0 flex justify-between items-center border-t pt-4">
-        <div className="flex items-center gap-2">
-          <ReactionButton itemId={id} itemType="deal" />
+        <div className="flex items-center gap-3">
+          <ReactionButton
+            itemId={id}
+            itemType="deal"
+            buttonSize="md"
+            className="min-w-[70px]"
+          />
 
           {expiration_date && (
             <div className="flex items-center text-sm text-muted-foreground">

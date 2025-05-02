@@ -111,7 +111,12 @@ export function EventCard({
       </CardContent>
 
       <CardFooter className="pt-0 flex justify-between items-center border-t pt-4">
-        <ReactionButton itemId={id} itemType="event" />
+        <ReactionButton
+          itemId={id}
+          itemType="event"
+          buttonSize="md"
+          className="min-w-[70px]"
+        />
         <div className="flex items-center gap-2">
           <ShareButton
             title={title}
