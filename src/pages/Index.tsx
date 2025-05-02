@@ -6,7 +6,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Sidebar from '@/components/layout/Sidebar';
 import { Button } from '@/components/ui/button';
-import { Tag, Calendar, AlertCircle } from 'lucide-react';
+import { Tag, Calendar, AlertCircle, MapPin } from 'lucide-react';
 import { LoadingState } from '@/components/ui/loading-state';
 import { handleError, handleSupabaseError } from '@/lib/error-handler';
 import { toast } from '@/components/ui/sonner';
@@ -15,6 +15,8 @@ import { fallbackDeals, fallbackEvents } from '@/data/fallback-data';
 import { EnvWarning } from '@/components/ui/env-warning';
 import { DealCard } from '@/components/cards/DealCard';
 import { EventCard } from '@/components/cards/EventCard';
+import { NearbyDeals } from '@/components/location/NearbyDeals';
+import { NearbyEvents } from '@/components/location/NearbyEvents';
 
 // Use the interfaces from fallback-data.ts
 import type { Deal, Event } from '@/data/fallback-data';
@@ -250,6 +252,15 @@ const Index = () => {
               )}
             </div>
 
+            {/* Nearby Deals and Events Section */}
+            <div className="mb-12">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <NearbyDeals initialRadius={5} maxDeals={3} />
+                <NearbyEvents initialRadius={5} maxEvents={3} />
+              </div>
+            </div>
+
+            {/* Featured Deals and Events Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
               <section>
                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">

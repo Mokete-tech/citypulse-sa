@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ReactionButton } from '@/components/ui/reaction-button';
 import ShareButton from '@/components/ui/share-button';
-import { Tag, Star, Calendar } from 'lucide-react';
+import { Tag, Star, Calendar, MapPin } from 'lucide-react';
 
 interface DealCardProps {
   id: number;
@@ -16,6 +16,7 @@ interface DealCardProps {
   discount?: string;
   image_url?: string;
   featured?: boolean;
+  distance?: string;
   onClick?: () => void;
 }
 
@@ -29,6 +30,7 @@ export function DealCard({
   discount,
   image_url,
   featured,
+  distance,
   onClick
 }: DealCardProps) {
   return (
@@ -86,6 +88,13 @@ export function DealCard({
             <div className="flex items-center text-sm text-muted-foreground">
               <Calendar className="h-3 w-3 mr-1" />
               <span>Expires: {expiration_date}</span>
+            </div>
+          )}
+
+          {distance && (
+            <div className="flex items-center text-sm text-muted-foreground ml-2">
+              <MapPin className="h-3 w-3 mr-1" />
+              <span>{distance}</span>
             </div>
           )}
         </div>

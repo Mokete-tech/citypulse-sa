@@ -18,6 +18,7 @@ interface EventCardProps {
   price?: string;
   image_url?: string;
   featured?: boolean;
+  distance?: string;
   onClick?: () => void;
 }
 
@@ -33,6 +34,7 @@ export function EventCard({
   price,
   image_url,
   featured,
+  distance,
   onClick
 }: EventCardProps) {
   return (
@@ -89,6 +91,9 @@ export function EventCard({
             <div className="flex items-center text-sm">
               <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
               <span>{location}</span>
+              {distance && (
+                <span className="ml-2 text-xs text-muted-foreground">({distance})</span>
+              )}
             </div>
           )}
 
