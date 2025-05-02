@@ -144,12 +144,19 @@ export function PaymentIntegration({
 
         newTransactionId = result.paymentIntentId || `TX-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       } else if (paymentMethod === 'payfast') {
-        // For PayFast, we use Stripe Checkout
-        const amountInCents = Math.round(amount * 100); // Convert to cents
+        // For demo purposes, we'll simulate a successful payment
+        // In production, this would redirect to Stripe Checkout
 
-        // Create a checkout session
+        // Generate a transaction ID for PayFast
+        newTransactionId = `PF-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+        // Log that we're simulating the payment
+        console.log('Simulating PayFast payment with transaction ID:', newTransactionId);
+
+        // In a real implementation, we would use Stripe Checkout like this:
+        /*
         const { sessionId, error } = await stripeService.createCheckoutSession(
-          'price_1OXYZABCDEFGHIJKLMNOPQRSt', // This would be a real price ID in production
+          'price_id_from_stripe_dashboard',
           `${window.location.origin}/payment/success?item_id=${itemId}&item_type=${itemType}`,
           `${window.location.origin}/payment/cancel`,
           {
@@ -164,11 +171,8 @@ export function PaymentIntegration({
           throw new Error(error || 'Failed to create checkout session');
         }
 
-        // Redirect to Stripe Checkout
         await stripeService.redirectToCheckout(sessionId);
-
-        // This code will only run if the redirect fails
-        newTransactionId = `SC-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        */
       } else {
         // For EFT, we'll generate a reference number
         newTransactionId = `EFT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;

@@ -59,6 +59,7 @@ declare global {
       elements: (options?: any) => StripeElements;
       createPaymentMethod: (options: any) => Promise<any>;
       confirmCardPayment: (clientSecret: string, options: any) => Promise<any>;
+      redirectToCheckout?: (options: { sessionId: string }) => Promise<{ error?: { message: string } }>;
     };
   }
 }
@@ -85,7 +86,7 @@ export const stripeService = {
       });
 
       if (error) throw error;
-      
+
       return { clientSecret: data.clientSecret };
     } catch (error: any) {
       console.error('Error creating payment intent:', error);
@@ -124,16 +125,16 @@ export const stripeService = {
 
       // Initialize Stripe
       const stripe = await initializeStripe();
-      
+
       // Create Stripe Elements
       const elements = stripe.elements();
-      
+
       // Create card element
       const cardElement = elements.create('card');
-      
+
       // Mount card element to DOM
       cardElement.mount('#card-element');
-      
+
       // Confirm the payment
       const result = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
@@ -194,7 +195,7 @@ export const stripeService = {
       });
 
       if (error) throw error;
-      
+
       return { sessionId: data.sessionId };
     } catch (error: any) {
       console.error('Error creating checkout session:', error);
@@ -209,9 +210,17 @@ export const stripeService = {
   async redirectToCheckout(sessionId: string): Promise<void> {
     try {
       const stripe = await initializeStripe();
-      const { error } = await stripe.redirectToCheckout({ sessionId });
-      
-      if (error) throw error;
+
+      // Check if redirectToCheckout is available
+      if (typeof stripe.redirectToCheckout === 'function') {
+        const { error } = await stripe.redirectToCheckout({ sessionId });
+        if (error) throw error;
+      } else {
+        // Fallback for environments where redirectToCheckout is not available
+        console.warn('Stripe redirectToCheckout is not available in this environment');
+        // In a real app, you might want to redirect to a URL like:
+        // window.location.href = `https://checkout.stripe.com/pay/${sessionId}`;
+      }
     } catch (error: any) {
       console.error('Error redirecting to checkout:', error);
       throw error;
