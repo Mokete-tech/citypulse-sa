@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityPulse Layout Demo</title>
+    <style>
+        body {
+            font-family: 'Ubuntu', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            height: 64px;
+            padding: 0 24px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            font-size: 18px;
+            color: #1a202c;
+            text-decoration: none;
+        }
+        
+        .logo-icon {
+            background: linear-gradient(to right, #0032A0, #007A4D);
+            padding: 6px;
+            border-radius: 6px;
+            color: white;
+        }
+        
+        .search-bar {
+            flex: 1;
+            max-width: 400px;
+            margin: 0 16px;
+            position: relative;
+        }
+        
+        .search-bar input {
+            width: 100%;
+            padding: 8px 12px 8px 36px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            background-color: #f8f9fa;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0aec0;
+        }
+        
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .client-login-btn {
+            background-color: #0032A0;
+            color: white;
+            font-weight: bold;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 256px;
+            background-color: #0032A0;
+            color: white;
+            z-index: 50;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            padding: 0 16px;
+            border-bottom: 1px solid #1a4fc7;
+        }
+        
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            font-size: 18px;
+            text-decoration: none;
+            color: white;
+        }
+        
+        .sidebar-logo-icon {
+            background: linear-gradient(to right, white, #e2e8f0);
+            padding: 6px;
+            border-radius: 6px;
+            color: #0032A0;
+        }
+        
+        .sidebar-nav {
+            padding: 16px 8px;
+        }
+        
+        .sidebar-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .sidebar-nav li {
+            margin-bottom: 4px;
+        }
+        
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 6px;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        
+        .sidebar-nav a:hover {
+            background-color: #1a4fc7;
+        }
+        
+        .sidebar-nav .icon {
+            margin-right: 12px;
+        }
+        
+        .main-content {
+            margin-left: 256px;
+            padding: 24px;
+            transition: margin-left 0.3s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <a href="#" class="sidebar-logo">
+                <span class="sidebar-logo-icon">CP</span>
+                <span>CityPulse</span>
+            </a>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul>
+                <li>
+                    <a href="#">
+                        <span class="icon">🏷️</span>
+                        <span>Deals</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <span class="icon">📅</span>
+                        <span>Events</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <span class="icon">🔑</span>
+                        <span>Merchant Login</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    
+    <div class="navbar">
+        <a href="#" class="logo">
+            <span class="logo-icon">CP</span>
+            <span>CityPulse</span>
+        </a>
+        
+        <div class="search-bar">
+            <span class="search-icon">🔍</span>
+            <input type="text" placeholder="Search deals, events or locations...">
+        </div>
+        
+        <div class="nav-actions">
+            <button class="client-login-btn">
+                <span>🔑</span>
+                <span>Client Login</span>
+            </button>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <h1>Welcome to CityPulse South Africa</h1>
+        <p>This demo shows the layout with:</p>
+        <ul>
+            <li>Client Login button in the top right</li>
+            <li>Merchant Login button only in the left sidebar</li>
+        </ul>
+    </div>
+</body>
+</html>

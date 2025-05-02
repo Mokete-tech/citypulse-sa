@@ -24,7 +24,7 @@ VITE_SENDGRID_FROM_EMAIL=noreply@citypulse-sa.com
 VITE_SENDGRID_FROM_NAME=CityPulse South Africa
 
 # Stripe Configuration
-VITE_STRIPE_PUBLISHABLE_KEY=your-stripe-publishable-key
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_51IRNxfHieGkyNl5wOGvmEAtaXxZ6VHEPmHcXuwfsfOPTt0umFFEY9QpsJMXo4IAo0uzl0R66CpaJFRKCaXo0k5DZ00uGSXCeCN
 
 # Application Settings
 VITE_APP_NAME=CityPulse South Africa
@@ -137,6 +137,32 @@ To update your deployment after making changes:
 1. Use the Vercel dashboard to monitor your application's performance
 2. Check the Supabase dashboard for database usage and performance
 3. Set up error tracking with a service like Sentry
+
+## Payment System
+
+The CityPulse South Africa application includes a fully functional payment system using Stripe:
+
+1. **Pricing Structure**:
+   - Standard Deal: R99
+   - Premium Deal: R250
+   - Standard Event: R299
+   - Premium Event: R460
+
+2. **Payment Processing**:
+   - Secure payment collection using Stripe Elements
+   - Payment records stored in Supabase database
+   - Support for both deal and event payments
+   - Visual indicators for premium listings
+
+3. **Testing Payments**:
+   - Use Stripe test cards for testing (e.g., 4242 4242 4242 4242)
+   - Monitor payments in the Stripe dashboard
+   - Check payment records in the Supabase database
+
+4. **Getting Paid**:
+   - Payments are processed through your Stripe account
+   - Funds will be deposited according to your Stripe payout schedule
+   - Monitor revenue through the Stripe dashboard
 
 ## Support
 

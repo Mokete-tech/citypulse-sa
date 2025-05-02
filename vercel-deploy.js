@@ -2,14 +2,14 @@
 
 /**
  * Vercel Deployment Helper Script
- * 
+ *
  * This script helps deploy the CityPulse South Africa application to Vercel
  * by setting up the necessary environment variables and configuration.
  */
 
-const fs = require('fs');
-const { execSync } = require('child_process');
-const readline = require('readline');
+import fs from 'fs';
+import { execSync } from 'child_process';
+import readline from 'readline';
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -33,7 +33,7 @@ console.log(`${colors.bright}${colors.blue}CityPulse South Africa - Vercel Deplo
 // Check if .env.vercel exists
 if (!fs.existsSync('.env.vercel')) {
   console.log(`${colors.yellow}Warning: .env.vercel file not found. Creating one with default values.${colors.reset}`);
-  
+
   const defaultEnv = `# Supabase Configuration
 VITE_SUPABASE_URL=https://qghojdkspxhyjeurxagx.supabase.co
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
@@ -50,7 +50,7 @@ VITE_STRIPE_PUBLISHABLE_KEY=your-stripe-publishable-key
 VITE_APP_NAME=CityPulse South Africa
 VITE_APP_ENV=production
 `;
-  
+
   fs.writeFileSync('.env.vercel', defaultEnv);
   console.log(`${colors.green}Created .env.vercel file with default values.${colors.reset}`);
 }
@@ -58,7 +58,7 @@ VITE_APP_ENV=production
 // Check if vercel.json exists
 if (!fs.existsSync('vercel.json')) {
   console.log(`${colors.yellow}Warning: vercel.json file not found. Creating one with default values.${colors.reset}`);
-  
+
   const defaultVercelConfig = `{
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
@@ -96,7 +96,7 @@ if (!fs.existsSync('vercel.json')) {
     }
   }
 }`;
-  
+
   fs.writeFileSync('vercel.json', defaultVercelConfig);
   console.log(`${colors.green}Created vercel.json file with default values.${colors.reset}`);
 }
@@ -111,7 +111,7 @@ function deployToVercel() {
     console.error(`${colors.red}Build failed. Please fix the errors and try again.${colors.reset}`);
     process.exit(1);
   }
-  
+
   console.log(`\n${colors.cyan}Deploying to Vercel...${colors.reset}`);
   try {
     execSync('vercel --prod', { stdio: 'inherit' });
@@ -130,7 +130,7 @@ rl.question(`${colors.yellow}Do you want to deploy to Vercel now? (y/n) ${colors
     console.log(`\n${colors.cyan}Deployment cancelled. You can deploy manually by running:${colors.reset}`);
     console.log(`${colors.bright}npm run build && vercel --prod${colors.reset}`);
   }
-  
+
   rl.close();
 });
 
