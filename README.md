@@ -125,6 +125,7 @@ This project is built with:
 - `npm run deploy` - Check environment variables and build the project
 - `npm run deploy:vercel` - Deploy to Vercel
 - `npm run deploy:check` - Check if all required environment variables are set
+- `npm run setup:env` - Interactive tool to help set up environment variables for Vercel
 
 ### Environment Setup
 
@@ -205,18 +206,18 @@ The following environment variables are required for deployment:
 
 ```
 # Supabase Configuration
-VITE_SUPABASE_URL=https://qghojdkspxhyjeurxagx.supabase.co
+VITE_SUPABASE_URL=your-supabase-url
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 
 # Stripe Configuration
-VITE_STRIPE_PUBLISHABLE_KEY=pk_live_51IRNxfHieGkyNl5wOGvmEAtaXxZ6VHEPmHcXuwfsfOPTt0umFFEY9QpsJMXo4IAo0uzl0R66CpaJFRKCaXo0k5DZ00uGSXCeCN
+VITE_STRIPE_PUBLISHABLE_KEY=your-stripe-publishable-key
 STRIPE_SECRET_KEY=your-stripe-secret-key
 
 # MailerSend Configuration
-MAILERSEND_API_KEY=MS_ckXYQU@test-q3enl6kk0z042vwr.mlsender.net
-MAILERSEND_FROM_EMAIL=noreply@citypulse-sa.com
+MAILERSEND_API_KEY=your-mailersend-api-key
+MAILERSEND_FROM_EMAIL=noreply@citypulse.co.za
 MAILERSEND_FROM_NAME=CityPulse South Africa
-MAILERSEND_DOMAIN=test-q3enl6kk0z042vwr.mlsender.net
+MAILERSEND_DOMAIN=your-mailersend-domain
 
 # Twilio Configuration
 TWILIO_ACCOUNT_SID=your-twilio-account-sid
@@ -224,6 +225,8 @@ TWILIO_AUTH_TOKEN=your-twilio-auth-token
 TWILIO_VERIFY_SERVICE_SID=your-twilio-verify-service-sid
 TWILIO_PHONE_NUMBER=your-twilio-phone-number
 ```
+
+For a detailed guide on setting up environment variables, see the [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md) file.
 
 ### Vercel Deployment
 
@@ -239,17 +242,25 @@ To deploy to Vercel:
    vercel login
    ```
 
-3. **Set up environment variables**:
+3. **Set up environment variables using our helper tool**:
    ```sh
-   vercel env add VITE_SUPABASE_ANON_KEY --secret
-   vercel env add STRIPE_SECRET_KEY --secret
-   vercel env add TWILIO_AUTH_TOKEN --secret
-   vercel env add TWILIO_VERIFY_SERVICE_SID --secret
+   npm run setup:env
    ```
+   This interactive tool will guide you through setting up all required environment variables for Vercel.
 
 4. **Deploy to Vercel**:
    ```sh
    vercel --prod
+   ```
+
+5. **Alternative: Set up environment variables manually**:
+   ```sh
+   vercel env add VITE_SUPABASE_URL
+   vercel env add VITE_SUPABASE_ANON_KEY --sensitive
+   vercel env add VITE_STRIPE_PUBLISHABLE_KEY
+   vercel env add STRIPE_SECRET_KEY --sensitive
+   vercel env add MAILERSEND_API_KEY --sensitive
+   vercel env add TWILIO_AUTH_TOKEN --sensitive
    ```
 
 ## Can I connect a custom domain to my Lovable project?

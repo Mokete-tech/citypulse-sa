@@ -14,7 +14,8 @@
     "test:coverage": "vitest run --coverage",
     "deploy": "node scripts/deploy.js",
     "deploy:vercel": "vercel --prod",
-    "deploy:check": "node scripts/deploy.js --check-only"
+    "deploy:check": "node scripts/deploy.js --check-only",
+    "setup:env": "node scripts/setup-env-vars.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
