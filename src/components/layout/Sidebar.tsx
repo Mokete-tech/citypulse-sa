@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  Tag, Calendar, Building2, UserPlus, 
-  LogIn, Settings, ChevronRight, ChevronLeft, Mail
+import {
+  Tag, Calendar, Building2, UserPlus,
+  LogIn, Settings, ChevronRight, ChevronLeft, Mail,
+  CreditCard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -17,6 +18,7 @@ const menuItems = [
   { name: 'Deals', icon: Tag, path: '/deals' },
   { name: 'Events', icon: Calendar, path: '/events' },
   { name: 'Merchant Login', icon: LogIn, path: '/merchant/login' },
+  { name: 'Merchant Packages', icon: CreditCard, path: '/merchant/packages' },
 ];
 
 const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
@@ -34,22 +36,22 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
               </div>
               <span>CityPulse</span>
             </Link>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="text-white md:hidden" 
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white md:hidden"
               onClick={toggleSidebar}
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
           </div>
-          
+
           <nav className="flex-1 pt-4 pb-4 overflow-y-auto">
             <ul className="space-y-1 px-2">
               {menuItems.map((item) => (
                 <li key={item.name}>
-                  <Link 
-                    to={item.path} 
+                  <Link
+                    to={item.path}
                     className="flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors"
                   >
                     <item.icon className="h-5 w-5 mr-3" />
@@ -59,7 +61,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
               ))}
             </ul>
           </nav>
-          
+
           <div className="p-4 border-t border-sky-700">
             <div className="px-4 py-2">
               <div className="flex items-center">
@@ -77,7 +79,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
       </div>
 
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
           onClick={toggleSidebar}
         ></div>

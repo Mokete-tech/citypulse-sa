@@ -13,11 +13,13 @@ import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
 import MerchantLogin from "./pages/MerchantLogin";
 import MerchantDashboard from "./pages/MerchantDashboard";
+import MerchantPackages from "./pages/MerchantPackages";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
 import AdminDashboard from "./pages/AdminDashboard";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./contexts/AuthContext";
+import { StripeProvider } from "./contexts/StripeContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Create a new QueryClient instance
@@ -34,11 +36,12 @@ const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <ConnectionCheck />
-          <BrowserRouter>
+        <StripeProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <ConnectionCheck />
+            <BrowserRouter>
             <Routes>
               <Route path="/" element={
                 <ErrorBoundary>
@@ -82,6 +85,11 @@ const App = () => (
                   </ProtectedRoute>
                 </ErrorBoundary>
               } />
+              <Route path="/merchant/packages" element={
+                <ErrorBoundary>
+                  <MerchantPackages />
+                </ErrorBoundary>
+              } />
               <Route path="/admin/dashboard" element={
                 <ErrorBoundary>
                   <ProtectedRoute requiredRole="admin">
@@ -97,7 +105,8 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
-        </TooltipProvider>
+          </TooltipProvider>
+        </StripeProvider>
       </AuthProvider>
     </QueryClientProvider>
   </ErrorBoundary>
