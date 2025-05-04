@@ -26,12 +26,16 @@ const SEO = ({
 }: SEOProps) => {
   // Ensure the title has the site name
   const fullTitle = title.includes('CityPulse') ? title : `${title} | CityPulse South Africa`;
-  
+
   // Ensure ogImage is a full URL
   const fullOgImage = ogImage.startsWith('http') ? ogImage : `${window.location.origin}${ogImage}`;
-  
-  // Use current URL if canonical not provided
-  const canonical = canonicalUrl || window.location.href;
+
+  // Use current URL if canonical not provided, but strip the hash for SEO
+  const canonical = canonicalUrl || (
+    typeof window !== 'undefined'
+      ? `${window.location.protocol}//${window.location.host}${window.location.pathname}`
+      : 'https://citypulse-sa.vercel.app'
+  );
 
   return (
     <Helmet>
@@ -39,23 +43,23 @@ const SEO = ({
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
-      
+
       {/* Open Graph / Facebook */}
       <meta property="og:type" content={ogType} />
       <meta property="og:url" content={ogUrl} />
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={fullOgImage} />
-      
+
       {/* Twitter */}
       <meta name="twitter:card" content={twitterCard} />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={fullOgImage} />
-      
+
       {/* Canonical Link */}
       <link rel="canonical" href={canonical} />
-      
+
       {/* Additional tags */}
       {children}
     </Helmet>
