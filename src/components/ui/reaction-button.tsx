@@ -16,13 +16,14 @@ const reactionButtonVariants = cva(
   {
     variants: {
       state: {
-        active: "bg-gradient-to-r from-blue-600 to-blue-400 text-white border-transparent hover:from-blue-700 hover:to-blue-500 shadow-lg hover:shadow-xl ring-2 ring-blue-300 ring-offset-2 font-extrabold",
-        inactive: "bg-white hover:bg-gray-50 border-gray-300 hover:border-blue-400 hover:shadow-md hover:ring-2 hover:ring-blue-200 hover:ring-offset-2"
+        active: "bg-gradient-to-r from-green-500 to-emerald-400 text-white border-transparent hover:from-green-600 hover:to-emerald-500 shadow-lg hover:shadow-xl ring-2 ring-green-300 ring-offset-2 font-extrabold",
+        inactive: "bg-white hover:bg-gray-50 border-gray-300 hover:border-green-400 hover:shadow-md hover:ring-2 hover:ring-green-200 hover:ring-offset-2"
       },
       animation: {
         pulse: "hover:animate-pulse",
         bounce: "hover:animate-bounce",
         scale: "hover:scale-110 active:scale-95",
+        wiggle: "hover:animate-wiggle",
         none: ""
       },
       size: {
@@ -46,7 +47,7 @@ interface ReactionButtonProps {
   showCount?: boolean;
   size?: 'default' | 'sm' | 'lg' | 'icon';
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
-  animation?: 'pulse' | 'bounce' | 'scale' | 'none';
+  animation?: 'pulse' | 'bounce' | 'scale' | 'wiggle' | 'none';
   iconType?: 'check' | 'thumbsUp';
   buttonSize?: 'sm' | 'md' | 'lg';
 }
@@ -60,7 +61,7 @@ export function ReactionButton({
   // variant is used in the className but TypeScript doesn't detect it
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   variant = 'outline',
-  animation = 'scale',
+  animation = 'wiggle',
   iconType = 'check',
   buttonSize = 'md'
 }: ReactionButtonProps) {
@@ -164,7 +165,7 @@ export function ReactionButton({
 
         // Show success toast for adding tick
         toast.success('Give it a tick!', {
-          description: `You've given this ${itemType} a tick! It's now saved to your profile.`
+          description: `You've given this ${itemType} a tick! It's now saved to your favorites.`
         });
       }
     } catch (error) {
@@ -196,7 +197,7 @@ export function ReactionButton({
                 size: buttonSize
               }),
               'border-2 transition-all duration-300 font-bold',
-              hasReacted ? 'border-blue-400' : 'border-gray-300',
+              hasReacted ? 'border-green-500' : 'border-gray-300',
               className
             )}
             onClick={handleReaction}
@@ -208,14 +209,14 @@ export function ReactionButton({
                 <Check className={cn(
                   'transition-all duration-300',
                   buttonSize === 'sm' ? 'h-4 w-4' : buttonSize === 'lg' ? 'h-6 w-6' : 'h-5 w-5',
-                  hasReacted ? 'text-white scale-125 stroke-[4] drop-shadow-md' : 'text-gray-600 stroke-[3]',
+                  hasReacted ? 'text-white scale-125 stroke-[5] drop-shadow-lg' : 'text-gray-600 stroke-[4]',
                   showCount ? 'mr-2' : ''
                 )} />
               ) : (
                 <ThumbsUp className={cn(
                   'transition-all duration-300',
                   buttonSize === 'sm' ? 'h-4 w-4' : buttonSize === 'lg' ? 'h-6 w-6' : 'h-5 w-5',
-                  hasReacted ? 'text-white scale-125 stroke-[4] drop-shadow-md' : 'text-gray-600 stroke-[2]',
+                  hasReacted ? 'text-white scale-125 stroke-[4] drop-shadow-md' : 'text-gray-600 stroke-[3]',
                   showCount ? 'mr-2' : ''
                 )} />
               )}
@@ -224,7 +225,8 @@ export function ReactionButton({
               {hasReacted && (
                 <>
                   <span className="absolute inset-0 rounded-full animate-ping opacity-30 bg-white" />
-                  <span className="absolute inset-0 rounded-full animate-pulse opacity-20 bg-blue-200" />
+                  <span className="absolute inset-0 rounded-full animate-pulse opacity-30 bg-green-200" />
+                  <span className="absolute inset-0 rounded-full animate-pulse opacity-20 bg-emerald-300" />
                 </>
               )}
             </span>
@@ -244,7 +246,7 @@ export function ReactionButton({
           </Button>
         </TooltipTrigger>
         <TooltipContent side="top" className="font-medium">
-          <p>{hasReacted ? 'Remove your tick' : 'Give it a tick!'}</p>
+          <p>{hasReacted ? 'Remove from favorites' : 'Give it a tick and save to favorites!'}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -262,6 +264,12 @@ if (document.head && !document.getElementById('wiggle-animation')) {
       50% { transform: rotate(10deg) scale(1.2); }
       75% { transform: rotate(-5deg) scale(1.1); }
       100% { transform: rotate(0deg); }
+    }
+    .animate-wiggle {
+      animation: wiggle 0.5s ease-in-out;
+    }
+    .hover\\:animate-wiggle:hover {
+      animation: wiggle 0.5s ease-in-out;
     }
   `;
   document.head.appendChild(style);
