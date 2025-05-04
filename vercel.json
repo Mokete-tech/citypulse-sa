@@ -9,11 +9,8 @@
       }
     }
   ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "env": {
     "VITE_SUPABASE_URL": "https://qghojdkspxhyjeurxagx.supabase.co",
