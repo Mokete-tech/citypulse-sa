@@ -5,18 +5,13 @@ import Sidebar from '@/components/layout/Sidebar';
 import Footer from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Switch } from '@/components/ui/switch';
-import { Plus, PenLine, Trash2, Video, Image, CreditCard, Calendar, FileText, Tag } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { Plus, PenLine, Trash2, CreditCard, Calendar, FileText, Tag, Video } from 'lucide-react';
+import { toast } from '@/components/ui/sonner';
 import { StatementGenerator } from '@/components/merchant/StatementGenerator';
 import { AnalyticsDashboard } from '@/components/merchant/AnalyticsDashboard';
 import { PaymentIntegration } from '@/components/merchant/PaymentIntegration';
-import { MediaUploader } from '@/components/merchant/MediaUploader';
+import { DealForm } from '@/components/merchant/DealForm';
 import { useAuth } from '@/contexts/AuthContext';
 
 const MerchantDashboard = () => {
@@ -24,35 +19,10 @@ const MerchantDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isAddingDeal, setIsAddingDeal] = useState(false);
   const [activeTab, setActiveTab] = useState('deals');
-  const [mediaType, setMediaType] = useState('image');
-  const [isPremiumAd, setIsPremiumAd] = useState(false);
 
   // Mock merchant data - in a real app, this would come from Supabase
   const merchantId = "merchant-123";
   const merchantName = "Cape Town Café";
-
-  const [newDeal, setNewDeal] = useState({
-    title: '',
-    description: '',
-    category: '',
-    expiresAt: '',
-    mediaUrl: '',
-    mediaType: 'image',
-    isPremium: false,
-    location: '',
-    discount: '',
-  });
-
-  const adPricing = {
-    standard: {
-      weekly: 'R199',
-      monthly: 'R699',
-    },
-    premium: {
-      weekly: 'R499',
-      monthly: 'R1699',
-    }
-  };
 
   // Sample merchant deals - in a real app, this would come from Firebase
   const [merchantDeals, setMerchantDeals] = useState([
@@ -90,60 +60,39 @@ const MerchantDashboard = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setNewDeal(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setNewDeal(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleMediaTypeChange = (type: string) => {
-    setMediaType(type);
-    setNewDeal(prev => ({ ...prev, mediaType: type }));
-  };
-
-  const handlePremiumToggle = (checked: boolean) => {
-    setIsPremiumAd(checked);
-    setNewDeal(prev => ({ ...prev, isPremium: checked }));
-  };
-
-  const handleAddDeal = () => {
-    // In a real app, you'd add the deal to Firebase here
+  const handleAddDeal = (dealData: any) => {
+    // In a real app, you'd add the deal to Supabase here
     const newDealWithId = {
-      ...newDeal,
       id: Date.now(),
+      title: dealData.title,
+      description: dealData.description,
+      category: dealData.category,
+      expiresAt: dealData.expiresAt.toISOString().split('T')[0],
+      startDate: dealData.startDate.toISOString().split('T')[0],
+      mediaUrl: dealData.mediaUrl || '',
+      mediaType: dealData.mediaType,
+      isPremium: dealData.isPremium,
+      location: dealData.location,
+      discount: dealData.discount,
       views: 0,
       status: "Pending Payment"
     };
 
     setMerchantDeals(prev => [...prev, newDealWithId]);
-    toast({
-      title: "Deal created!",
+    toast.success("Deal created!", {
       description: "Your deal has been created and is pending payment.",
     });
 
-    setNewDeal({
-      title: '',
-      description: '',
-      category: '',
-      expiresAt: '',
-      mediaUrl: '',
-      mediaType: 'image',
-      isPremium: false,
-      location: '',
-      discount: '',
-    });
     setIsAddingDeal(false);
-    // In a real app, would redirect to payment page
+
+    // In a real implementation, we would redirect to payment
+    handlePaymentProcess(newDealWithId);
   };
 
   const handleDeleteDeal = (id: number) => {
-    // In a real app, you'd delete from Firebase here
+    // In a real app, you'd delete from Supabase here
     setMerchantDeals(prev => prev.filter(deal => deal.id !== id));
-    toast({
-      title: "Deal deleted",
+    toast.success("Deal deleted", {
       description: "The deal has been removed from your listings.",
     });
   };
@@ -164,8 +113,7 @@ const MerchantDashboard = () => {
       )
     );
 
-    toast({
-      title: "Payment successful!",
+    toast.success("Payment successful!", {
       description: `Transaction ID: ${transactionId}`,
     });
 
@@ -298,183 +246,14 @@ const MerchantDashboard = () => {
               </div>
 
               {isAddingDeal && (
-                <Card className="mb-8">
-                  <CardHeader>
-                    <CardTitle>Add New Deal</CardTitle>
-                    <CardDescription>
-                      Fill out the form below to create a new deal.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="title">Deal Title</Label>
-                        <Input
-                          id="title"
-                          name="title"
-                          placeholder="e.g., 20% Off All Products"
-                          value={newDeal.title}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="description">Description</Label>
-                        <Textarea
-                          id="description"
-                          name="description"
-                          placeholder="Provide details about the deal"
-                          value={newDeal.description}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="category">Category</Label>
-                          <Select
-                            onValueChange={(value) => handleSelectChange('category', value)}
-                            value={newDeal.category}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a category" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Food & Drink">Food & Drink</SelectItem>
-                              <SelectItem value="Retail">Retail</SelectItem>
-                              <SelectItem value="Beauty">Beauty</SelectItem>
-                              <SelectItem value="Entertainment">Entertainment</SelectItem>
-                              <SelectItem value="Health">Health & Fitness</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="location">Location</Label>
-                          <Input
-                            id="location"
-                            name="location"
-                            placeholder="e.g., Cape Town Café"
-                            value={newDeal.location}
-                            onChange={handleInputChange}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="discount">Discount</Label>
-                          <Input
-                            id="discount"
-                            name="discount"
-                            placeholder="e.g., 20% Off, Buy 1 Get 1 Free"
-                            value={newDeal.discount}
-                            onChange={handleInputChange}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="expiresAt">Expiration Date</Label>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-gray-400" />
-                            <Input
-                              id="expiresAt"
-                              name="expiresAt"
-                              type="date"
-                              value={newDeal.expiresAt}
-                              onChange={handleInputChange}
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Media Type</Label>
-                        <div className="flex gap-4">
-                          <Button
-                            type="button"
-                            variant={mediaType === 'image' ? "default" : "outline"}
-                            onClick={() => handleMediaTypeChange('image')}
-                            className="flex items-center gap-2"
-                          >
-                            <Image className="h-4 w-4" /> Image
-                          </Button>
-                          <Button
-                            type="button"
-                            variant={mediaType === 'video' ? "default" : "outline"}
-                            onClick={() => handleMediaTypeChange('video')}
-                            className="flex items-center gap-2"
-                          >
-                            <Video className="h-4 w-4" /> Video
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Media</Label>
-                        <MediaUploader
-                          merchantId={merchantId}
-                          itemType="deal"
-                          onMediaSelected={(url, type) => {
-                            setNewDeal(prev => ({
-                              ...prev,
-                              mediaUrl: url,
-                              mediaType: type
-                            }));
-                            setMediaType(type);
-                          }}
-                        />
-                      </div>
-
-                      <div className="border rounded-md p-4 bg-gray-50">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="font-medium">Premium Advertising</h3>
-                            <p className="text-sm text-gray-500">
-                              Featured placement and more visibility
-                            </p>
-                          </div>
-                          <Switch
-                            checked={isPremiumAd}
-                            onCheckedChange={handlePremiumToggle}
-                          />
-                        </div>
-
-                        {isPremiumAd && (
-                          <div className="mt-4 grid grid-cols-2 gap-3">
-                            <div className="border rounded p-3 bg-white text-center">
-                              <p className="font-medium">Weekly</p>
-                              <p className="text-lg font-bold">{adPricing.premium.weekly}</p>
-                            </div>
-                            <div className="border rounded p-3 bg-white text-center">
-                              <p className="font-medium">Monthly</p>
-                              <p className="text-lg font-bold">{adPricing.premium.monthly}</p>
-                            </div>
-                          </div>
-                        )}
-
-                        {!isPremiumAd && (
-                          <div className="mt-4 grid grid-cols-2 gap-3">
-                            <div className="border rounded p-3 bg-white text-center">
-                              <p className="font-medium">Weekly</p>
-                              <p className="text-lg font-bold">{adPricing.standard.weekly}</p>
-                            </div>
-                            <div className="border rounded p-3 bg-white text-center">
-                              <p className="font-medium">Monthly</p>
-                              <p className="text-lg font-bold">{adPricing.standard.monthly}</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <Button variant="outline" onClick={() => setIsAddingDeal(false)}>Cancel</Button>
-                    <Button onClick={handleAddDeal} className="flex items-center gap-2">
-                      <CreditCard className="h-4 w-4" /> Continue to Payment
-                    </Button>
-                  </CardFooter>
-                </Card>
+                <div className="mb-8">
+                  <DealForm
+                    merchantId={merchantId}
+                    merchantName={merchantName}
+                    onSubmit={handleAddDeal}
+                    onCancel={() => setIsAddingDeal(false)}
+                  />
+                </div>
               )}
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
