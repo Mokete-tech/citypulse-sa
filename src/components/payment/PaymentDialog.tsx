@@ -48,7 +48,7 @@ export function PaymentDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {children || (
-          <Button variant={buttonVariant} disabled={!isConfigured}>
+          <Button variant={buttonVariant}>
             {buttonText}
           </Button>
         )}

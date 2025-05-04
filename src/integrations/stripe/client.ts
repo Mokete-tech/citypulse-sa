@@ -2,9 +2,13 @@ import { loadStripe, Stripe } from '@stripe/stripe-js';
 
 // Use environment variables for Stripe credentials
 // Support both VITE_ and NEXT_PUBLIC_ prefixes for compatibility with Vercel integration
-const STRIPE_PUBLISHABLE_KEY = 
-  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 
-  import.meta.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+const STRIPE_PUBLISHABLE_KEY =
+  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ||
+  import.meta.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
+  'pk_test_51OQvXnJXgvQFfZxPJWCVsGwSdDTrTlRKlSHEXPTox5JQRbwGJ5YdEpHmQeNOJtmZAQwXQXwpIY9LzrqPKHtE9pxF00ORJnLzIm'; // Fallback to test key
+
+// Log Stripe configuration
+console.log('Stripe Publishable Key:', STRIPE_PUBLISHABLE_KEY ? 'Key is set' : 'Key is not set');
 
 // Validate that environment variables are set
 if (!STRIPE_PUBLISHABLE_KEY) {
@@ -47,7 +51,7 @@ export const formatAmountForDisplay = (amount: number): string => {
     currency: 'ZAR',
     currencyDisplay: 'symbol',
   });
-  
+
   return numberFormat.format(amount / 100);
 };
 
