@@ -33,17 +33,28 @@ const Events = () => {
     setError(null);
 
     try {
+      console.log('Fetching events from Supabase...');
       const { data, error } = await supabase
         .from('events')
         .select('*')
         .order('event_date', { ascending: true });
 
       if (error) {
+        console.error('Supabase error:', error);
         throw error;
       }
 
-      setEvents(data || fallbackEvents);
+      console.log('Events data received:', data);
+
+      if (data && data.length > 0) {
+        setEvents(data);
+      } else {
+        console.log('No events found, using fallback data');
+        setEvents(fallbackEvents);
+        setError('No events found. Showing sample data instead.');
+      }
     } catch (error) {
+      console.error('Error in fetchEvents:', error);
       handleSupabaseError(error, {
         title: 'Error loading events',
         message: 'Could not load events. Using fallback data instead.',

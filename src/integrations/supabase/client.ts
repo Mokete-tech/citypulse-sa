@@ -6,16 +6,20 @@ import type { Database } from './types';
 const SUPABASE_URL = 'https://qghojdkspxhyjeurxagx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFnaG9qZGtzcHhoeWpldXJ4YWd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ2NTU4NjUsImV4cCI6MjA2MDIzMTg2NX0.QInil2Wr7x14JwpRKKkIcgG6WwyOIUFx-O_kL8o2jdg';
 
+// Try to use environment variables if available, otherwise use hardcoded values
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || SUPABASE_ANON_KEY;
+
 // Log the Supabase credentials for debugging
-console.log('Supabase URL:', SUPABASE_URL);
-console.log('Supabase Anon Key:', SUPABASE_ANON_KEY ? 'Key is set' : 'Key is not set');
+console.log('Supabase URL:', supabaseUrl);
+console.log('Supabase Anon Key:', supabaseAnonKey ? 'Key is set' : 'Key is not set');
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient<Database>(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY,
+  supabaseUrl,
+  supabaseAnonKey,
   {
     auth: {
       persistSession: true,
@@ -29,13 +33,13 @@ export const supabase = createClient<Database>(
 export const checkSupabaseConnection = async (): Promise<{ success: boolean; error?: string; details?: any }> => {
   try {
     // Check if credentials are set
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    if (!supabaseUrl || !supabaseAnonKey) {
       console.error('Cannot connect to Supabase: Missing credentials');
 
       return {
         success: false,
         error: 'Missing Supabase credentials',
-        details: { url: !!SUPABASE_URL, key: !!SUPABASE_ANON_KEY }
+        details: { url: !!supabaseUrl, key: !!supabaseAnonKey }
       };
     }
 

@@ -17,8 +17,9 @@ export function LoadingState({
   children,
   isLoading,
 }: LoadingStateProps) {
+  // If not loading, render children
   if (!isLoading) {
-    return <>{children}</>;
+    return <div className={className}>{children}</div>;
   }
 
   // Generate an array of the specified count
