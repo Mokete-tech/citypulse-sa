@@ -22,13 +22,16 @@ export interface Event {
   title: string;
   description: string;
   event_date: string;
+  date?: string; // For backward compatibility
   start_time?: string;
+  time?: string; // For backward compatibility
   end_time?: string;
   location: string;
   venue?: string;
   category?: string;
   image_url?: string;
   ticket_price?: string;
+  price?: string; // For backward compatibility
   ticket_url?: string;
   merchant_name?: string;
   featured?: boolean;
@@ -80,13 +83,16 @@ export const fallbackEvents: Event[] = [
     title: "Jazz Night at V&A Waterfront",
     description: "Join us for a night of live jazz music with local artists. Featuring some of South Africa's top jazz musicians, this event promises an unforgettable evening of smooth melodies and vibrant rhythms. Refreshments will be available for purchase.",
     event_date: "2025-05-10",
+    date: "2025-05-10", // For backward compatibility
     start_time: "19:00",
+    time: "19:00", // For backward compatibility
     end_time: "22:00",
     location: "Cape Town",
     venue: "V&A Waterfront Amphitheatre",
     category: "Music",
     image_url: "https://images.unsplash.com/photo-1511192336575-5a79af67a629",
     ticket_price: "R150",
+    price: "R150", // For backward compatibility
     ticket_url: "https://tickets.example.com/jazz-night",
     featured: true,
     views: 189,
@@ -97,13 +103,16 @@ export const fallbackEvents: Event[] = [
     title: "Farmers Market",
     description: "Fresh local produce, handcrafted goods, and live music. Support local farmers and artisans while enjoying a day out with family and friends. This weekly market features over 50 vendors offering everything from organic vegetables to handmade jewelry.",
     event_date: "2025-05-17",
+    date: "2025-05-17", // For backward compatibility
     start_time: "09:00",
+    time: "09:00", // For backward compatibility
     end_time: "14:00",
     location: "Johannesburg",
     venue: "Neighbourgoods Market",
     category: "Food & Shopping",
     image_url: "https://images.unsplash.com/photo-1488459716781-31db52582fe9",
     ticket_price: "Free",
+    price: "Free", // For backward compatibility
     featured: false,
     views: 142,
     merchant_name: "Neighbourgoods Market"
@@ -113,13 +122,16 @@ export const fallbackEvents: Event[] = [
     title: "Tech Meetup",
     description: "Networking event for tech professionals and enthusiasts. Connect with like-minded individuals, share ideas, and learn about the latest trends in technology. The event will include lightning talks, panel discussions, and plenty of networking opportunities.",
     event_date: "2025-05-22",
+    date: "2025-05-22", // For backward compatibility
     start_time: "18:30",
+    time: "18:30", // For backward compatibility
     end_time: "21:00",
     location: "Durban",
     venue: "Durban Digital Hub",
     category: "Networking",
     image_url: "https://images.unsplash.com/photo-1540575467063-178a50c2df87",
     ticket_price: "R50",
+    price: "R50", // For backward compatibility
     ticket_url: "https://tickets.example.com/tech-meetup",
     featured: true,
     views: 278,

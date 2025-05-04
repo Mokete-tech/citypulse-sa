@@ -25,6 +25,7 @@ import type { Deal, Event } from '@/data/fallback-data';
 
 const Index = () => {
   const [deals, setDeals] = useState<Deal[]>([]);
+  const [featuredDeals, setFeaturedDeals] = useState<Deal[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,10 +37,18 @@ const Index = () => {
         setLoading(true);
         setError(null);
 
-        // Fetch deals
+        // Fetch regular deals
         const { data: dealsData, error: dealsError } = await supabase
           .from('deals')
           .select('*')
+          .eq('featured', false)
+          .limit(3);
+
+        // Fetch featured deals
+        const { data: featuredDealsData, error: featuredDealsError } = await supabase
+          .from('deals')
+          .select('*')
+          .eq('featured', true)
           .limit(3);
 
         if (dealsError) {
@@ -48,10 +57,22 @@ const Index = () => {
             silent: true
           });
           // Set fallback data for deals
-          setDeals(fallbackDeals);
+          setDeals(fallbackDeals.filter(deal => !deal.featured));
         } else {
           // If we got data but it's empty, use fallback data
-          setDeals(dealsData && dealsData.length > 0 ? dealsData : fallbackDeals);
+          setDeals(dealsData && dealsData.length > 0 ? dealsData : fallbackDeals.filter(deal => !deal.featured));
+        }
+
+        if (featuredDealsError) {
+          handleSupabaseError(featuredDealsError, {
+            title: "Error fetching featured deals",
+            silent: true
+          });
+          // Set fallback data for featured deals
+          setFeaturedDeals(fallbackDeals.filter(deal => deal.featured));
+        } else {
+          // If we got data but it's empty, use fallback data
+          setFeaturedDeals(featuredDealsData && featuredDealsData.length > 0 ? featuredDealsData : fallbackDeals.filter(deal => deal.featured));
         }
 
         // Fetch events
@@ -173,7 +194,8 @@ const Index = () => {
   // Using fallback data imported from @/data/fallback-data
 
   // Use fallback data if no deals or events are returned from the database
-  const displayDeals = deals.length > 0 ? deals : fallbackDeals;
+  const displayDeals = deals.length > 0 ? deals : fallbackDeals.filter(deal => !deal.featured);
+  const displayFeaturedDeals = featuredDeals.length > 0 ? featuredDeals : fallbackDeals.filter(deal => deal.featured);
   const displayEvents = events.length > 0 ? events : fallbackEvents;
 
   return (
@@ -213,6 +235,38 @@ const Index = () => {
                 <NearbyDeals initialRadius={5} maxDeals={3} />
                 <NearbyEvents initialRadius={5} maxEvents={3} />
                 <DealMap maxDeals={10} />
+              </div>
+            </div>
+
+            {/* Premium Featured Deals Section */}
+            <div className="mb-12">
+              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                <span className="text-amber-500">★</span> Premium Deals
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {loading ? (
+                  <LoadingState isLoading={true} type="card" count={3} />
+                ) : (
+                  displayFeaturedDeals.map(deal => (
+                    <DealCard
+                      key={deal.id}
+                      id={deal.id}
+                      title={deal.title}
+                      description={deal.description}
+                      merchant_name={deal.merchant_name}
+                      category={deal.category}
+                      expiration_date={deal.expiration_date}
+                      discount={deal.discount || ""}
+                      image_url={deal.image_url || "/placeholder-deal.jpg"}
+                      featured={true}
+                      onClick={() => {
+                        handleDealClick(deal.id);
+                        window.location.href = `/deals/${deal.id}`;
+                      }}
+                    />
+                  ))
+                )}
               </div>
             </div>
 
@@ -272,10 +326,10 @@ const Index = () => {
                         description={event.description}
                         merchant_name={event.merchant_name || ""}
                         category={event.category || ""}
-                        date={event.date}
-                        time={event.time}
+                        event_date={event.event_date || event.date}
+                        start_time={event.start_time || event.time}
                         location={event.location}
-                        price={event.price || ""}
+                        ticket_price={event.ticket_price || event.price || ""}
                         image_url={event.image_url || "/placeholder-event.jpg"}
                         featured={Boolean(event.featured)}
                         onClick={() => {
