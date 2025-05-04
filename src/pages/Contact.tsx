@@ -18,7 +18,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { toast } from "@/components/ui/use-toast";
-import { Mail, Building2, UserPlus, Calendar, Tag, AlertCircle } from 'lucide-react';
+import { Building2, UserPlus, Calendar, Tag, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { handleSupabaseError } from '@/lib/error-handler';
@@ -287,10 +287,10 @@ const Contact = () => {
                     <div>
                       <h3 className="font-medium mb-1">Deal Packages</h3>
                       <p className="text-sm text-muted-foreground">
-                        <strong>Standard:</strong> R199/week - Basic listing with standard visibility until expiry
+                        <strong>Standard:</strong> R99/week - Basic listing with standard visibility until expiry
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        <strong>Premium:</strong> R499/week - Featured placement, enhanced visibility, and analytics until expiry
+                        <strong>Premium:</strong> R250/week - Featured placement, enhanced visibility, and analytics until expiry
                       </p>
                     </div>
                   </div>
@@ -305,7 +305,7 @@ const Contact = () => {
                         <strong>Standard:</strong> R299/event - Basic listing with standard visibility until event date
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        <strong>Premium:</strong> R799/event - Featured placement, homepage highlight, and social media promotion until event date
+                        <strong>Premium:</strong> R460/event - Featured placement, homepage highlight, and social media promotion until event date
                       </p>
                     </div>
                   </div>
@@ -324,13 +324,12 @@ const Contact = () => {
 
                   <div className="flex items-start space-x-4">
                     <div className="bg-purple-100 p-3 rounded-full">
-                      <Mail className="h-6 w-6 text-purple-600" />
+                      <UserPlus className="h-6 w-6 text-purple-600" />
                     </div>
                     <div>
-                      <h3 className="font-medium mb-1">Contact Information</h3>
+                      <h3 className="font-medium mb-1">User Accounts</h3>
                       <p className="text-sm text-muted-foreground">
-                        Email: info@citypulse.co.za<br />
-                        Hours: Monday-Friday, 9am-5pm SAST
+                        Create an account to save your favorite deals and events, receive personalized recommendations, and get notified about new offers in your area.
                       </p>
                     </div>
                   </div>
