@@ -146,14 +146,49 @@ const NearbyDeals = ({
     fetchNearbyDeals();
   }, [coordinates, radius, maxDeals]);
 
-  // Simulate distance calculation
-  // In a real app, you would use the Haversine formula or a geospatial database
-  const filterDealsByDistance = (deals: any[], _coords: Coordinates, radiusKm: number) => {
-    // For demo purposes, we'll randomly assign distances to deals
-    return deals.map(deal => ({
-      ...deal,
-      distance: Math.random() * radiusKm // Random distance within the radius
-    })).filter(deal => deal.distance <= radiusKm)
+  // Calculate distance using the Haversine formula
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    // Earth's radius in kilometers
+    const R = 6371;
+
+    // Convert latitude and longitude from degrees to radians
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+
+    // Haversine formula
+    const a =
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c; // Distance in kilometers
+
+    return distance;
+  };
+
+  // Filter deals by distance using the Haversine formula
+  const filterDealsByDistance = (deals: any[], coords: Coordinates, radiusKm: number) => {
+    // For each deal, calculate the actual distance if coordinates are available
+    // Otherwise, use random distances for demo purposes
+    return deals.map(deal => {
+      // If the deal has coordinates, calculate the actual distance
+      if (deal.latitude && deal.longitude && coords) {
+        const distance = calculateDistance(
+          coords.latitude,
+          coords.longitude,
+          deal.latitude,
+          deal.longitude
+        );
+        return { ...deal, distance };
+      }
+
+      // Fallback to random distance for demo purposes
+      return {
+        ...deal,
+        distance: Math.random() * radiusKm // Random distance within the radius
+      };
+    }).filter(deal => deal.distance <= radiusKm)
       .sort((a, b) => a.distance - b.distance);
   };
 

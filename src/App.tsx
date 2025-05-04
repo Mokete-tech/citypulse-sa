@@ -5,18 +5,26 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ConnectionCheck } from "@/components/ui/connection-check";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Deals from "./pages/Deals";
-import DealDetail from "./pages/DealDetail";
-import Events from "./pages/Events";
-import Contact from "./pages/Contact";
-import Terms from "./pages/Terms";
-import MerchantLogin from "./pages/MerchantLogin";
-import MerchantDashboard from "./pages/MerchantDashboard";
-import MerchantPackages from "./pages/MerchantPackages";
-import NotFound from "./pages/NotFound";
-import Unauthorized from "./pages/Unauthorized";
-import AdminDashboard from "./pages/AdminDashboard";
+import { lazy, Suspense } from "react";
+import { HelmetProvider } from "react-helmet-async";
+import PageLoadingFallback from "@/components/ui/page-loading-fallback";
+import KeyboardNavigation from "@/components/accessibility/KeyboardNavigation";
+import GlobalErrorBoundary from "@/components/error/GlobalErrorBoundary";
+
+// Lazy load pages for better performance
+const Index = lazy(() => import("./pages/Index"));
+const Deals = lazy(() => import("./pages/Deals"));
+const DealDetail = lazy(() => import("./pages/DealDetail"));
+const Events = lazy(() => import("./pages/Events"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Terms = lazy(() => import("./pages/Terms"));
+const MerchantLogin = lazy(() => import("./pages/MerchantLogin"));
+const MerchantDashboard = lazy(() => import("./pages/MerchantDashboard"));
+const MerchantPackages = lazy(() => import("./pages/MerchantPackages"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Unauthorized = lazy(() => import("./pages/Unauthorized"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AuthCallback = lazy(() => import("./pages/auth/Callback"));
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./contexts/AuthContext";
 import { StripeProvider } from "./contexts/StripeContext";
@@ -33,83 +41,117 @@ const queryClient = new QueryClient({
 });
 
 const App = () => (
-  <ErrorBoundary>
+  <GlobalErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <StripeProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <ConnectionCheck />
-            <BrowserRouter>
+          <HelmetProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <ConnectionCheck />
+              <BrowserRouter>
+                <KeyboardNavigation />
             <Routes>
               <Route path="/" element={
-                <ErrorBoundary>
-                  <Index />
-                </ErrorBoundary>
+                <Suspense fallback={<PageLoadingFallback />}>
+                    <Index />
+                  </Suspense>
               } />
               <Route path="/deals" element={
-                <ErrorBoundary>
-                  <Deals />
-                </ErrorBoundary>
+                
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <Deals />
+                  </Suspense>
+                
               } />
               <Route path="/deals/:id" element={
-                <ErrorBoundary>
-                  <DealDetail />
-                </ErrorBoundary>
+                
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <DealDetail />
+                  </Suspense>
+                
               } />
               <Route path="/events" element={
-                <ErrorBoundary>
-                  <Events />
-                </ErrorBoundary>
+                
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <Events />
+                  </Suspense>
+                
               } />
               <Route path="/contact" element={
-                <ErrorBoundary>
-                  <Contact />
-                </ErrorBoundary>
+                
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <Contact />
+                  </Suspense>
+                
               } />
               <Route path="/terms" element={
-                <ErrorBoundary>
-                  <Terms />
-                </ErrorBoundary>
+                
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <Terms />
+                  </Suspense>
+                
               } />
               <Route path="/merchant/login" element={
-                <ErrorBoundary>
-                  <MerchantLogin />
-                </ErrorBoundary>
+                
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <MerchantLogin />
+                  </Suspense>
+                
               } />
               <Route path="/merchant/dashboard" element={
-                <ErrorBoundary>
-                  <ProtectedRoute requiredRole="merchant">
-                    <MerchantDashboard />
-                  </ProtectedRoute>
-                </ErrorBoundary>
+                
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <ProtectedRoute requiredRole="merchant">
+                      <MerchantDashboard />
+                    </ProtectedRoute>
+                  </Suspense>
+                
               } />
               <Route path="/merchant/packages" element={
-                <ErrorBoundary>
-                  <MerchantPackages />
-                </ErrorBoundary>
+                
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <MerchantPackages />
+                  </Suspense>
+                
               } />
               <Route path="/admin/dashboard" element={
-                <ErrorBoundary>
-                  <ProtectedRoute requiredRole="admin">
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                </ErrorBoundary>
+                
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <ProtectedRoute requiredRole="admin">
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  </Suspense>
+                
               } />
               <Route path="/unauthorized" element={
-                <ErrorBoundary>
-                  <Unauthorized />
-                </ErrorBoundary>
+                
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <Unauthorized />
+                  </Suspense>
+                
               } />
-              <Route path="*" element={<NotFound />} />
+              <Route path="/auth/callback" element={
+                
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <AuthCallback />
+                  </Suspense>
+                
+              } />
+              <Route path="*" element={
+                <Suspense fallback={<PageLoadingFallback />}>
+                  <NotFound />
+                </Suspense>
+              } />
             </Routes>
           </BrowserRouter>
           </TooltipProvider>
+          </HelmetProvider>
         </StripeProvider>
       </AuthProvider>
     </QueryClientProvider>
-  </ErrorBoundary>
+  
 );
 
 export default App;

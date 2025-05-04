@@ -17,6 +17,8 @@ import { DealCard } from '@/components/cards/DealCard';
 import { EventCard } from '@/components/cards/EventCard';
 import NearbyDeals from '@/components/location/NearbyDeals';
 import NearbyEvents from '@/components/location/NearbyEvents';
+import DealMap from '@/components/location/DealMap';
+import SEO from '@/components/seo/SEO';
 
 // Use the interfaces from fallback-data.ts
 import type { Deal, Event } from '@/data/fallback-data';
@@ -176,6 +178,12 @@ const Index = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+      <SEO
+        title="CityPulse South Africa - Discover Local Deals & Events"
+        description="Find the best local deals and events across South Africa. CityPulse connects you with exciting offers and happenings in your area."
+        keywords="south africa, deals, events, local, discounts, promotions, cape town, johannesburg, durban"
+        ogType="website"
+      />
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
       <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : ''}`}>
@@ -201,9 +209,10 @@ const Index = () => {
 
             {/* Nearby Deals and Events Section */}
             <div className="mb-12">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
                 <NearbyDeals initialRadius={5} maxDeals={3} />
                 <NearbyEvents initialRadius={5} maxEvents={3} />
+                <DealMap maxDeals={10} />
               </div>
             </div>
 
