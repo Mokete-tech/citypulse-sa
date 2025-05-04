@@ -1,6 +1,6 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 // Define user preferences types
@@ -67,12 +67,12 @@ export const PreferencesProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Load preferences on mount and when user changes
   useEffect(() => {
     const loadPreferences = async () => {
       setIsLoading(true);
-      
+
       try {
         // Try to load from Supabase if user is logged in
         if (user) {
@@ -81,7 +81,7 @@ export const PreferencesProvider = ({ children }: { children: ReactNode }) => {
             .select('preferences')
             .eq('user_id', user.id)
             .single();
-          
+
           if (error) {
             console.error('Error loading preferences from Supabase:', error);
             // Fall back to localStorage
@@ -106,7 +106,7 @@ export const PreferencesProvider = ({ children }: { children: ReactNode }) => {
         setIsLoading(false);
       }
     };
-    
+
     const loadFromLocalStorage = () => {
       const storedPreferences = localStorage.getItem('userPreferences');
       if (storedPreferences) {
@@ -124,15 +124,15 @@ export const PreferencesProvider = ({ children }: { children: ReactNode }) => {
         setPreferences(defaultPreferences);
       }
     };
-    
+
     loadPreferences();
   }, [user]);
-  
+
   // Save preferences
   const savePreferences = async (newPreferences: UserPreferences) => {
     // Save to localStorage for all users
     localStorage.setItem('userPreferences', JSON.stringify(newPreferences));
-    
+
     // Save to Supabase if user is logged in
     if (user) {
       try {
@@ -145,7 +145,7 @@ export const PreferencesProvider = ({ children }: { children: ReactNode }) => {
           }, {
             onConflict: 'user_id',
           });
-        
+
         if (error) {
           console.error('Error saving preferences to Supabase:', error);
           toast.error('Failed to save preferences to your account');
@@ -156,25 +156,25 @@ export const PreferencesProvider = ({ children }: { children: ReactNode }) => {
       }
     }
   };
-  
+
   // Update preferences
   const updatePreferences = async (newPreferences: Partial<UserPreferences>) => {
     const updatedPreferences = {
       ...preferences,
       ...newPreferences,
     };
-    
+
     setPreferences(updatedPreferences);
     await savePreferences(updatedPreferences);
   };
-  
+
   // Reset preferences to defaults
   const resetPreferences = async () => {
     setPreferences(defaultPreferences);
     await savePreferences(defaultPreferences);
     toast.success('Preferences reset to defaults');
   };
-  
+
   // Add favorite item
   const addFavoriteItem = async (id: string, type: 'deal' | 'event') => {
     const updatedPreferences = {
@@ -184,69 +184,69 @@ export const PreferencesProvider = ({ children }: { children: ReactNode }) => {
         { id, type },
       ],
     };
-    
+
     setPreferences(updatedPreferences);
     await savePreferences(updatedPreferences);
     toast.success(`Added to favorites`);
   };
-  
+
   // Remove favorite item
   const removeFavoriteItem = async (id: string) => {
     const updatedPreferences = {
       ...preferences,
       favoriteItems: preferences.favoriteItems.filter(item => item.id !== id),
     };
-    
+
     setPreferences(updatedPreferences);
     await savePreferences(updatedPreferences);
     toast.success(`Removed from favorites`);
   };
-  
+
   // Check if item is favorite
   const isFavorite = (id: string) => {
     return preferences.favoriteItems.some(item => item.id === id);
   };
-  
+
   // Add recent search
   const addRecentSearch = async (search: string) => {
     // Don't add empty searches
     if (!search.trim()) return;
-    
+
     // Don't add duplicates
     if (preferences.recentSearches.includes(search)) return;
-    
+
     // Limit to 10 recent searches
     const newSearches = [
       search,
       ...preferences.recentSearches.filter(s => s !== search),
     ].slice(0, 10);
-    
+
     const updatedPreferences = {
       ...preferences,
       recentSearches: newSearches,
     };
-    
+
     setPreferences(updatedPreferences);
     await savePreferences(updatedPreferences);
   };
-  
+
   // Clear recent searches
   const clearRecentSearches = async () => {
     const updatedPreferences = {
       ...preferences,
       recentSearches: [],
     };
-    
+
     setPreferences(updatedPreferences);
     await savePreferences(updatedPreferences);
     toast.success('Recent searches cleared');
   };
-  
+
   // Apply theme
   useEffect(() => {
     const applyTheme = () => {
       const { theme } = preferences;
-      
+
       if (theme === 'dark') {
         document.documentElement.classList.add('dark');
       } else if (theme === 'light') {
@@ -261,9 +261,9 @@ export const PreferencesProvider = ({ children }: { children: ReactNode }) => {
         }
       }
     };
-    
+
     applyTheme();
-    
+
     // Listen for system theme changes
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = () => {
@@ -271,14 +271,14 @@ export const PreferencesProvider = ({ children }: { children: ReactNode }) => {
         applyTheme();
       }
     };
-    
+
     mediaQuery.addEventListener('change', handleChange);
-    
+
     return () => {
       mediaQuery.removeEventListener('change', handleChange);
     };
   }, [preferences.theme]);
-  
+
   return (
     <PreferencesContext.Provider
       value={{
@@ -301,11 +301,11 @@ export const PreferencesProvider = ({ children }: { children: ReactNode }) => {
 // Hook to use preferences
 export const usePreferences = () => {
   const context = useContext(PreferencesContext);
-  
+
   if (context === undefined) {
     throw new Error('usePreferences must be used within a PreferencesProvider');
   }
-  
+
   return context;
 };
 
