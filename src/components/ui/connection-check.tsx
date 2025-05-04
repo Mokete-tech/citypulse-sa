@@ -8,6 +8,7 @@ export function ConnectionCheck() {
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [isChecking, setIsChecking] = useState(true);
   const [errorDetails, setErrorDetails] = useState<{ error?: string; details?: any } | null>(null);
+  const [showAlert, setShowAlert] = useState(true);
 
   const checkConnection = async () => {
     setIsChecking(true);
@@ -18,17 +19,29 @@ export function ConnectionCheck() {
   };
 
   useEffect(() => {
+    // Only check connection once on initial load
+    // This prevents constant checking that might trigger rate limits
     checkConnection();
   }, []);
 
-  if (isConnected === true || isConnected === null) {
-    return null; // Don't show anything if connected or still checking initially
+  // Don't show anything if connected, still checking initially, or alert dismissed
+  if (isConnected === true || isConnected === null || !showAlert) {
+    return null;
   }
 
   return (
-    <Alert variant="destructive" className="mb-6">
+    <Alert variant="destructive" className="mb-6 relative">
       <AlertCircle className="h-4 w-4" />
       <AlertTitle>Connection Error</AlertTitle>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="absolute top-2 right-2 h-6 w-6 p-0"
+        onClick={() => setShowAlert(false)}
+      >
+        <span className="sr-only">Close</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </Button>
       <AlertDescription className="flex flex-col gap-2">
         <p>
           Unable to connect to the database. This may affect login, registration, and other features.
@@ -39,17 +52,6 @@ export function ConnectionCheck() {
             {errorDetails.details?.code && (
               <div className="mt-1">
                 <strong>Code:</strong> {errorDetails.details.code}
-              </div>
-            )}
-            {errorDetails.details?.VITE_SUPABASE_URL !== undefined && (
-              <div className="mt-2 text-xs">
-                <strong>Environment Variables:</strong>
-                <ul className="list-disc pl-5 mt-1">
-                  <li>VITE_SUPABASE_URL: {errorDetails.details.VITE_SUPABASE_URL ? 'Set' : 'Not set'}</li>
-                  <li>NEXT_PUBLIC_SUPABASE_URL: {errorDetails.details.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Not set'}</li>
-                  <li>VITE_SUPABASE_ANON_KEY: {errorDetails.details.VITE_SUPABASE_ANON_KEY ? 'Set' : 'Not set'}</li>
-                  <li>NEXT_PUBLIC_SUPABASE_ANON_KEY: {errorDetails.details.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not set'}</li>
-                </ul>
               </div>
             )}
           </div>

@@ -28,27 +28,19 @@ export const supabase = createClient<Database>(
 // Function to check Supabase connection
 export const checkSupabaseConnection = async (): Promise<{ success: boolean; error?: string; details?: any }> => {
   try {
-    // First check if environment variables are set
+    // Check if credentials are set
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-      const envVars = {
-        VITE_SUPABASE_URL: !!import.meta.env.VITE_SUPABASE_URL,
-        NEXT_PUBLIC_SUPABASE_URL: !!import.meta.env.NEXT_PUBLIC_SUPABASE_URL,
-        VITE_SUPABASE_ANON_KEY: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: !!import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      };
-
-      console.error('Cannot connect to Supabase: Missing environment variables');
-      console.info('Available environment variables:', envVars);
+      console.error('Cannot connect to Supabase: Missing credentials');
 
       return {
         success: false,
-        error: 'Missing Supabase environment variables',
-        details: envVars
+        error: 'Missing Supabase credentials',
+        details: { url: !!SUPABASE_URL, key: !!SUPABASE_ANON_KEY }
       };
     }
 
-    // Try to query a table to verify connection
-    const { data, error } = await supabase.from('health_check').select('*').limit(1);
+    // Try to query a table that we know exists (deals)
+    const { data, error } = await supabase.from('deals').select('id').limit(1);
 
     if (error) {
       console.error('Supabase connection error:', error);
