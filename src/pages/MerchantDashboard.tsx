@@ -265,7 +265,7 @@ const MerchantDashboard = () => {
             <PaymentIntegration
               amount={selectedDealForPayment.isPremium ? 499 : 199}
               itemId={selectedDealForPayment.id.toString()}
-              itemType="deal"
+              itemType={selectedDealForPayment.itemType || "deal"}
               itemTitle={selectedDealForPayment.title}
               merchantId={merchantId}
               merchantName={merchantName}
