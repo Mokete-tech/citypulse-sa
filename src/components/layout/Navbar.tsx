@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Bell, Search, Menu, LogIn, User, LogOut, Home, Tag, Calendar, MapPin, Phone } from 'lucide-react';
+import { Bell, Search, Menu, LogIn, User, LogOut, Home, Tag, Calendar, MapPin, Phone, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import UserLoginDialog from '@/components/auth/UserLoginDialog';
+import MerchantLoginDialog from '@/components/auth/MerchantLoginDialog';
 import GlobalSearch from '@/components/search/GlobalSearch';
 import {
   DropdownMenu,
@@ -224,12 +225,14 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
 
         {/* Always show Merchant Login in sidebar for mobile */}
         {!isMerchant && (
-          <Link to="/merchant/login" className="md:hidden">
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
-              <LogIn className="h-4 w-4" />
-              <span className="sr-only md:not-sr-only">Merchant</span>
-            </Button>
-          </Link>
+          <div className="md:hidden">
+            <MerchantLoginDialog>
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                <span className="sr-only md:not-sr-only">Merchant</span>
+              </Button>
+            </MerchantLoginDialog>
+          </div>
         )}
       </div>
     </nav>

@@ -27,6 +27,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const Unauthorized = lazy(() => import("./pages/Unauthorized"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AuthCallback = lazy(() => import("./pages/auth/Callback"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./contexts/AuthContext";
 import { StripeProvider } from "./contexts/StripeContext";
@@ -144,6 +145,13 @@ const App = () => (
 
                   <Suspense fallback={<PageLoadingFallback />}>
                     <AuthCallback />
+                  </Suspense>
+
+              } />
+              <Route path="/forgot-password" element={
+
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <ForgotPassword />
                   </Suspense>
 
               } />

@@ -24,16 +24,35 @@ import { zodResolver } from "@hookform/resolvers/zod"
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters." }),
+  password: z.string()
+    .min(8, { message: "Password must be at least 8 characters." })
+    .max(100, { message: "Password is too long." })
 })
 
 const registerSchema = z.object({
-  merchant_name: z.string().min(2, { message: "Business name must be at least 2 characters." }),
-  business_type: z.string().min(2, { message: "Business type must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters." }),
-  phone: z.string().min(10, { message: "Please enter a valid phone number." }),
-  location: z.string().min(2, { message: "Please enter a valid location." }),
+  merchant_name: z.string()
+    .min(2, { message: "Business name must be at least 2 characters." })
+    .max(100, { message: "Business name is too long." }),
+  business_type: z.string()
+    .min(2, { message: "Business type must be at least 2 characters." })
+    .max(50, { message: "Business type is too long." }),
+  email: z.string()
+    .email({ message: "Please enter a valid email address." })
+    .max(100, { message: "Email is too long." }),
+  password: z.string()
+    .min(8, { message: "Password must be at least 8 characters." })
+    .max(100, { message: "Password is too long." })
+    .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter." })
+    .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter." })
+    .regex(/[0-9]/, { message: "Password must contain at least one number." })
+    .regex(/[^A-Za-z0-9]/, { message: "Password must contain at least one special character." }),
+  phone: z.string()
+    .min(10, { message: "Please enter a valid phone number." })
+    .max(15, { message: "Phone number is too long." })
+    .regex(/^\+?[0-9]+$/, { message: "Phone number can only contain digits and an optional + prefix." }),
+  location: z.string()
+    .min(2, { message: "Please enter a valid location." })
+    .max(100, { message: "Location is too long." }),
 })
 
 const MerchantLogin = () => {
@@ -41,6 +60,10 @@ const MerchantLogin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [phone, setPhone] = useState('');
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockoutEndTime, setLockoutEndTime] = useState<Date | null>(null);
+  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
 
   // Login Form
   const loginForm = useForm<z.infer<typeof loginSchema>>({
@@ -52,19 +75,56 @@ const MerchantLogin = () => {
   })
 
   const loginSubmit = async (values: z.infer<typeof loginSchema>) => {
+    // Check if account is locked
+    if (isLocked) {
+      const remainingTime = lockoutEndTime ? Math.ceil((lockoutEndTime.getTime() - Date.now()) / 1000 / 60) : 0;
+      toast({
+        variant: "destructive",
+        title: "Account temporarily locked",
+        description: `Too many failed attempts. Please try again in ${remainingTime} minutes.`,
+      });
+      return;
+    }
+
     try {
       await signIn(values.email, values.password);
       toast({
         title: "Login successful!",
         description: "Redirecting to your dashboard...",
-      })
+      });
+      // Reset login attempts on successful login
+      setLoginAttempts(0);
       navigate('/merchant/dashboard');
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Login failed.",
-        description: error.message || "Invalid credentials. Please try again.",
-      })
+      // Increment login attempts on failure
+      const newAttempts = loginAttempts + 1;
+      setLoginAttempts(newAttempts);
+
+      // Lock account after 5 failed attempts
+      if (newAttempts >= 5) {
+        const lockoutEnd = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+        setIsLocked(true);
+        setLockoutEndTime(lockoutEnd);
+
+        // Set a timer to unlock
+        setTimeout(() => {
+          setIsLocked(false);
+          setLoginAttempts(0);
+          setLockoutEndTime(null);
+        }, 15 * 60 * 1000);
+
+        toast({
+          variant: "destructive",
+          title: "Account temporarily locked",
+          description: "Too many failed attempts. Please try again in 15 minutes.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Login failed",
+          description: error.message || "Invalid credentials. Please try again.",
+        });
+      }
     }
   }
 
@@ -121,6 +181,24 @@ const MerchantLogin = () => {
             <TabsContent value="login" className="space-y-4">
               <Form {...loginForm}>
                 <form onSubmit={loginForm.handleSubmit(loginSubmit)} className="space-y-4">
+                  {isLocked && (
+                    <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
+                      <div className="flex">
+                        <div className="flex-shrink-0">
+                          <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <div className="ml-3">
+                          <h3 className="text-sm font-medium text-red-800">Account temporarily locked</h3>
+                          <div className="mt-2 text-sm text-red-700">
+                            <p>Too many failed login attempts. Please try again in {lockoutEndTime ? Math.ceil((lockoutEndTime.getTime() - Date.now()) / 1000 / 60) : 15} minutes.</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <FormField
                     control={loginForm.control}
                     name="email"
@@ -128,7 +206,11 @@ const MerchantLogin = () => {
                       <FormItem>
                         <FormLabel>Email address</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter your email" {...field} />
+                          <Input
+                            placeholder="Enter your email"
+                            {...field}
+                            disabled={isLocked || loading}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -141,14 +223,19 @@ const MerchantLogin = () => {
                       <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="Enter your password" {...field} />
+                          <Input
+                            type="password"
+                            placeholder="Enter your password"
+                            {...field}
+                            disabled={isLocked || loading}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <Button disabled={loading} type="submit" className="w-full">
-                    {loading ? "Signing in..." : "Sign in"}
+                  <Button disabled={loading || isLocked} type="submit" className="w-full">
+                    {isLocked ? "Account Locked" : loading ? "Signing in..." : "Sign in"}
                   </Button>
                 </form>
               </Form>
@@ -212,16 +299,33 @@ const MerchantLogin = () => {
                         <FormItem>
                           <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="Enter your password" {...field} />
+                            <Input
+                              type="password"
+                              placeholder="Enter your password"
+                              {...field}
+                              onFocus={() => setShowPasswordRequirements(true)}
+                            />
                           </FormControl>
                           <FormMessage />
+                          {showPasswordRequirements && (
+                            <div className="text-xs text-muted-foreground mt-2 space-y-1">
+                              <p>Password must:</p>
+                              <ul className="list-disc pl-4 space-y-1">
+                                <li>Be at least 8 characters long</li>
+                                <li>Contain at least one uppercase letter</li>
+                                <li>Contain at least one lowercase letter</li>
+                                <li>Contain at least one number</li>
+                                <li>Contain at least one special character</li>
+                              </ul>
+                            </div>
+                          )}
                         </FormItem>
                       )}
                     />
                     <div className="space-y-2">
                       <FormLabel>Phone number</FormLabel>
-                      <Input 
-                        placeholder="Enter your phone number" 
+                      <Input
+                        placeholder="Enter your phone number"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         className="w-full"

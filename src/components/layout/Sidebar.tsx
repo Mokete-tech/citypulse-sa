@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import MerchantLoginDialog from '@/components/auth/MerchantLoginDialog';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -17,11 +19,12 @@ interface SidebarProps {
 const menuItems = [
   { name: 'Deals', icon: Tag, path: '/deals' },
   { name: 'Events', icon: Calendar, path: '/events' },
-  { name: 'Merchant Login', icon: LogIn, path: '/merchant/login' },
   { name: 'Merchant Packages', icon: CreditCard, path: '/merchant/packages' },
 ];
 
 const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
+  const { isMerchant } = useAuth();
+
   return (
     <>
       <div className={cn(
@@ -59,6 +62,26 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                   </Link>
                 </li>
               ))}
+
+              {/* Merchant Login/Dashboard */}
+              <li>
+                {isMerchant ? (
+                  <Link
+                    to="/merchant/dashboard"
+                    className="flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors"
+                  >
+                    <Building2 className="h-5 w-5 mr-3" />
+                    <span>Merchant Dashboard</span>
+                  </Link>
+                ) : (
+                  <MerchantLoginDialog>
+                    <button className="flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors w-full text-left">
+                      <LogIn className="h-5 w-5 mr-3" />
+                      <span>Merchant Login</span>
+                    </button>
+                  </MerchantLoginDialog>
+                )}
+              </li>
             </ul>
           </nav>
 
