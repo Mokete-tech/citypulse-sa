@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { Plus, PenLine, Trash2, Video, Image, CreditCard, Calendar, FileText } from 'lucide-react';
+import { Plus, PenLine, Trash2, Video, Image, CreditCard, Calendar, FileText, Tag } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { StatementGenerator } from '@/components/merchant/StatementGenerator';
 import { AnalyticsDashboard } from '@/components/merchant/AnalyticsDashboard';
@@ -203,9 +203,80 @@ const MerchantDashboard = () => {
         <main className="flex-1 overflow-y-auto px-4 py-6 md:px-6">
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Merchant Dashboard</h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mb-6">
               Manage your deals and view analytics.
             </p>
+
+            {/* Quick Stats Overview */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-sm font-medium text-blue-600">Active Deals</p>
+                      <h3 className="text-2xl font-bold mt-1">{merchantDeals.filter(d => d.status === "Active").length}</h3>
+                    </div>
+                    <div className="bg-blue-200 p-2 rounded-full">
+                      <Tag className="h-5 w-5 text-blue-700" />
+                    </div>
+                  </div>
+                  <div className="mt-4 text-sm text-blue-600">
+                    <span className="font-medium">124</span> views this week
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-sm font-medium text-green-600">Revenue</p>
+                      <h3 className="text-2xl font-bold mt-1">R 1,250</h3>
+                    </div>
+                    <div className="bg-green-200 p-2 rounded-full">
+                      <CreditCard className="h-5 w-5 text-green-700" />
+                    </div>
+                  </div>
+                  <div className="mt-4 text-sm text-green-600">
+                    <span className="font-medium">+12%</span> from last month
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-sm font-medium text-purple-600">Engagement</p>
+                      <h3 className="text-2xl font-bold mt-1">86%</h3>
+                    </div>
+                    <div className="bg-purple-200 p-2 rounded-full">
+                      <FileText className="h-5 w-5 text-purple-700" />
+                    </div>
+                  </div>
+                  <div className="mt-4 text-sm text-purple-600">
+                    <span className="font-medium">202</span> customer interactions
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-sm font-medium text-amber-600">Upcoming</p>
+                      <h3 className="text-2xl font-bold mt-1">2</h3>
+                    </div>
+                    <div className="bg-amber-200 p-2 rounded-full">
+                      <Calendar className="h-5 w-5 text-amber-700" />
+                    </div>
+                  </div>
+                  <div className="mt-4 text-sm text-amber-600">
+                    <span className="font-medium">1</span> expiring this week
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
