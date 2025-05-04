@@ -10,7 +10,7 @@
     }
   ],
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/(.*)", "destination": "/" }
   ],
   "env": {
     "VITE_SUPABASE_URL": "https://qghojdkspxhyjeurxagx.supabase.co",
