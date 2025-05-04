@@ -11,9 +11,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { handleSupabaseError } from '@/lib/error-handler';
 import { ArrowLeft, MapPin, Calendar, Tag, Store } from 'lucide-react';
 import { fallbackDeals } from '@/data/fallback-data';
-import { ShareButton } from '@/components/ui/share-button';
 import { ReactionButton } from '@/components/ui/reaction-button';
+import ShareButton from '@/components/social/ShareButton';
+import VideoAd from '@/components/ads/VideoAd';
 import { toast } from 'sonner';
+import SEO from '@/components/seo/SEO';
 
 const DealDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -190,6 +192,12 @@ const DealDetail = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+      <SEO
+        title={`${deal.title} | CityPulse South Africa`}
+        description={deal.description}
+        ogImage={deal.image_url}
+        ogType="article"
+      />
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : ''}`}>
         <Navbar toggleSidebar={toggleSidebar} />
@@ -273,9 +281,9 @@ const DealDetail = () => {
 
                     {/* Share Button Component */}
                     <ShareButton
-                      itemId={typeof deal.id === 'string' ? parseInt(deal.id, 10) : deal.id}
-                      itemType="deal"
                       title={deal.title}
+                      description={deal.description}
+                      url={window.location.href}
                     />
                   </div>
 
@@ -284,6 +292,12 @@ const DealDetail = () => {
                   </Button>
                 </div>
               </div>
+            </div>
+
+            {/* Video Ad Section */}
+            <div className="mt-8">
+              <h2 className="text-xl font-semibold mb-4">Sponsored</h2>
+              <VideoAd placement="detail" autoplay={false} />
             </div>
           </div>
         </main>

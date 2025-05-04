@@ -1,19 +1,47 @@
 {
   "name": "CityPulse South Africa",
   "short_name": "CityPulse",
+  "description": "Discover local deals and events across South Africa",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0EA5E9",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/android-chrome-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
-  "theme_color": "#0EA5E9",
-  "background_color": "#ffffff",
-  "display": "standalone"
+  "shortcuts": [
+    {
+      "name": "View Deals",
+      "short_name": "Deals",
+      "description": "Browse all deals",
+      "url": "/deals"
+    },
+    {
+      "name": "View Events",
+      "short_name": "Events",
+      "description": "Browse all events",
+      "url": "/events"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://citypulse-sa.vercel.app/site.webmanifest"
+    }
+  ],
+  "prefer_related_applications": false,
+  "categories": ["lifestyle", "shopping", "entertainment", "social"],
+  "orientation": "any",
+  "lang": "en-ZA"
 }

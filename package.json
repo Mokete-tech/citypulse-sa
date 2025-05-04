@@ -18,7 +18,8 @@
     "deploy": "node scripts/deploy.js",
     "deploy:vercel": "vercel --prod",
     "deploy:check": "node scripts/deploy.js --check-only",
-    "setup:env": "node scripts/setup-env-vars.js"
+    "setup:env": "node scripts/setup-env-vars.js",
+    "db:migrate": "node scripts/apply-migrations.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

@@ -10,6 +10,7 @@ import { HelmetProvider } from "react-helmet-async";
 import PageLoadingFallback from "@/components/ui/page-loading-fallback";
 import KeyboardNavigation from "@/components/accessibility/KeyboardNavigation";
 import GlobalErrorBoundary from "@/components/error/GlobalErrorBoundary";
+import InstallPrompt from "@/components/pwa/InstallPrompt";
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -52,6 +53,7 @@ const App = () => (
               <ConnectionCheck />
               <BrowserRouter>
                 <KeyboardNavigation />
+                <InstallPrompt />
             <Routes>
               <Route path="/" element={
                 <Suspense fallback={<PageLoadingFallback />}>
@@ -59,85 +61,85 @@ const App = () => (
                   </Suspense>
               } />
               <Route path="/deals" element={
-                
+
                   <Suspense fallback={<PageLoadingFallback />}>
                     <Deals />
                   </Suspense>
-                
+
               } />
               <Route path="/deals/:id" element={
-                
+
                   <Suspense fallback={<PageLoadingFallback />}>
                     <DealDetail />
                   </Suspense>
-                
+
               } />
               <Route path="/events" element={
-                
+
                   <Suspense fallback={<PageLoadingFallback />}>
                     <Events />
                   </Suspense>
-                
+
               } />
               <Route path="/contact" element={
-                
+
                   <Suspense fallback={<PageLoadingFallback />}>
                     <Contact />
                   </Suspense>
-                
+
               } />
               <Route path="/terms" element={
-                
+
                   <Suspense fallback={<PageLoadingFallback />}>
                     <Terms />
                   </Suspense>
-                
+
               } />
               <Route path="/merchant/login" element={
-                
+
                   <Suspense fallback={<PageLoadingFallback />}>
                     <MerchantLogin />
                   </Suspense>
-                
+
               } />
               <Route path="/merchant/dashboard" element={
-                
+
                   <Suspense fallback={<PageLoadingFallback />}>
                     <ProtectedRoute requiredRole="merchant">
                       <MerchantDashboard />
                     </ProtectedRoute>
                   </Suspense>
-                
+
               } />
               <Route path="/merchant/packages" element={
-                
+
                   <Suspense fallback={<PageLoadingFallback />}>
                     <MerchantPackages />
                   </Suspense>
-                
+
               } />
               <Route path="/admin/dashboard" element={
-                
+
                   <Suspense fallback={<PageLoadingFallback />}>
                     <ProtectedRoute requiredRole="admin">
                       <AdminDashboard />
                     </ProtectedRoute>
                   </Suspense>
-                
+
               } />
               <Route path="/unauthorized" element={
-                
+
                   <Suspense fallback={<PageLoadingFallback />}>
                     <Unauthorized />
                   </Suspense>
-                
+
               } />
               <Route path="/auth/callback" element={
-                
+
                   <Suspense fallback={<PageLoadingFallback />}>
                     <AuthCallback />
                   </Suspense>
-                
+
               } />
               <Route path="*" element={
                 <Suspense fallback={<PageLoadingFallback />}>
@@ -151,7 +153,7 @@ const App = () => (
         </StripeProvider>
       </AuthProvider>
     </QueryClientProvider>
-  
+
 );
 
 export default App;
