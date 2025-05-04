@@ -10,13 +10,20 @@ export function EnvWarning() {
 
   // Check if required environment variables are set
   const missingVars = [];
-  
-  if (!import.meta.env.VITE_SUPABASE_URL) {
-    missingVars.push('VITE_SUPABASE_URL');
+
+  // Check for Supabase URL (either VITE_ or NEXT_PUBLIC_ prefix)
+  if (!import.meta.env.VITE_SUPABASE_URL && !import.meta.env.NEXT_PUBLIC_SUPABASE_URL) {
+    missingVars.push('VITE_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL');
   }
-  
-  if (!import.meta.env.VITE_SUPABASE_ANON_KEY) {
-    missingVars.push('VITE_SUPABASE_ANON_KEY');
+
+  // Check for Supabase Anon Key (either VITE_ or NEXT_PUBLIC_ prefix)
+  if (!import.meta.env.VITE_SUPABASE_ANON_KEY && !import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    missingVars.push('VITE_SUPABASE_ANON_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  }
+
+  // Check for Stripe publishable key (either VITE_ or NEXT_PUBLIC_ prefix)
+  if (!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY && !import.meta.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+    missingVars.push('VITE_STRIPE_PUBLISHABLE_KEY or NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY');
   }
 
   // If all required vars are set, don't show warning
