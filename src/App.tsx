@@ -153,7 +153,7 @@ const App = () => (
         </StripeProvider>
       </AuthProvider>
     </QueryClientProvider>
-
+  </GlobalErrorBoundary>
 );
 
 export default App;
