@@ -82,19 +82,19 @@ export function DealCard({
         )}
       </CardContent>
 
-      <CardFooter className="pt-0 flex justify-between items-center border-t pt-4">
+      <CardFooter className="pt-0 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-t pt-4">
         <div className="flex items-center gap-2">
           <ReactionButton itemId={id} itemType="deal" />
 
           {expiration_date && (
-            <span className="text-sm text-muted-foreground">
+            <span className="text-xs sm:text-sm text-muted-foreground">
               Expires: {expiration_date}
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button size="sm" onClick={handleClick}>View Deal</Button>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Button size="sm" onClick={handleClick} className="flex-1 sm:flex-initial">View Deal</Button>
           <Button size="sm" variant="ghost" onClick={(e) => {
             e.stopPropagation();
             navigate(`/deals/${id}`);

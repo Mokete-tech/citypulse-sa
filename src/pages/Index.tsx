@@ -181,7 +181,7 @@ const Index = () => {
       <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : ''}`}>
         <Navbar toggleSidebar={toggleSidebar} />
 
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 md:p-6">
           <div className="container mx-auto">
             {/* Environment warning will only show in development mode */}
             <EnvWarning />
@@ -201,14 +201,14 @@ const Index = () => {
 
             {/* Nearby Deals and Events Section */}
             <div className="mb-12">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
                 <NearbyDeals initialRadius={5} maxDeals={3} />
                 <NearbyEvents initialRadius={5} maxEvents={3} />
               </div>
             </div>
 
             {/* Featured Deals and Events Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 mb-8">
               <section>
                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
                   <Tag className="h-5 w-5" /> Featured Deals

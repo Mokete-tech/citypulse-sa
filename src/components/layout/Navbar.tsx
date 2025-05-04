@@ -30,7 +30,7 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 md:px-6">
+    <nav className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-3 md:px-6 sticky top-0 z-40 w-full">
       <div className="flex items-center space-x-4">
         <Button
           variant="ghost"
@@ -67,7 +67,15 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
         {/* User is not logged in */}
         {!user && (
           <>
-            <UserLoginDialog className="flex items-center gap-2" />
+            <UserLoginDialog className="flex items-center gap-2">
+              <Button variant="primary" size="sm" className="hidden sm:flex items-center gap-2">
+                <LogIn className="h-4 w-4" />
+                <span>Login</span>
+              </Button>
+              <Button variant="primary" size="icon" className="sm:hidden">
+                <LogIn className="h-4 w-4" />
+              </Button>
+            </UserLoginDialog>
           </>
         )}
 

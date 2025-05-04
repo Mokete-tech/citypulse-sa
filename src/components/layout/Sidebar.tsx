@@ -25,7 +25,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   return (
     <>
       <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-sa-blue text-white transform transition-transform duration-300 ease-in-out md:translate-x-0",
+        "fixed inset-y-0 left-0 z-50 w-64 bg-sa-blue text-white transform transition-transform duration-300 ease-in-out md:translate-x-0 shadow-xl",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="h-full flex flex-col">
