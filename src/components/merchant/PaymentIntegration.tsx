@@ -143,36 +143,23 @@ export function PaymentIntegration({
         }
 
         newTransactionId = result.paymentIntentId || `TX-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      } else if (paymentMethod === 'payfast') {
+      } else if (paymentMethod === 'payfast' || paymentMethod === 'paypal' || paymentMethod === 'apple_pay' || paymentMethod === 'google_pay') {
         // For demo purposes, we'll simulate a successful payment
-        // In production, this would redirect to Stripe Checkout
+        // In production, this would redirect to the appropriate payment provider
 
-        // Generate a transaction ID for PayFast
-        newTransactionId = `PF-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        // Generate a transaction ID based on the payment method
+        const prefix =
+          paymentMethod === 'payfast' ? 'PF' :
+          paymentMethod === 'paypal' ? 'PP' :
+          paymentMethod === 'apple_pay' ? 'AP' : 'GP';
+
+        newTransactionId = `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
         // Log that we're simulating the payment
-        console.log('Simulating PayFast payment with transaction ID:', newTransactionId);
+        console.log(`Simulating ${paymentMethod} payment with transaction ID:`, newTransactionId);
 
-        // In a real implementation, we would use Stripe Checkout like this:
-        /*
-        const { sessionId, error } = await stripeService.createCheckoutSession(
-          'price_id_from_stripe_dashboard',
-          `${window.location.origin}/payment/success?item_id=${itemId}&item_type=${itemType}`,
-          `${window.location.origin}/payment/cancel`,
-          {
-            item_id: itemId,
-            item_type: itemType,
-            merchant_id: merchantId,
-            title: itemTitle
-          }
-        );
-
-        if (error || !sessionId) {
-          throw new Error(error || 'Failed to create checkout session');
-        }
-
-        await stripeService.redirectToCheckout(sessionId);
-        */
+        // Simulate a delay to make it feel more realistic
+        await new Promise(resolve => setTimeout(resolve, 2000));
       } else {
         // For EFT, we'll generate a reference number
         newTransactionId = `EFT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;

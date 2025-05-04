@@ -224,15 +224,28 @@ const MerchantDashboard = () => {
   };
 
   const handlePaymentSuccess = (transactionId: string) => {
-    // Update the deal status
-    setMerchantDeals(prev =>
-      prev.map(deal =>
-        deal.id === selectedDealForPayment.id ? { ...deal, status: "Active" } : deal
-      )
-    );
+    // Check if it's a deal or an event
+    if (selectedDealForPayment.itemType === 'event') {
+      // Update the event status
+      setMerchantEvents(prev =>
+        prev.map(event =>
+          event.id === selectedDealForPayment.id ? { ...event, status: "Active" } : event
+        )
+      );
+    } else {
+      // Update the deal status
+      setMerchantDeals(prev =>
+        prev.map(deal =>
+          deal.id === selectedDealForPayment.id ? { ...deal, status: "Active" } : deal
+        )
+      );
+    }
+
+    // Calculate the amount paid
+    const amountPaid = selectedDealForPayment.isPremium ? 'R499' : 'R199';
 
     toast.success("Payment successful!", {
-      description: `Transaction ID: ${transactionId}`,
+      description: `${amountPaid} payment completed. Transaction ID: ${transactionId}`,
     });
 
     // Hide payment form after success
