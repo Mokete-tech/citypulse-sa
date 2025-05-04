@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ReactionButton } from '@/components/ui/reaction-button';
-import { Tag, Share2 } from 'lucide-react';
+import { ShareButton } from '@/components/ui/share-button';
+import { Tag, MapPin, Share2 } from 'lucide-react';
 
 interface DealCardProps {
   id: number;
@@ -16,6 +17,7 @@ interface DealCardProps {
   discount?: string;
   image_url?: string;
   featured?: boolean;
+  distance?: number;
   onClick?: () => void;
 }
 
@@ -29,6 +31,7 @@ export function DealCard({
   discount,
   image_url,
   featured,
+  distance,
   onClick
 }: DealCardProps) {
   const navigate = useNavigate();
@@ -55,18 +58,28 @@ export function DealCard({
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
-            {category && (
-              <div className="text-sm flex items-center gap-1 text-muted-foreground mb-1">
-                <Tag className="h-3 w-3" /> {category}
-              </div>
-            )}
+            <div className="flex items-center gap-2 mb-1">
+              {category && (
+                <div className="text-sm flex items-center gap-1 text-muted-foreground">
+                  <Tag className="h-3 w-3" /> {category}
+                </div>
+              )}
+
+              {distance !== undefined && (
+                <div className="text-sm flex items-center gap-1 text-muted-foreground">
+                  <MapPin className="h-3 w-3" /> {distance.toFixed(1)} km
+                </div>
+              )}
+            </div>
             <CardTitle>{title}</CardTitle>
             {merchant_name && <CardDescription>{merchant_name}</CardDescription>}
           </div>
 
-          {featured && (
-            <Badge variant="outline" className="ml-2">Featured</Badge>
-          )}
+          <div className="flex flex-col items-end gap-2">
+            {featured && (
+              <Badge variant="outline">Featured</Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
 
@@ -95,12 +108,15 @@ export function DealCard({
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Button size="sm" onClick={handleClick} className="flex-1 sm:flex-initial">View Deal</Button>
-          <Button size="sm" variant="ghost" onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/deals/${id}`);
-          }}>
-            <Share2 className="h-4 w-4" />
-          </Button>
+          <ShareButton
+            itemId={id}
+            itemType="deal"
+            title={title}
+            description={description}
+            size="sm"
+            variant="ghost"
+            showText={false}
+          />
         </div>
       </CardFooter>
     </Card>

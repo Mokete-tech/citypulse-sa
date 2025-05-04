@@ -29,6 +29,7 @@ const AuthCallback = lazy(() => import("./pages/auth/Callback"));
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./contexts/AuthContext";
 import { StripeProvider } from "./contexts/StripeContext";
+import { PreferencesProvider } from "./hooks/usePreferences";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Create a new QueryClient instance
@@ -46,14 +47,15 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <StripeProvider>
-          <HelmetProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <ConnectionCheck />
-              <HashRouter>
-                <KeyboardNavigation />
-                <InstallPrompt />
+          <PreferencesProvider>
+            <HelmetProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <ConnectionCheck />
+                <HashRouter>
+                  <KeyboardNavigation />
+                  <InstallPrompt />
             <Routes>
               <Route path="/" element={
                 <Suspense fallback={<PageLoadingFallback />}>
@@ -148,8 +150,9 @@ const App = () => (
               } />
             </Routes>
           </HashRouter>
-          </TooltipProvider>
-          </HelmetProvider>
+              </TooltipProvider>
+            </HelmetProvider>
+          </PreferencesProvider>
         </StripeProvider>
       </AuthProvider>
     </QueryClientProvider>
