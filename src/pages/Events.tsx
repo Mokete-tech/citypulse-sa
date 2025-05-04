@@ -36,7 +36,7 @@ const Events = () => {
       const { data, error } = await supabase
         .from('events')
         .select('*')
-        .order('date', { ascending: true });
+        .order('event_date', { ascending: true });
 
       if (error) {
         throw error;
@@ -106,10 +106,12 @@ const Events = () => {
                   description={event.description}
                   merchant_name={event.merchant_name}
                   category={event.category}
-                  date={event.date}
-                  time={event.time}
+                  event_date={event.event_date || event.date}
+                  start_time={event.start_time || event.time}
+                  end_time={event.end_time}
                   location={event.location}
-                  price={event.price}
+                  venue={event.venue}
+                  ticket_price={event.ticket_price || event.price}
                   image_url={event.imageUrl || event.image_url}
                   featured={event.featured}
                 />

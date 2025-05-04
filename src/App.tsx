@@ -17,6 +17,7 @@ const Index = lazy(() => import("./pages/Index"));
 const Deals = lazy(() => import("./pages/Deals"));
 const DealDetail = lazy(() => import("./pages/DealDetail"));
 const Events = lazy(() => import("./pages/Events"));
+const EventDetail = lazy(() => import("./pages/EventDetail"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Terms = lazy(() => import("./pages/Terms"));
 const MerchantLogin = lazy(() => import("./pages/MerchantLogin"));
@@ -77,11 +78,14 @@ const App = () => (
 
               } />
               <Route path="/events" element={
-
                   <Suspense fallback={<PageLoadingFallback />}>
                     <Events />
                   </Suspense>
-
+              } />
+              <Route path="/events/:id" element={
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <EventDetail />
+                  </Suspense>
               } />
               <Route path="/contact" element={
 

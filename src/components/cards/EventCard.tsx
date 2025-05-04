@@ -1,9 +1,11 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ReactionButton } from '@/components/ui/reaction-button';
-import { Calendar, MapPin } from 'lucide-react';
+import { ShareButton } from '@/components/ui/share-button';
+import { Calendar, MapPin, Clock } from 'lucide-react';
 
 interface EventCardProps {
   id: number;
@@ -11,10 +13,12 @@ interface EventCardProps {
   description: string;
   merchant_name?: string;
   category?: string;
-  date?: string;
-  time?: string;
+  event_date?: string;
+  start_time?: string;
+  end_time?: string;
   location?: string;
-  price?: string;
+  venue?: string;
+  ticket_price?: string;
   image_url?: string;
   featured?: boolean;
   onClick?: () => void;
@@ -26,10 +30,12 @@ export function EventCard({
   description,
   merchant_name,
   category,
-  date,
-  time,
+  event_date,
+  start_time,
+  end_time,
   location,
-  price,
+  venue,
+  ticket_price,
   image_url,
   featured,
   onClick
@@ -68,24 +74,42 @@ export function EventCard({
         <p>{description}</p>
 
         <div className="mt-4 space-y-2">
-          {date && (
+          {event_date && (
             <div className="flex items-center text-sm">
               <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-              <span>{date} {time && `at ${time}`}</span>
+              <span>{event_date}</span>
             </div>
           )}
 
-          {location && (
+          {(start_time || end_time) && (
+            <div className="flex items-center text-sm">
+              <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+              <span>
+                {start_time && `From ${start_time}`}
+                {start_time && end_time && ' to '}
+                {end_time && end_time}
+              </span>
+            </div>
+          )}
+
+          {venue && (
+            <div className="flex items-center text-sm">
+              <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+              <span>{venue}</span>
+            </div>
+          )}
+
+          {location && !venue && (
             <div className="flex items-center text-sm">
               <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
               <span>{location}</span>
             </div>
           )}
 
-          {price && (
+          {ticket_price && (
             <div className="mt-3">
               <Badge variant="secondary" className="text-sm">
-                {price}
+                {ticket_price}
               </Badge>
             </div>
           )}
@@ -93,8 +117,22 @@ export function EventCard({
       </CardContent>
 
       <CardFooter className="pt-0 flex justify-between items-center border-t pt-4">
-        <ReactionButton itemId={id} itemType="event" />
-        <Button size="sm" onClick={onClick} className="w-full sm:w-auto">View Event</Button>
+        <div className="flex items-center gap-2">
+          <ReactionButton itemId={id} itemType="event" />
+          <ShareButton
+            itemId={id}
+            itemType="event"
+            title={title}
+            description={description}
+            imageUrl={image_url}
+            variant="outline"
+            size="sm"
+            showText={false}
+          />
+        </div>
+        <Link to={`/events/${id}`}>
+          <Button size="sm" onClick={onClick} className="w-full sm:w-auto">View Event</Button>
+        </Link>
       </CardFooter>
     </Card>
   );
