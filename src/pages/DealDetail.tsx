@@ -12,7 +12,7 @@ import { handleSupabaseError } from '@/lib/error-handler';
 import { ArrowLeft, MapPin, Calendar, Tag, Store } from 'lucide-react';
 import { fallbackDeals } from '@/data/fallback-data';
 import { ReactionButton } from '@/components/ui/reaction-button';
-import ShareButton from '@/components/social/ShareButton';
+import { ShareButton } from '@/components/ui/share-button';
 import VideoAd from '@/components/ads/VideoAd';
 import { toast } from 'sonner';
 import SEO from '@/components/seo/SEO';
@@ -281,9 +281,9 @@ const DealDetail = () => {
 
                     {/* Share Button Component */}
                     <ShareButton
+                      itemId={typeof deal.id === 'string' ? parseInt(deal.id, 10) : deal.id}
+                      itemType="deal"
                       title={deal.title}
-                      description={deal.description}
-                      url={window.location.href}
                     />
                   </div>
 
