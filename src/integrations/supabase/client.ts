@@ -2,25 +2,20 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-// Use environment variables for Supabase credentials
-// Support both VITE_ and NEXT_PUBLIC_ prefixes for compatibility with Vercel integration
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// Hardcoded Supabase credentials for production
+const SUPABASE_URL = 'https://qghojdkspxhyjeurxagx.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFnaG9qZGtzcHhoeWpldXJ4YWd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ2NTU4NjUsImV4cCI6MjA2MDIzMTg2NX0.QInil2Wr7x14JwpRKKkIcgG6WwyOIUFx-O_kL8o2jdg';
 
-// Validate that environment variables are set
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.error(
-    'Missing Supabase environment variables. Please check that either VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY ' +
-    'or NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set in your environment variables.'
-  );
-}
+// Log the Supabase credentials for debugging
+console.log('Supabase URL:', SUPABASE_URL);
+console.log('Supabase Anon Key:', SUPABASE_ANON_KEY ? 'Key is set' : 'Key is not set');
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient<Database>(
-  SUPABASE_URL as string,
-  SUPABASE_ANON_KEY as string,
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY,
   {
     auth: {
       persistSession: true,

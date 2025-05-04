@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { LoadingState } from '@/components/ui/loading-state';
 import { supabase } from '@/integrations/supabase/client';
-import { handleSupabaseError } from '@/lib/error-handler';
 import { ArrowLeft, MapPin, Calendar, Tag, Store } from 'lucide-react';
 import { fallbackDeals } from '@/data/fallback-data';
 import { ReactionButton } from '@/components/ui/reaction-button';
@@ -39,39 +38,44 @@ const DealDetail = () => {
           throw new Error('Deal ID is required');
         }
 
-        const { data, error } = await supabase
-          .from('deals')
-          .select('*')
-          .eq('id', parseInt(id || '0', 10))
-          .single();
-
-        if (error) {
-          throw error;
+        // First set a fallback deal to ensure something displays
+        const fallbackDeal = fallbackDeals.find(d => d.id.toString() === id) || fallbackDeals[0];
+        if (fallbackDeal) {
+          setDeal(fallbackDeal);
         }
 
-        if (data) {
-          setDeal(data);
+        // Try to fetch from Supabase
+        try {
+          const { data, error } = await supabase
+            .from('deals')
+            .select('*')
+            .eq('id', parseInt(id || '0', 10))
+            .single();
 
-          // Track view
-          await trackDealView(data.id);
-        } else {
-          // If no deal found, use fallback
-          const fallbackDeal = fallbackDeals.find(d => d.id.toString() === id);
-          if (fallbackDeal) {
-            setDeal(fallbackDeal);
-          } else {
-            throw new Error('Deal not found');
+          if (error) {
+            console.error('Supabase query error:', error);
+            // Already using fallback deal, so just log the error
+          } else if (data) {
+            // Update with real deal data
+            setDeal(data);
+
+            // Try to track view
+            try {
+              await trackDealView(data.id);
+            } catch (trackError) {
+              console.error('Error tracking deal view:', trackError);
+              // Non-critical error, continue showing the deal
+            }
           }
+        } catch (supabaseError) {
+          console.error('Error fetching from Supabase:', supabaseError);
+          // Already using fallback deal, so just log the error
         }
       } catch (error) {
-        handleSupabaseError(error, {
-          title: 'Error loading deal',
-          message: 'Could not load deal details. Using fallback data if available.',
-          silent: true
-        });
+        console.error('Error in DealDetail component:', error);
 
-        // Try to use fallback data
-        const fallbackDeal = fallbackDeals.find(d => d.id.toString() === id);
+        // Try to use fallback data as a last resort
+        const fallbackDeal = fallbackDeals.find(d => d.id.toString() === id) || fallbackDeals[0];
         if (fallbackDeal) {
           setDeal(fallbackDeal);
         } else {

@@ -12,12 +12,12 @@ interface VideoAdProps {
   className?: string;
 }
 
-const VideoAd = ({ 
-  adId, 
-  placement = 'feed', 
-  autoplay = false, 
-  onClose, 
-  className = '' 
+const VideoAd = ({
+  adId,
+  placement = 'feed',
+  autoplay = false,
+  onClose,
+  className = ''
 }: VideoAdProps) => {
   const [isPlaying, setIsPlaying] = useState(autoplay);
   const [isMuted, setIsMuted] = useState(true);
@@ -26,15 +26,32 @@ const VideoAd = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  
+
   // Fetch ad data from Supabase
   useEffect(() => {
     const fetchAdData = async () => {
       try {
         setIsLoading(true);
-        
+
+        // Use fallback ad data for now to ensure something displays
+        const fallbackAd = {
+          id: 'fallback',
+          title: 'Advertise with CityPulse',
+          description: 'Reach thousands of local customers with video ads on CityPulse',
+          video_url: 'https://storage.googleapis.com/citypulse-assets/ads/citypulse-ad-fallback.mp4',
+          thumbnail_url: 'https://storage.googleapis.com/citypulse-assets/ads/citypulse-ad-fallback.jpg',
+          cta_text: 'Learn More',
+          cta_url: '/merchant/packages',
+          advertiser_name: 'CityPulse',
+          advertiser_logo: '/logo.svg'
+        };
+
+        // Set fallback ad data immediately
+        setAdData(fallbackAd);
+
+        // Try to fetch from Supabase
         let query = supabase.from('video_ads').select('*');
-        
+
         // If adId is provided, fetch that specific ad
         if (adId) {
           query = query.eq('id', adId);
@@ -46,68 +63,49 @@ const VideoAd = ({
             .order('last_shown', { ascending: true })
             .limit(1);
         }
-        
+
         const { data, error } = await query;
-        
-        if (error) throw error;
-        
-        if (data && data.length > 0) {
+
+        if (error) {
+          console.error('Supabase query error:', error);
+          // Already using fallback ad, so just log the error
+        } else if (data && data.length > 0) {
+          // Update with real ad data
           setAdData(data[0]);
-          
-          // Update the last_shown timestamp
-          await supabase
-            .from('video_ads')
-            .update({ last_shown: new Date().toISOString() })
-            .eq('id', data[0].id);
-            
-          // Track impression
-          await supabase.from('ad_analytics').insert({
-            ad_id: data[0].id,
-            event_type: 'impression',
-            placement,
-            metadata: {
-              url: window.location.href,
-              timestamp: new Date().toISOString()
-            }
-          });
-        } else {
-          // If no ads are found, use a fallback
-          setAdData({
-            id: 'fallback',
-            title: 'Advertise with CityPulse',
-            description: 'Reach thousands of local customers with video ads on CityPulse',
-            video_url: 'https://storage.googleapis.com/citypulse-assets/ads/citypulse-ad-fallback.mp4',
-            thumbnail_url: 'https://storage.googleapis.com/citypulse-assets/ads/citypulse-ad-fallback.jpg',
-            cta_text: 'Learn More',
-            cta_url: '/merchant/packages',
-            advertiser_name: 'CityPulse',
-            advertiser_logo: '/logo.svg'
-          });
+
+          try {
+            // Update the last_shown timestamp
+            await supabase
+              .from('video_ads')
+              .update({ last_shown: new Date().toISOString() })
+              .eq('id', data[0].id);
+
+            // Track impression
+            await supabase.from('ad_analytics').insert({
+              ad_id: data[0].id,
+              event_type: 'impression',
+              placement,
+              metadata: {
+                url: window.location.href,
+                timestamp: new Date().toISOString()
+              }
+            });
+          } catch (trackError) {
+            console.error('Error tracking ad impression:', trackError);
+            // Non-critical error, continue showing the ad
+          }
         }
       } catch (err) {
-        console.error('Error fetching ad data:', err);
-        setError('Failed to load advertisement');
-        
-        // Use fallback ad
-        setAdData({
-          id: 'fallback',
-          title: 'Advertise with CityPulse',
-          description: 'Reach thousands of local customers with video ads on CityPulse',
-          video_url: 'https://storage.googleapis.com/citypulse-assets/ads/citypulse-ad-fallback.mp4',
-          thumbnail_url: 'https://storage.googleapis.com/citypulse-assets/ads/citypulse-ad-fallback.jpg',
-          cta_text: 'Learn More',
-          cta_url: '/merchant/packages',
-          advertiser_name: 'CityPulse',
-          advertiser_logo: '/logo.svg'
-        });
+        console.error('Error in VideoAd component:', err);
+        // Already using fallback ad, so just log the error
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     fetchAdData();
   }, [adId, placement]);
-  
+
   // Handle play/pause
   const togglePlay = () => {
     if (videoRef.current) {
@@ -119,7 +117,7 @@ const VideoAd = ({
       setIsPlaying(!isPlaying);
     }
   };
-  
+
   // Handle mute/unmute
   const toggleMute = () => {
     if (videoRef.current) {
@@ -127,7 +125,7 @@ const VideoAd = ({
       setIsMuted(!isMuted);
     }
   };
-  
+
   // Handle fullscreen
   const toggleFullscreen = () => {
     if (videoRef.current) {
@@ -143,20 +141,20 @@ const VideoAd = ({
       setIsFullscreen(!isFullscreen);
     }
   };
-  
+
   // Track when fullscreen is exited using the Fullscreen API
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
-    
+
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    
+
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
   }, []);
-  
+
   // Track ad click
   const handleAdClick = async () => {
     if (adData && adData.id !== 'fallback') {
@@ -174,17 +172,17 @@ const VideoAd = ({
         console.error('Error tracking ad click:', err);
       }
     }
-    
+
     // Open the CTA URL
     if (adData && adData.cta_url) {
       window.open(adData.cta_url, '_blank');
     }
   };
-  
+
   // Track video completion
   const handleVideoEnded = async () => {
     setIsPlaying(false);
-    
+
     if (adData && adData.id !== 'fallback') {
       try {
         await supabase.from('ad_analytics').insert({
@@ -201,7 +199,7 @@ const VideoAd = ({
       }
     }
   };
-  
+
   if (isLoading) {
     return (
       <Card className={`overflow-hidden ${className}`}>
@@ -213,17 +211,17 @@ const VideoAd = ({
       </Card>
     );
   }
-  
+
   if (error || !adData) {
     return null; // Don't show anything if there's an error
   }
-  
+
   return (
     <Card className={`overflow-hidden relative ${className}`}>
       <CardContent className="p-0">
         {/* Video Player */}
-        <div 
-          className="relative aspect-video cursor-pointer" 
+        <div
+          className="relative aspect-video cursor-pointer"
           onClick={togglePlay}
         >
           <video
@@ -238,7 +236,7 @@ const VideoAd = ({
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
           />
-          
+
           {/* Play/Pause Overlay */}
           {!isPlaying && (
             <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
@@ -249,18 +247,18 @@ const VideoAd = ({
               </div>
             </div>
           )}
-          
+
           {/* Ad Label */}
           <div className="absolute top-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">
             Ad
           </div>
-          
+
           {/* Controls */}
           <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 className="h-8 w-8 rounded-full bg-black bg-opacity-60 text-white hover:bg-opacity-80"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -270,11 +268,11 @@ const VideoAd = ({
                 {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
               </Button>
             </div>
-            
+
             <div className="flex items-center space-x-2">
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 className="h-8 w-8 rounded-full bg-black bg-opacity-60 text-white hover:bg-opacity-80"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -283,11 +281,11 @@ const VideoAd = ({
               >
                 <Maximize2 className="h-4 w-4" />
               </Button>
-              
+
               {onClose && (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className="h-8 w-8 rounded-full bg-black bg-opacity-60 text-white hover:bg-opacity-80"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -300,7 +298,7 @@ const VideoAd = ({
             </div>
           </div>
         </div>
-        
+
         {/* Ad Content */}
         <div className="p-4">
           <div className="flex items-start justify-between">
@@ -308,24 +306,24 @@ const VideoAd = ({
               <h3 className="font-semibold text-lg">{adData.title}</h3>
               <p className="text-sm text-gray-600 mt-1">{adData.description}</p>
             </div>
-            
+
             {adData.advertiser_logo && (
-              <img 
-                src={adData.advertiser_logo} 
-                alt={adData.advertiser_name} 
+              <img
+                src={adData.advertiser_logo}
+                alt={adData.advertiser_name}
                 className="h-8 w-8 object-contain"
               />
             )}
           </div>
-          
+
           <div className="mt-4 flex items-center justify-between">
             <span className="text-xs text-gray-500">
               {adData.advertiser_name ? `Ad by ${adData.advertiser_name}` : 'Sponsored'}
             </span>
-            
-            <Button 
-              variant="outline" 
-              size="sm" 
+
+            <Button
+              variant="outline"
+              size="sm"
               className="text-xs h-8"
               onClick={handleAdClick}
             >
