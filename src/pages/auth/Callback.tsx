@@ -2,17 +2,11 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
+import MainLayout from '@/components/layout/MainLayout';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -51,9 +45,7 @@ const AuthCallback = () => {
   }, [navigate]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <Navbar toggleSidebar={toggleSidebar} />
-
+    <MainLayout>
       <div className="flex-1 flex items-center justify-center p-4">
         {error ? (
           <div className="text-center">
@@ -69,9 +61,7 @@ const AuthCallback = () => {
           </div>
         )}
       </div>
-
-      <Footer />
-    </div>
+    </MainLayout>
   );
 };
 
