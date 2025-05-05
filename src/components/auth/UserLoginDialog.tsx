@@ -111,7 +111,7 @@ const UserLoginDialog = ({ className }: UserLoginDialogProps) => {
         <DialogHeader>
           <DialogTitle>Login to CityPulse</DialogTitle>
           <DialogDescription>
-            Access your account to save deals, track events, and more. New users will be automatically registered.
+            Access your account to save deals, track events, and more.
           </DialogDescription>
         </DialogHeader>
         <Tabs defaultValue="email" className="w-full">
@@ -150,7 +150,7 @@ const UserLoginDialog = ({ className }: UserLoginDialogProps) => {
               </Button>
 
               <div className="text-center text-sm text-muted-foreground mt-4">
-                <p>Don't have an account? New users will be automatically registered when you login.</p>
+                <p>Don't have an account? <span className="text-primary cursor-pointer" onClick={() => setOpen(false)}>Register here</span> instead.</p>
               </div>
             </form>
           </TabsContent>

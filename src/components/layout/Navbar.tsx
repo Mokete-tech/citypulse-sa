@@ -5,6 +5,7 @@ import { Bell, Search, Menu, LogIn, User, LogOut, Home, Tag, Calendar, MapPin, P
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import UserLoginDialog from '@/components/auth/UserLoginDialog';
+import UserRegistrationDialog from '@/components/auth/UserRegistrationDialog';
 import MerchantLoginDialog from '@/components/auth/MerchantLoginDialog';
 import GlobalSearch from '@/components/search/GlobalSearch';
 import {
@@ -94,12 +95,21 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
 
               <div className="p-4 border-t mt-auto">
                 {!user ? (
-                  <UserLoginDialog>
-                    <Button className="w-full">
-                      <LogIn className="mr-2 h-4 w-4" />
-                      Login
-                    </Button>
-                  </UserLoginDialog>
+                  <div className="space-y-2">
+                    <UserRegistrationDialog>
+                      <Button variant="outline" className="w-full">
+                        <User className="mr-2 h-4 w-4" />
+                        Register
+                      </Button>
+                    </UserRegistrationDialog>
+
+                    <UserLoginDialog>
+                      <Button className="w-full">
+                        <LogIn className="mr-2 h-4 w-4" />
+                        Login
+                      </Button>
+                    </UserLoginDialog>
+                  </div>
                 ) : (
                   <div className="space-y-2">
                     <div className="flex items-center gap-3 mb-3">
@@ -177,6 +187,13 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
         {/* User is not logged in */}
         {!user && (
           <>
+            <UserRegistrationDialog className="flex items-center gap-2 mr-2">
+              <Button variant="outline" size="sm" className="hidden sm:flex items-center gap-2">
+                <User className="h-4 w-4" />
+                <span>Register</span>
+              </Button>
+            </UserRegistrationDialog>
+
             <UserLoginDialog className="flex items-center gap-2">
               <Button variant="primary" size="sm" className="hidden sm:flex items-center gap-2">
                 <LogIn className="h-4 w-4" />
