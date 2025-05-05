@@ -27,6 +27,38 @@
         font-size: 1.5rem;
         font-weight: bold;
       }
+
+      /* Interactive elements */
+      .deal-card, .event-card {
+        transition: all 0.3s ease;
+      }
+
+      .deal-card:hover, .event-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      }
+
+      /* Animation for expanding cards */
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .deal-details, .event-details {
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      button {
+        transition: all 0.2s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
     </style>
   </head>
   <body>

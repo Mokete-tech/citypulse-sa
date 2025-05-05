@@ -2,6 +2,8 @@
 import React from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import MainLayout from './components/layout/MainLayout';
+import DealCard from './components/deals/DealCard';
+import EventCard from './components/events/EventCard';
 
 // Minimal Home component
 const Home = () => {
@@ -112,31 +114,7 @@ const Home = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {featuredDeals.map(deal => (
-              <div key={deal.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-blue-600 text-white p-2 text-sm">
-                  {deal.category}
-                </div>
-                <div className="p-4">
-                  <h3 className="font-bold text-lg mb-1">{deal.title}</h3>
-                  <p className="text-sm text-gray-600 mb-2">{deal.merchant}</p>
-                  {deal.featured && (
-                    <span className="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded mb-2">
-                      Featured
-                    </span>
-                  )}
-                  <p className="text-sm mb-3">{deal.description}</p>
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-blue-600">{deal.discount}</span>
-                    <span className="text-sm text-gray-500">Expires: {deal.expires}</span>
-                  </div>
-                  <div className="mt-3 flex justify-between items-center">
-                    <span className="text-sm text-gray-500">{deal.distance} km</span>
-                    <button className="bg-blue-600 text-white px-3 py-1 rounded text-sm">
-                      View Deal
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <DealCard key={deal.id} {...deal} />
             ))}
           </div>
 
@@ -160,31 +138,7 @@ const Home = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {featuredEvents.map(event => (
-              <div key={event.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-purple-600 text-white p-2 text-sm">
-                  {event.category}
-                </div>
-                <div className="p-4">
-                  <h3 className="font-bold text-lg mb-1">{event.title}</h3>
-                  <p className="text-sm text-gray-600 mb-2">{event.merchant}</p>
-                  {event.featured && (
-                    <span className="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded mb-2">
-                      Featured
-                    </span>
-                  )}
-                  <p className="text-sm mb-3">{event.description}</p>
-                  <div className="text-sm text-gray-700 mb-2">
-                    <div>{event.venue}</div>
-                    <div>{event.date} at {event.time}</div>
-                  </div>
-                  <div className="mt-3 flex justify-between items-center">
-                    <span className="text-sm text-gray-500">{event.distance} km</span>
-                    <button className="bg-purple-600 text-white px-3 py-1 rounded text-sm">
-                      View Event
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <EventCard key={event.id} {...event} />
             ))}
           </div>
 
@@ -230,31 +184,7 @@ const Home = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {featuredDeals.slice(0, 3).map(deal => (
-              <div key={deal.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-blue-600 text-white p-2 text-sm">
-                  {deal.category}
-                </div>
-                <div className="p-4">
-                  <h3 className="font-bold text-lg mb-1">{deal.title}</h3>
-                  <p className="text-sm text-gray-600 mb-2">{deal.merchant}</p>
-                  {deal.featured && (
-                    <span className="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded mb-2">
-                      Featured
-                    </span>
-                  )}
-                  <p className="text-sm mb-3">{deal.description}</p>
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-blue-600">{deal.discount}</span>
-                    <span className="text-sm text-gray-500">Expires: {deal.expires}</span>
-                  </div>
-                  <div className="mt-3 flex justify-between items-center">
-                    <span className="text-sm text-gray-500">{deal.distance} km</span>
-                    <button className="bg-blue-600 text-white px-3 py-1 rounded text-sm">
-                      View Deal
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <DealCard key={deal.id} {...deal} />
             ))}
           </div>
         </section>
@@ -360,31 +290,7 @@ const Deals = () => {
           <div className="flex-1">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredDeals.map(deal => (
-                <div key={deal.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                  <div className="bg-blue-600 text-white p-2 text-sm">
-                    {deal.category}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg mb-1">{deal.title}</h3>
-                    <p className="text-sm text-gray-600 mb-2">{deal.merchant}</p>
-                    {deal.featured && (
-                      <span className="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded mb-2">
-                        Featured
-                      </span>
-                    )}
-                    <p className="text-sm mb-3">{deal.description}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-blue-600">{deal.discount}</span>
-                      <span className="text-sm text-gray-500">Expires: {deal.expires}</span>
-                    </div>
-                    <div className="mt-3 flex justify-between items-center">
-                      <span className="text-sm text-gray-500">{deal.distance} km</span>
-                      <button className="bg-blue-600 text-white px-3 py-1 rounded text-sm">
-                        View Deal
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <DealCard key={deal.id} {...deal} />
               ))}
 
               {filteredDeals.length === 0 && (
@@ -509,31 +415,7 @@ const Events = () => {
           <div className="flex-1">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredEvents.map(event => (
-                <div key={event.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                  <div className="bg-purple-600 text-white p-2 text-sm">
-                    {event.category}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg mb-1">{event.title}</h3>
-                    <p className="text-sm text-gray-600 mb-2">{event.merchant}</p>
-                    {event.featured && (
-                      <span className="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded mb-2">
-                        Featured
-                      </span>
-                    )}
-                    <p className="text-sm mb-3">{event.description}</p>
-                    <div className="text-sm text-gray-700 mb-2">
-                      <div>{event.venue}</div>
-                      <div>{event.date} at {event.time}</div>
-                    </div>
-                    <div className="mt-3 flex justify-between items-center">
-                      <span className="text-sm text-gray-500">{event.distance} km</span>
-                      <button className="bg-purple-600 text-white px-3 py-1 rounded text-sm">
-                        View Event
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <EventCard key={event.id} {...event} />
               ))}
 
               {filteredEvents.length === 0 && (
