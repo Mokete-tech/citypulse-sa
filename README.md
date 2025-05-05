@@ -56,214 +56,212 @@ npm run dev
 
 ## Features
 
+### User Features
 - Browse deals and events by location and category
-- Merchant dashboard for managing promotions
-- User authentication with Supabase (Email, Phone, Google, Facebook)
-- Phone authentication with SMS verification
-- Password reset functionality with branded emails
-- Social login with Google and Facebook
-- Social sharing for deals and events (Facebook, X, LinkedIn, WhatsApp)
-- Sharing analytics dashboard for merchants
-- User reactions system for deals and events
-- Secure payment processing with Stripe (or alternative providers)
-- Merchant payment history and transaction tracking
+- User authentication with email, phone, and social login
+- Share deals and events to social media platforms
 - Contact form with validation
 - Responsive design for mobile and desktop
+
+### Merchant Features
+- Comprehensive merchant dashboard for managing promotions
+- Analytics dashboard with engagement metrics
+- Payment processing with Stripe
+- Financial statement generation
+- Media upload for images and videos (up to 50MB, 2-minute duration)
+- Email notifications via MailerSend
+- SMS notifications via Twilio
+
+### Technical Features
+- Secure authentication with Supabase
+- Stripe payment integration
 - Error handling and loading states
 - Fallback data for offline development
+- Comprehensive test suite
 
 ## Tech Stack
 
 This project is built with:
 
-- **Frontend**: React, TypeScript, Vite
+### Frontend
+- **Framework**: React, TypeScript, Vite
 - **UI Components**: shadcn/ui, Tailwind CSS
 - **State Management**: React Query
+- **Form Validation**: React Hook Form, Zod
+- **Charts & Visualization**: Recharts
+
+### Backend & Services
 - **Database**: Supabase
 - **Authentication**: Supabase Auth
-- **Form Validation**: React Hook Form, Zod
+- **Storage**: Supabase Storage
+- **Functions**: Supabase Edge Functions
+- **Payments**: Stripe
+- **Email**: MailerSend
+- **SMS**: Twilio
+
+### DevOps & Testing
 - **Testing**: Vitest, Testing Library
+- **Deployment**: Vercel
+- **CI/CD**: GitHub Actions
+- **Environment Management**: Custom deployment scripts
 
 ## Development
 
 ### Available Scripts
 
+#### Development
 - `npm run dev` - Start the development server
 - `npm run build` - Build for production
 - `npm run build:dev` - Build for development
 - `npm run lint` - Run ESLint
 - `npm run preview` - Preview the production build
+
+#### Testing
 - `npm run test` - Run tests
 - `npm run test:ui` - Run tests with UI
 - `npm run test:coverage` - Run tests with coverage report
-- `npm run setup:reactions` - Set up the reactions system in Supabase
-- `npm run setup:reactions:ts` - Set up the reactions system using TypeScript
-- `npm run setup:twilio` - Configure Twilio for SMS authentication
-- `npm run setup:shares` - Add sharing analytics columns to database
-- `npm run test:reactions` - Test the reactions system functionality
-- `npm run test:twilio` - Test Twilio SMS integration
+
+#### Deployment
+- `npm run deploy` - Check environment variables and build the project
+- `npm run deploy:vercel` - Deploy to Vercel
+- `npm run deploy:check` - Check if all required environment variables are set
+- `npm run setup:env` - Interactive tool to help set up environment variables for Vercel
 
 ### Environment Setup
 
-Create a `.env` file in the root directory with your Supabase credentials:
+Create a `.env` file in the root directory with all required credentials:
+
+```
+# Supabase Configuration
+VITE_SUPABASE_URL=https://qghojdkspxhyjeurxagx.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+
+# Stripe Configuration
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_51IRNxfHieGkyNl5wOGvmEAtaXxZ6VHEPmHcXuwfsfOPTt0umFFEY9QpsJMXo4IAo0uzl0R66CpaJFRKCaXo0k5DZ00uGSXCeCN
+STRIPE_SECRET_KEY=your-stripe-secret-key
+
+# MailerSend Configuration
+MAILERSEND_API_KEY=MS_ckXYQU@test-q3enl6kk0z042vwr.mlsender.net
+MAILERSEND_FROM_EMAIL=noreply@citypulse-sa.com
+MAILERSEND_FROM_NAME=CityPulse South Africa
+MAILERSEND_DOMAIN=test-q3enl6kk0z042vwr.mlsender.net
+
+# Twilio Configuration
+TWILIO_ACCOUNT_SID=your-twilio-account-sid
+TWILIO_AUTH_TOKEN=your-twilio-auth-token
+TWILIO_VERIFY_SERVICE_SID=your-twilio-verify-service-sid
+TWILIO_PHONE_NUMBER=your-twilio-phone-number
+
+# Application Configuration
+VITE_APP_NAME=CityPulse South Africa
+VITE_APP_ENV=development
+VITE_APP_URL=http://localhost:5173
+```
+
+You can run the environment check script to ensure all variables are set:
+```sh
+npm run deploy:check
+```
+
+## How can I deploy this project?
+
+### Automated Deployment with Vercel
+
+The easiest way to deploy this project is with Vercel:
+
+1. **Prepare for deployment**:
+   ```sh
+   npm run deploy
+   ```
+   This script will check if all required environment variables are set and build the project.
+
+2. **Deploy to Vercel**:
+   ```sh
+   npm run deploy:vercel
+   ```
+   This will deploy the project to Vercel with all the necessary environment variables.
+
+### Manual Deployment
+
+You can also deploy the project manually:
+
+1. **Build the project**:
+   ```sh
+   npm run build
+   ```
+
+2. **Set up environment variables**:
+   Make sure all required environment variables are set in your hosting provider:
+   - Supabase credentials
+   - Stripe API keys
+   - MailerSend credentials
+   - Twilio credentials
+   - Application configuration
+
+3. **Deploy the `dist` directory** to any static hosting service like Vercel, Netlify, or GitHub Pages.
+
+### Environment Variables
+
+The following environment variables are required for deployment:
+
 ```
 # Supabase Configuration
 VITE_SUPABASE_URL=your-supabase-url
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key  # Required for setup scripts
 
-# Twilio Configuration (for SMS authentication)
+# Stripe Configuration
+VITE_STRIPE_PUBLISHABLE_KEY=your-stripe-publishable-key
+STRIPE_SECRET_KEY=your-stripe-secret-key
+
+# MailerSend Configuration
+MAILERSEND_API_KEY=your-mailersend-api-key
+MAILERSEND_FROM_EMAIL=noreply@citypulse.co.za
+MAILERSEND_FROM_NAME=CityPulse South Africa
+MAILERSEND_DOMAIN=your-mailersend-domain
+
+# Twilio Configuration
 TWILIO_ACCOUNT_SID=your-twilio-account-sid
 TWILIO_AUTH_TOKEN=your-twilio-auth-token
+TWILIO_VERIFY_SERVICE_SID=your-twilio-verify-service-sid
 TWILIO_PHONE_NUMBER=your-twilio-phone-number
-TWILIO_MESSAGE_SERVICE_SID=your-twilio-messaging-service-sid
-
-# Email Configuration (required for password reset and notifications)
-# Option 1: SendGrid (if using SendGrid)
-VITE_SENDGRID_API_KEY=your-sendgrid-api-key
-VITE_SENDGRID_FROM_EMAIL=noreply@yourdomain.com
-VITE_SENDGRID_FROM_NAME=Your App Name
-
-# Option 2: SMTP Configuration (if using MailerSend or other SMTP provider)
-SMTP_HOST=smtp.mailersend.net
-SMTP_PORT=587
-SMTP_USER=your-smtp-username
-SMTP_PASS=your-smtp-password
-SMTP_ADMIN_EMAIL=admin@yourdomain.com
-SMTP_SENDER_NAME=Your App Name
-
-# Payment Configuration (Stripe)
-VITE_STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key
-STRIPE_SECRET_KEY=sk_test_your_secret_key
-STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
-
-# Other Configuration
-VITE_APP_NAME=CityPulse South Africa
-VITE_APP_ENV=development
 ```
 
-#### Development Fallbacks
+For a detailed guide on setting up environment variables, see the [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md) file.
 
-The application includes development fallbacks for Supabase credentials when running in development mode. This allows you to run the application locally without setting up environment variables, but it's not suitable for production use.
+### Vercel Deployment
 
-When using development fallbacks:
-- A warning will be displayed in the UI
-- Console warnings will be logged
-- The application will use mock data for certain features
+To deploy to Vercel:
 
-For production deployment, always ensure all required environment variables are properly set.
+1. **Install the Vercel CLI**:
+   ```sh
+   npm install -g vercel
+   ```
 
-### OAuth Setup
+2. **Log in to Vercel**:
+   ```sh
+   vercel login
+   ```
 
-The application supports social login with Google and Facebook. To set up these OAuth providers:
+3. **Set up environment variables using our helper tool**:
+   ```sh
+   npm run setup:env
+   ```
+   This interactive tool will guide you through setting up all required environment variables for Vercel.
 
-1. Create OAuth applications in the Google Cloud Console and Facebook Developer Console
-2. Configure the OAuth providers in your Supabase project
-3. Update your environment variables with the OAuth credentials
+4. **Deploy to Vercel**:
+   ```sh
+   vercel --prod
+   ```
 
-For detailed instructions, see the [OAuth Setup Guide](docs/oauth-setup.md).
-
-You can also use the provided script to automate the setup:
-
-```bash
-# Set up environment variables in .env file
-SUPABASE_URL=https://your-project-url.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-FACEBOOK_CLIENT_ID=your-facebook-app-id
-FACEBOOK_CLIENT_SECRET=your-facebook-app-secret
-
-# Run the setup script
-node scripts/setup-oauth-providers.js
-```
-
-### Reactions System Setup
-
-The application includes a reactions system that allows users to interact with deals and events. To set up the reactions system:
-
-1. Ensure you have the `SUPABASE_SERVICE_ROLE_KEY` in your `.env` file
-2. Run the setup script:
-
-```bash
-# JavaScript version
-npm run setup:reactions
-
-# TypeScript version
-npm run setup:reactions:ts
-```
-
-For detailed information about the reactions system, see the [Reactions System Documentation](docs/reactions-system.md).
-
-### Phone Authentication Setup
-
-The application supports phone authentication using Twilio for SMS verification. To set up phone authentication:
-
-1. Create a Twilio account and get your Account SID and Auth Token
-2. Get a Twilio phone number or create a Messaging Service
-3. Add the Twilio credentials to your `.env` file
-4. Run the setup script:
-
-```bash
-npm run setup:twilio
-```
-
-For detailed instructions, see the [Twilio Setup Guide](docs/twilio-setup-guide.md).
-
-You can test the Twilio integration with:
-
-```bash
-npm run test:twilio +1234567890  # Replace with a real phone number
-```
-
-### Social Sharing Setup
-
-The application includes social sharing features that allow users to share deals and events on various platforms. To set up the social sharing analytics:
-
-1. Ensure you have the `SUPABASE_SERVICE_ROLE_KEY` in your `.env` file
-2. Run the setup script:
-
-```bash
-npm run setup:shares
-```
-
-This will add the necessary database columns to track sharing metrics.
-
-For information on how merchants can leverage social sharing, see the [Social Sharing Guide](docs/social-sharing-guide.md).
-
-### SMTP Configuration for Email Delivery
-
-The application requires SMTP configuration for sending password reset emails and other transactional emails. To set up SMTP:
-
-1. Choose an email provider (Mailgun, SMTP2GO, Amazon SES, Brevo, etc.)
-2. Get your SMTP credentials from your provider
-3. Add the SMTP credentials to your `.env` file
-4. Run the setup script:
-
-```bash
-npm run setup:smtp
-```
-
-For detailed instructions and provider recommendations, see the [SMTP Setup Guide](docs/smtp-setup-guide.md).
-
-### Payment Integration
-
-The application includes payment processing for merchant deals and events. By default, it uses Stripe for payment processing, but it can be configured to use other payment providers like PayFast or Yoco.
-
-To set up payment processing:
-
-1. Create an account with your preferred payment provider (Stripe recommended)
-2. Get your API keys from the provider
-3. Add the API keys to your `.env` file
-4. Configure webhook endpoints for payment notifications
-
-For detailed instructions on setting up payment processing, see the [Payment Integration Guide](docs/payment-integration.md).
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/6a99d823-6a8f-4ade-8f70-d3e58bf79358) and click on Share -> Publish.
-
-Alternatively, you can build the project with `npm run build` and deploy the `dist` directory to any static hosting service.
+5. **Alternative: Set up environment variables manually**:
+   ```sh
+   vercel env add VITE_SUPABASE_URL
+   vercel env add VITE_SUPABASE_ANON_KEY --sensitive
+   vercel env add VITE_STRIPE_PUBLISHABLE_KEY
+   vercel env add STRIPE_SECRET_KEY --sensitive
+   vercel env add MAILERSEND_API_KEY --sensitive
+   vercel env add TWILIO_AUTH_TOKEN --sensitive
+   ```
 
 ## Can I connect a custom domain to my Lovable project?
 

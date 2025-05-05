@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Check, ThumbsUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,7 +16,7 @@ const reactionButtonVariants = cva(
   {
     variants: {
       state: {
-        active: "bg-gradient-to-r from-blue-600 to-blue-400 text-white border-transparent hover:from-blue-700 hover:to-blue-500 shadow-lg hover:shadow-xl ring-2 ring-blue-300 ring-offset-2",
+        active: "bg-gradient-to-r from-blue-600 to-blue-400 text-white border-transparent hover:from-blue-700 hover:to-blue-500 shadow-lg hover:shadow-xl ring-2 ring-blue-300 ring-offset-2 font-extrabold",
         inactive: "bg-white hover:bg-gray-50 border-gray-300 hover:border-blue-400 hover:shadow-md hover:ring-2 hover:ring-blue-200 hover:ring-offset-2"
       },
       animation: {
@@ -56,6 +57,8 @@ export function ReactionButton({
   className,
   showCount = true,
   size = 'default',
+  // variant is used in the className but TypeScript doesn't detect it
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   variant = 'outline',
   animation = 'scale',
   iconType = 'check',
@@ -64,6 +67,9 @@ export function ReactionButton({
   const [count, setCount] = useState(0);
   const [hasReacted, setHasReacted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  // isAnimating is set but not directly used in the component
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isAnimating, setIsAnimating] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -119,6 +125,7 @@ export function ReactionButton({
     }
 
     setIsLoading(true);
+    setIsAnimating(true);
 
     try {
       if (hasReacted) {
@@ -156,7 +163,7 @@ export function ReactionButton({
         setCount(prev => prev + 1);
 
         // Show success toast for adding tick
-        toast.success('Tick added!', {
+        toast.success('Give it a tick!', {
           description: `You've given this ${itemType} a tick! It's now saved to your profile.`
         });
       }
@@ -167,6 +174,11 @@ export function ReactionButton({
       });
     } finally {
       setIsLoading(false);
+
+      // Reset animation state after animation completes
+      setTimeout(() => {
+        setIsAnimating(false);
+      }, 500);
     }
   };
 
@@ -175,7 +187,7 @@ export function ReactionButton({
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
-            variant="custom"
+            variant="outline"
             size={size}
             className={cn(
               reactionButtonVariants({
@@ -196,14 +208,14 @@ export function ReactionButton({
                 <Check className={cn(
                   'transition-all duration-300',
                   buttonSize === 'sm' ? 'h-4 w-4' : buttonSize === 'lg' ? 'h-6 w-6' : 'h-5 w-5',
-                  hasReacted ? 'text-white scale-125 stroke-[3] drop-shadow-md' : 'text-gray-600',
+                  hasReacted ? 'text-white scale-125 stroke-[4] drop-shadow-md' : 'text-gray-600 stroke-[3]',
                   showCount ? 'mr-2' : ''
                 )} />
               ) : (
                 <ThumbsUp className={cn(
                   'transition-all duration-300',
                   buttonSize === 'sm' ? 'h-4 w-4' : buttonSize === 'lg' ? 'h-6 w-6' : 'h-5 w-5',
-                  hasReacted ? 'text-white scale-125 stroke-[3] drop-shadow-md' : 'text-gray-600',
+                  hasReacted ? 'text-white scale-125 stroke-[4] drop-shadow-md' : 'text-gray-600 stroke-[2]',
                   showCount ? 'mr-2' : ''
                 )} />
               )}
@@ -237,4 +249,20 @@ export function ReactionButton({
       </Tooltip>
     </TooltipProvider>
   );
+}
+
+// Add wiggle animation to tailwind config via CSS
+if (document.head && !document.getElementById('wiggle-animation')) {
+  const style = document.createElement('style');
+  style.id = 'wiggle-animation';
+  style.textContent = `
+    @keyframes wiggle {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(-15deg) scale(1.2); }
+      50% { transform: rotate(10deg) scale(1.2); }
+      75% { transform: rotate(-5deg) scale(1.1); }
+      100% { transform: rotate(0deg); }
+    }
+  `;
+  document.head.appendChild(style);
 }
