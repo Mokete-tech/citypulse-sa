@@ -18,9 +18,10 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface UserLoginDialogProps {
   className?: string;
+  children?: React.ReactNode;
 }
 
-const UserLoginDialog = ({ className }: UserLoginDialogProps) => {
+const UserLoginDialog = ({ className, children }: UserLoginDialogProps) => {
   const { signInWithEmail, signInWithFacebook, signInWithGoogle, signInWithPhone, sendPhoneVerification, loading } = useAuth();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -102,10 +103,12 @@ const UserLoginDialog = ({ className }: UserLoginDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className={className}>
-          <LogIn className="h-4 w-4 mr-2" />
-          <span>Member Login</span>
-        </Button>
+        {children || (
+          <Button variant="outline" size="sm" className={className}>
+            <LogIn className="h-4 w-4 mr-2" />
+            <span>Member Login</span>
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>

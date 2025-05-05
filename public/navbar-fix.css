@@ -1,0 +1,54 @@
+/* Navbar and sidebar fixes */
+
+/* Sidebar styles */
+.sidebar {
+  transition: transform 0.3s ease !important;
+  width: 256px !important;
+}
+
+body.sidebar-closed .sidebar {
+  transform: translateX(-256px) !important;
+}
+
+/* Main content styles */
+.main-content {
+  transition: margin-left 0.3s ease !important;
+  margin-left: 256px !important;
+}
+
+body.sidebar-closed .main-content {
+  margin-left: 0 !important;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-256px) !important;
+  }
+  
+  .main-content {
+    margin-left: 0 !important;
+  }
+  
+  body:not(.sidebar-closed) .sidebar {
+    transform: translateX(0) !important;
+  }
+}
+
+/* Sidebar toggle button */
+.sidebar-toggle {
+  position: fixed;
+  bottom: 20px;
+  left: 256px;
+  z-index: 60;
+  transition: left 0.3s ease;
+}
+
+body.sidebar-closed .sidebar-toggle {
+  left: 0;
+}
+
+/* Fix for mobile menu */
+.mobile-menu {
+  z-index: 100;
+}

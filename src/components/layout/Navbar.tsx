@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Bell, Search, Menu, LogIn, User, LogOut, Home, Tag, Calendar, MapPin, Phone, Building2 } from 'lucide-react';
@@ -50,129 +49,25 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
   return (
     <nav className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-3 md:px-6 sticky top-0 z-40 w-full">
       <div className="flex items-center space-x-4">
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              data-sidebar-toggle="true"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[250px] sm:w-[300px] p-0">
-            <div className="flex flex-col h-full">
-              <div className="p-4 border-b">
-                <Link to="/" className="flex items-center gap-2" onClick={() => setIsOpen(false)}>
-                  <div className="bg-gradient-to-r from-sa-blue to-sa-green p-2 rounded-md">
-                    <span className="text-white font-bold text-lg">CP</span>
-                  </div>
-                  <span className="font-bold text-xl text-gray-800">CityPulse</span>
-                </Link>
-              </div>
-
-              <nav className="flex-1 p-4">
-                <ul className="space-y-2">
-                  {navLinks.map((link) => (
-                    <li key={link.name}>
-                      <Link
-                        to={link.href}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-                          location.pathname === link.href
-                            ? 'bg-gray-100 text-primary font-medium'
-                            : 'hover:bg-gray-100'
-                        }`}
-                        onClick={() => setIsOpen(false)}
-                      >
-                        {link.icon}
-                        <span>{link.name}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-
-              <div className="p-4 border-t mt-auto">
-                {!user ? (
-                  <div className="space-y-2">
-                    <UserRegistrationDialog>
-                      <Button variant="outline" className="w-full">
-                        <User className="mr-2 h-4 w-4" />
-                        Register
-                      </Button>
-                    </UserRegistrationDialog>
-
-                    <UserLoginDialog>
-                      <Button className="w-full">
-                        <LogIn className="mr-2 h-4 w-4" />
-                        Login
-                      </Button>
-                    </UserLoginDialog>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={user.user_metadata?.avatar_url} />
-                        <AvatarFallback>{getUserInitials()}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{user.user_metadata?.full_name || user.email}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
-                      </div>
-                    </div>
-
-                    <Button variant="outline" className="w-full justify-start" asChild>
-                      <Link to="/profile">
-                        <User className="mr-2 h-4 w-4" />
-                        Profile
-                      </Link>
-                    </Button>
-
-                    {isMerchant && (
-                      <Button variant="outline" className="w-full justify-start" asChild>
-                        <Link to="/merchant/dashboard">
-                          <LogIn className="mr-2 h-4 w-4" />
-                          Merchant Dashboard
-                        </Link>
-                      </Button>
-                    )}
-
-                    <Button
-                      variant="destructive"
-                      className="w-full justify-start"
-                      onClick={() => {
-                        signOut();
-                        setIsOpen(false);
-                      }}
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign out
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
-
         <Button
           variant="ghost"
           size="icon"
-          className="hidden md:flex"
+          className="md:flex"
           onClick={toggleSidebar}
+          aria-label="Toggle sidebar"
           data-sidebar-toggle="true"
         >
           <Menu className="h-5 w-5" />
         </Button>
 
-        <Link to="/" className="flex items-center gap-2">
-          <div className="bg-gradient-to-r from-sa-blue to-sa-green p-1.5 rounded-md">
-            <span className="text-white font-bold">CP</span>
-          </div>
-          <span className="hidden sm:inline-block font-bold text-lg text-gray-800">CityPulse</span>
-        </Link>
+        <div className="flex items-center space-x-4">
+          <Link to="/" className="flex items-center gap-2 md:hidden">
+            <div className="bg-gradient-to-r from-sa-blue to-sa-green p-2 rounded-md">
+              <span className="text-white font-bold text-lg">CP</span>
+            </div>
+          </Link>
+          <GlobalSearch />
+        </div>
       </div>
 
       <div className="hidden md:flex items-center flex-1 max-w-md mx-4">
@@ -187,19 +82,19 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
         {/* User is not logged in */}
         {!user && (
           <>
-            <UserRegistrationDialog className="flex items-center gap-2 mr-2">
+            <UserRegistrationDialog>
               <Button variant="outline" size="sm" className="hidden sm:flex items-center gap-2">
                 <User className="h-4 w-4" />
                 <span>Register</span>
               </Button>
             </UserRegistrationDialog>
 
-            <UserLoginDialog className="flex items-center gap-2">
-              <Button variant="primary" size="sm" className="hidden sm:flex items-center gap-2">
+            <UserLoginDialog>
+              <Button variant="default" size="sm" className="hidden sm:flex items-center gap-2">
                 <LogIn className="h-4 w-4" />
                 <span>Login</span>
               </Button>
-              <Button variant="primary" size="icon" className="sm:hidden">
+              <Button variant="default" size="icon" className="sm:hidden">
                 <LogIn className="h-4 w-4" />
               </Button>
             </UserLoginDialog>
