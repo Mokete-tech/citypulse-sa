@@ -8,7 +8,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Tag, Calendar, AlertCircle } from 'lucide-react';
 import { LoadingState } from '@/components/ui/loading-state';
-import { handleError, handleSupabaseError } from '@/lib/error-handler';
+import { handleError } from '@/lib/error-handler';
 import { toast } from '@/components/ui/sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { fallbackDeals, fallbackEvents } from '@/data/fallback-data';
@@ -29,59 +29,110 @@ const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = async (retryCount = 0) => {
       try {
         setLoading(true);
         setError(null);
 
-        // Fetch deals
-        const { data: dealsData, error: dealsError } = await supabase
-          .from('deals')
-          .select('*')
-          .limit(3);
+        // Check if Supabase connection is working
+        let connectionError = null;
+        try {
+          // Simple query to check if connection is working - use deals table since we know it exists
+          const { error } = await supabase.from('deals').select('id').limit(1);
+          connectionError = error;
+        } catch (err) {
+          console.error("Connection check failed:", err);
+          connectionError = err;
+        }
+
+        if (connectionError && retryCount < 2) {
+          console.log(`Connection attempt ${retryCount + 1} failed, retrying...`);
+          setTimeout(() => fetchData(retryCount + 1), 1500); // Retry after 1.5 seconds
+          return;
+        }
+
+        // Fetch deals with error handling and retry
+        let dealsData = null;
+        let dealsError = null;
+
+        try {
+          const dealsResponse = await supabase
+            .from('deals')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(3);
+
+          dealsData = dealsResponse.data;
+          dealsError = dealsResponse.error;
+        } catch (err) {
+          console.error("Error fetching deals:", err);
+          dealsError = err;
+        }
 
         if (dealsError) {
-          handleSupabaseError(dealsError, {
-            title: "Error fetching deals",
-            silent: true
-          });
-          // Set fallback data for deals
+          console.warn("Using fallback deals data due to error:", dealsError);
           setDeals(fallbackDeals);
         } else {
           // If we got data but it's empty, use fallback data
           setDeals(dealsData && dealsData.length > 0 ? dealsData : fallbackDeals);
         }
 
-        // Fetch events
-        const { data: eventsData, error: eventsError } = await supabase
-          .from('events')
-          .select('*')
-          .limit(3);
+        // Fetch events with error handling and retry
+        let eventsData = null;
+        let eventsError = null;
+
+        try {
+          const eventsResponse = await supabase
+            .from('events')
+            .select('*')
+            .order('date', { ascending: true })
+            .limit(3);
+
+          eventsData = eventsResponse.data;
+          eventsError = eventsResponse.error;
+        } catch (err) {
+          console.error("Error fetching events:", err);
+          eventsError = err;
+        }
 
         if (eventsError) {
-          handleSupabaseError(eventsError, {
-            title: "Error fetching events",
-            silent: true
-          });
-          // Set fallback data for events
+          console.warn("Using fallback events data due to error:", eventsError);
           setEvents(fallbackEvents);
+        } else {
+          // If we got data but it's empty, use fallback data
+          setEvents(eventsData && eventsData.length > 0 ? eventsData : fallbackEvents);
+        }
 
-          // If both requests failed, show an error message
-          if (dealsError) {
+        // Show error message if both requests failed
+        if (dealsError && eventsError) {
+          if (retryCount >= 2) {
             setError("Failed to load content. Using fallback data instead.");
             toast.error("Connection error", {
               description: "Could not connect to the database. Showing sample data instead."
             });
+          } else {
+            // Retry one more time
+            console.log(`Both requests failed on attempt ${retryCount + 1}, retrying...`);
+            setTimeout(() => fetchData(retryCount + 1), 2000); // Retry after 2 seconds
+            return;
           }
         } else {
-          // If we got data but it's empty, use fallback data
-          setEvents(eventsData && eventsData.length > 0 ? eventsData : fallbackEvents);
+          // Clear any previous error if at least one request succeeded
+          setError(null);
         }
       } catch (err) {
         handleError(err, {
           title: "Error loading content",
           message: "An unexpected error occurred. Showing sample data instead."
         });
+
+        if (retryCount < 2) {
+          // Retry one more time
+          console.log(`Unexpected error on attempt ${retryCount + 1}, retrying...`);
+          setTimeout(() => fetchData(retryCount + 1), 2000); // Retry after 2 seconds
+          return;
+        }
+
         setError("Failed to load content. Using fallback data instead.");
         // Ensure fallback data is set in case of unexpected errors
         setDeals(fallbackDeals);
