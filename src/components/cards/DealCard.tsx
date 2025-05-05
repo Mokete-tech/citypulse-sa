@@ -1,10 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ReactionButton } from '@/components/ui/reaction-button';
-import ShareButton from '@/components/ui/share-button';
-import { Tag, Star, Calendar, MapPin } from 'lucide-react';
+import { Tag, Share2 } from 'lucide-react';
 
 interface DealCardProps {
   id: number;
@@ -16,7 +16,6 @@ interface DealCardProps {
   discount?: string;
   image_url?: string;
   featured?: boolean;
-  distance?: string;
   onClick?: () => void;
 }
 
@@ -30,23 +29,25 @@ export function DealCard({
   discount,
   image_url,
   featured,
-  distance,
   onClick
 }: DealCardProps) {
-  return (
-    <Card className={`h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg group ${featured ? 'border-amber-300 shadow-md' : 'hover:border-primary/20'}`}>
-      {featured && (
-        <div className="bg-gradient-to-r from-amber-500 to-amber-300 text-white text-xs font-bold px-3 py-1 flex items-center justify-center">
-          <Star className="h-3 w-3 mr-1 fill-white" /> PREMIUM DEAL
-        </div>
-      )}
+  const navigate = useNavigate();
 
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      navigate(`/deals/${id}`);
+    }
+  };
+  return (
+    <Card className="h-full flex flex-col overflow-hidden">
       {image_url && (
         <div className="aspect-video w-full overflow-hidden">
           <img
             src={image_url}
             alt={title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-full object-cover"
           />
         </div>
       )}
@@ -62,6 +63,10 @@ export function DealCard({
             <CardTitle>{title}</CardTitle>
             {merchant_name && <CardDescription>{merchant_name}</CardDescription>}
           </div>
+
+          {featured && (
+            <Badge variant="outline" className="ml-2">Featured</Badge>
+          )}
         </div>
       </CardHeader>
 
@@ -70,10 +75,7 @@ export function DealCard({
 
         {discount && (
           <div className="mt-3">
-            <Badge
-              variant={featured ? 'premium' : 'secondary'}
-              className="text-sm font-bold"
-            >
+            <Badge variant="secondary" className="text-sm">
               {discount}
             </Badge>
           </div>
@@ -81,39 +83,24 @@ export function DealCard({
       </CardContent>
 
       <CardFooter className="pt-0 flex justify-between items-center border-t pt-4">
-        <div className="flex items-center gap-3">
-          <ReactionButton
-            itemId={id}
-            itemType="deal"
-            buttonSize="md"
-            className="min-w-[70px]"
-          />
+        <div className="flex items-center gap-2">
+          <ReactionButton itemId={id} itemType="deal" />
 
           {expiration_date && (
-            <div className="flex items-center text-sm text-muted-foreground">
-              <Calendar className="h-3 w-3 mr-1" />
-              <span>Expires: {expiration_date}</span>
-            </div>
-          )}
-
-          {distance && (
-            <div className="flex items-center text-sm text-muted-foreground ml-2">
-              <MapPin className="h-3 w-3 mr-1" />
-              <span>{distance}</span>
-            </div>
+            <span className="text-sm text-muted-foreground">
+              Expires: {expiration_date}
+            </span>
           )}
         </div>
 
         <div className="flex items-center gap-2">
-          <ShareButton
-            title={title}
-            description="deal"
-            url={`${window.location.origin}/deals/${id}`}
-            size="sm"
-            itemId={id}
-            itemType="deal"
-          />
-          <Button size="sm" onClick={onClick} variant={featured ? "default" : "outline"}>View Deal</Button>
+          <Button size="sm" onClick={handleClick}>View Deal</Button>
+          <Button size="sm" variant="ghost" onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/deals/${id}`);
+          }}>
+            <Share2 className="h-4 w-4" />
+          </Button>
         </div>
       </CardFooter>
     </Card>

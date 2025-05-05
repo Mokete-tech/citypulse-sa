@@ -2,22 +2,24 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ConnectionCheck } from "@/components/ui/connection-check";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Deals from "./pages/Deals";
+import DealDetail from "./pages/DealDetail";
 import Events from "./pages/Events";
 import Contact from "./pages/Contact";
+import Terms from "./pages/Terms";
 import MerchantLogin from "./pages/MerchantLogin";
 import MerchantDashboard from "./pages/MerchantDashboard";
-import UserProfile from "./pages/UserProfile";
+import MerchantPackages from "./pages/MerchantPackages";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
 import AdminDashboard from "./pages/AdminDashboard";
-import AuthCallback from "./pages/AuthCallback";
-import ResetPassword from "./pages/ResetPassword";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./contexts/AuthContext";
+import { StripeProvider } from "./contexts/StripeContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Create a new QueryClient instance
@@ -34,10 +36,12 @@ const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+        <StripeProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <ConnectionCheck />
+            <BrowserRouter>
             <Routes>
               <Route path="/" element={
                 <ErrorBoundary>
@@ -49,6 +53,11 @@ const App = () => (
                   <Deals />
                 </ErrorBoundary>
               } />
+              <Route path="/deals/:id" element={
+                <ErrorBoundary>
+                  <DealDetail />
+                </ErrorBoundary>
+              } />
               <Route path="/events" element={
                 <ErrorBoundary>
                   <Events />
@@ -57,6 +66,11 @@ const App = () => (
               <Route path="/contact" element={
                 <ErrorBoundary>
                   <Contact />
+                </ErrorBoundary>
+              } />
+              <Route path="/terms" element={
+                <ErrorBoundary>
+                  <Terms />
                 </ErrorBoundary>
               } />
               <Route path="/merchant/login" element={
@@ -71,6 +85,11 @@ const App = () => (
                   </ProtectedRoute>
                 </ErrorBoundary>
               } />
+              <Route path="/merchant/packages" element={
+                <ErrorBoundary>
+                  <MerchantPackages />
+                </ErrorBoundary>
+              } />
               <Route path="/admin/dashboard" element={
                 <ErrorBoundary>
                   <ProtectedRoute requiredRole="admin">
@@ -83,27 +102,11 @@ const App = () => (
                   <Unauthorized />
                 </ErrorBoundary>
               } />
-              <Route path="/auth/callback" element={
-                <ErrorBoundary>
-                  <AuthCallback />
-                </ErrorBoundary>
-              } />
-              <Route path="/auth/reset-password" element={
-                <ErrorBoundary>
-                  <ResetPassword />
-                </ErrorBoundary>
-              } />
-              <Route path="/profile" element={
-                <ErrorBoundary>
-                  <ProtectedRoute>
-                    <UserProfile />
-                  </ProtectedRoute>
-                </ErrorBoundary>
-              } />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
-        </TooltipProvider>
+          </TooltipProvider>
+        </StripeProvider>
       </AuthProvider>
     </QueryClientProvider>
   </ErrorBoundary>

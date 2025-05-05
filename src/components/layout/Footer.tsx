@@ -13,27 +13,27 @@ const Footer = () => {
               © 2025 CityPulse South Africa. All rights reserved.
             </p>
           </div>
-          
+
           <div className="flex items-center space-x-6">
             <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-sa-blue transition-colors">
               <Github className="h-5 w-5" />
             </a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-sa-blue transition-colors">
+            <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-sa-blue transition-colors">
               <Twitter className="h-5 w-5" />
             </a>
           </div>
-          
+
           <div className="mt-4 md:mt-0">
             <ul className="flex items-center space-x-6 text-sm">
               <li>
-                <a href="#" className="text-gray-600 hover:text-sa-blue transition-colors">
-                  Privacy
-                </a>
+                <Link to="/terms" className="text-gray-600 hover:text-sa-blue transition-colors">
+                  Privacy Policy
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-600 hover:text-sa-blue transition-colors">
-                  Terms
-                </a>
+                <Link to="/terms" className="text-gray-600 hover:text-sa-blue transition-colors">
+                  Terms & Conditions
+                </Link>
               </li>
               <li>
                 <Link to="/contact" className="text-gray-600 hover:text-sa-blue transition-colors">

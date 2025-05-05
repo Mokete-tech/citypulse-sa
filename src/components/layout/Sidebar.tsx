@@ -1,15 +1,13 @@
 
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import {
   Tag, Calendar, Building2, UserPlus,
   LogIn, Settings, ChevronRight, ChevronLeft, Mail,
-  Filter, ChevronDown
+  CreditCard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -20,49 +18,10 @@ const menuItems = [
   { name: 'Deals', icon: Tag, path: '/deals' },
   { name: 'Events', icon: Calendar, path: '/events' },
   { name: 'Merchant Login', icon: LogIn, path: '/merchant/login' },
+  { name: 'Merchant Packages', icon: CreditCard, path: '/merchant/packages' },
 ];
 
 const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
-  const [categoryOpen, setCategoryOpen] = useState(true);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const navigate = useNavigate();
-
-  // Category options
-  const dealCategories = [
-    "Food & Drink",
-    "Retail",
-    "Beauty",
-    "Entertainment",
-    "Travel",
-    "Health & Fitness"
-  ];
-
-  const eventCategories = [
-    "Music",
-    "Sports",
-    "Arts & Culture",
-    "Food & Drink",
-    "Business",
-    "Networking"
-  ];
-
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategories(prev => {
-      if (prev.includes(category)) {
-        return prev.filter(c => c !== category);
-      } else {
-        return [...prev, category];
-      }
-    });
-  };
-
-  const applyFilters = () => {
-    if (selectedCategories.length > 0) {
-      const queryString = `?categories=${selectedCategories.join(',')}`;
-      navigate(`/deals${queryString}`);
-    }
-  };
-
   return (
     <>
       <div className={cn(
@@ -101,69 +60,6 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                 </li>
               ))}
             </ul>
-
-            {/* Filter Categories */}
-            <div className="mt-6 px-4">
-              <Collapsible open={categoryOpen} onOpenChange={setCategoryOpen}>
-                <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-2 text-sm font-medium rounded-md hover:bg-sky-700">
-                  <div className="flex items-center">
-                    <Filter className="h-5 w-5 mr-2" />
-                    <span>Filter Categories</span>
-                  </div>
-                  <ChevronDown className={`h-4 w-4 transition-transform ${categoryOpen ? 'transform rotate-180' : ''}`} />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="mt-2 space-y-2">
-                  <div className="text-xs font-medium uppercase px-2 pt-2 pb-1 text-gray-300">
-                    Deal Categories
-                  </div>
-                  {dealCategories.map(category => (
-                    <div key={category} className="flex items-center space-x-2 px-2 py-1">
-                      <Checkbox
-                        id={`category-${category}`}
-                        checked={selectedCategories.includes(category)}
-                        onCheckedChange={() => handleCategoryChange(category)}
-                        className="border-gray-400 data-[state=checked]:bg-white data-[state=checked]:text-sa-blue"
-                      />
-                      <label
-                        htmlFor={`category-${category}`}
-                        className="text-sm cursor-pointer"
-                      >
-                        {category}
-                      </label>
-                    </div>
-                  ))}
-
-                  <div className="text-xs font-medium uppercase px-2 pt-4 pb-1 text-gray-300">
-                    Event Categories
-                  </div>
-                  {eventCategories.map(category => (
-                    <div key={category} className="flex items-center space-x-2 px-2 py-1">
-                      <Checkbox
-                        id={`category-${category}`}
-                        checked={selectedCategories.includes(category)}
-                        onCheckedChange={() => handleCategoryChange(category)}
-                        className="border-gray-400 data-[state=checked]:bg-white data-[state=checked]:text-sa-blue"
-                      />
-                      <label
-                        htmlFor={`category-${category}`}
-                        className="text-sm cursor-pointer"
-                      >
-                        {category}
-                      </label>
-                    </div>
-                  ))}
-
-                  <div className="pt-2 pb-1 px-2">
-                    <Button
-                      className="w-full bg-white text-sa-blue hover:bg-gray-100"
-                      onClick={applyFilters}
-                    >
-                      Apply Filters
-                    </Button>
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
           </nav>
 
           <div className="p-4 border-t border-sky-700">

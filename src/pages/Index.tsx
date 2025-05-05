@@ -15,9 +15,8 @@ import { fallbackDeals, fallbackEvents } from '@/data/fallback-data';
 import { EnvWarning } from '@/components/ui/env-warning';
 import { DealCard } from '@/components/cards/DealCard';
 import { EventCard } from '@/components/cards/EventCard';
-// These components will be implemented later
-// import { NearbyDeals } from '@/components/location/NearbyDeals';
-// import { NearbyEvents } from '@/components/location/NearbyEvents';
+import NearbyDeals from '@/components/location/NearbyDeals';
+import NearbyEvents from '@/components/location/NearbyEvents';
 
 // Use the interfaces from fallback-data.ts
 import type { Deal, Event } from '@/data/fallback-data';
@@ -200,13 +199,13 @@ const Index = () => {
               )}
             </div>
 
-            {/* Nearby Deals and Events Section - To be implemented later */}
-            {/* <div className="mb-12">
+            {/* Nearby Deals and Events Section */}
+            <div className="mb-12">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <NearbyDeals initialRadius={5} maxDeals={3} />
                 <NearbyEvents initialRadius={5} maxEvents={3} />
               </div>
-            </div> */}
+            </div>
 
             {/* Featured Deals and Events Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
