@@ -12,51 +12,24 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   // Initialize from localStorage on client-side only
   useEffect(() => {
-    const stored = localStorage.getItem('sidebarClosed');
-    if (stored === 'true') {
-      setIsOpen(false);
+    try {
+      const stored = localStorage.getItem('sidebarClosed');
+      if (stored === 'true') {
+        setIsOpen(false);
+      }
+    } catch (e) {
+      console.error('Error reading from localStorage:', e);
     }
   }, []);
 
-  // Effect to add sidebar-closed class to body
-  useEffect(() => {
-    try {
-      if (typeof document !== 'undefined') {
-        if (isOpen) {
-          document.body.classList.remove('sidebar-closed');
-        } else {
-          document.body.classList.add('sidebar-closed');
-        }
-
-        // Cleanup function
-        return () => {
-          try {
-            document.body.classList.remove('sidebar-closed');
-          } catch (e) {
-            console.error('Error in cleanup function:', e);
-          }
-        };
-      }
-    } catch (e) {
-      console.error('Error in sidebar effect:', e);
-    }
-  }, [isOpen]);
-
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
-    try {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('sidebarClosed', String(!isOpen));
-      }
-    } catch (e) {
-      console.error('Error saving sidebar state:', e);
-    }
   };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar - with sidebar-container class for CSS targeting */}
-      <div className="sidebar-container">
+      {/* Sidebar */}
+      <div className="sidebar">
         <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
       </div>
 
@@ -68,12 +41,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         />
       )}
 
-      {/* Main content - with main-content class for CSS targeting */}
-      <div
-        className={`flex-1 flex flex-col transition-all duration-300 main-content ${
-          isOpen ? 'md:ml-64' : ''
-        }`}
-      >
+      {/* Main content */}
+      <div className="flex-1 flex flex-col main-content">
         <Navbar toggleSidebar={toggleSidebar} />
 
         <main className="flex-1">
