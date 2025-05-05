@@ -1,6 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Home, Tag, Calendar, Building2, Search, User } from 'lucide-react';
+import { Menu, X, Home, Tag, Calendar, Building2, Search, User, LogOut, UserPlus, MapPin, Share2 } from 'lucide-react';
+import OfflineIndicator from '../ui/OfflineIndicator';
+import UserLoginDialog from '../auth/UserLoginDialog';
+import UserRegistrationDialog from '../auth/UserRegistrationDialog';
+import MerchantLoginDialog from '../auth/MerchantLoginDialog';
+import VideoAd from '../ads/VideoAd';
+import AppDownloadQR from '../app/AppDownloadQR';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/components/ui/sonner';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -9,10 +27,94 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [showLocationPrompt, setShowLocationPrompt] = useState(false);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [showSidebarAd, setShowSidebarAd] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
+
+  // Check for user location
+  useEffect(() => {
+    // Check if we already have location permission in localStorage
+    const locationPermission = localStorage.getItem('locationPermission');
+
+    if (locationPermission === 'granted') {
+      getUserLocation();
+    } else if (!locationPermission) {
+      // Only show prompt if we haven't asked before
+      setShowLocationPrompt(true);
+    }
+
+    // Show sidebar ad with 30% probability
+    if (Math.random() < 0.3) {
+      setShowSidebarAd(true);
+    }
+  }, []);
+
+  const getUserLocation = () => {
+    if (!navigator.geolocation) {
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+        localStorage.setItem('locationPermission', 'granted');
+        setShowLocationPrompt(false);
+      },
+      (error) => {
+        console.error('Error getting location:', error);
+        if (error.code === error.PERMISSION_DENIED) {
+          localStorage.setItem('locationPermission', 'denied');
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000
+      }
+    );
+  };
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!user || !user.user_metadata?.full_name) return 'CP';
+
+    const fullName = user.user_metadata.full_name;
+    const names = fullName.split(' ');
+
+    if (names.length === 1) return names[0].charAt(0).toUpperCase();
+
+    return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+  };
+
+  // Share current page
+  const handleShare = async () => {
+    const shareData = {
+      title: 'CityPulse South Africa',
+      text: 'Check out this awesome deal/event on CityPulse!',
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        toast.success('Shared successfully!');
+      } else {
+        // Fallback for browsers that don't support the Web Share API
+        navigator.clipboard.writeText(window.location.href);
+        toast.success('Link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
   };
 
   return (
@@ -64,6 +166,26 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 Events
               </Link>
               <Link
+                to="/nearby"
+                className={`px-3 py-2 text-sm font-medium rounded-md flex items-center ${
+                  location.pathname === '/nearby'
+                    ? 'text-blue-600 bg-blue-50'
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                }`}
+                onClick={(e) => {
+                  if (!userLocation) {
+                    e.preventDefault();
+                    getUserLocation();
+                    toast.info('Getting your location...', {
+                      description: 'Please allow location access to see nearby deals and events'
+                    });
+                  }
+                }}
+              >
+                <MapPin className="h-4 w-4 mr-1" />
+                Nearby
+              </Link>
+              <Link
                 to="/merchant/packages"
                 className={`px-3 py-2 text-sm font-medium rounded-md ${
                   location.pathname === '/merchant/packages'
@@ -84,14 +206,64 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 <Search className="h-5 w-5" />
               </button>
 
-              <Link to="/merchant/login" className="hidden md:block text-sm font-medium text-gray-700 hover:text-blue-600">
-                Merchant Login
-              </Link>
+              {/* Show merchant login only when not logged in */}
+              {!user && (
+                <div className="hidden md:block">
+                  <MerchantLoginDialog />
+                </div>
+              )}
 
-              <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-sm">
-                <User className="h-4 w-4 inline mr-2" />
-                <span className="hidden sm:inline">Member Login</span>
-              </button>
+              {/* User is not logged in - show login/register buttons */}
+              {!user && (
+                <>
+                  <div className="hidden md:block">
+                    <UserRegistrationDialog>
+                      <button className="text-sm font-medium text-gray-700 hover:text-blue-600">
+                        <UserPlus className="h-4 w-4 inline mr-1" />
+                        <span>Register</span>
+                      </button>
+                    </UserRegistrationDialog>
+                  </div>
+
+                  <UserLoginDialog>
+                    <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-sm">
+                      <User className="h-4 w-4 inline mr-2" />
+                      <span className="hidden sm:inline">Member Login</span>
+                    </button>
+                  </UserLoginDialog>
+                </>
+              )}
+
+              {/* User is logged in - show profile dropdown */}
+              {user && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center space-x-2 rounded-md px-2 py-1 hover:bg-gray-100">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.user_metadata?.avatar_url} />
+                        <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium text-gray-700 hidden sm:inline">
+                        {user.user_metadata?.full_name || 'My Account'}
+                      </span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Profile</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => signOut()}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Sign out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
 
               {/* Mobile menu button */}
               <button
@@ -161,6 +333,27 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 Events
               </Link>
               <Link
+                to="/nearby"
+                className={`block px-3 py-2 rounded-md text-base font-medium ${
+                  location.pathname === '/nearby'
+                    ? 'text-blue-600 bg-blue-50'
+                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                }`}
+                onClick={(e) => {
+                  setMobileMenuOpen(false);
+                  if (!userLocation) {
+                    e.preventDefault();
+                    getUserLocation();
+                    toast.info('Getting your location...', {
+                      description: 'Please allow location access to see nearby deals and events'
+                    });
+                  }
+                }}
+              >
+                <MapPin className="h-5 w-5 inline mr-2" />
+                Nearby
+              </Link>
+              <Link
                 to="/merchant/packages"
                 className={`block px-3 py-2 rounded-md text-base font-medium ${
                   location.pathname === '/merchant/packages'
@@ -172,22 +365,135 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 <Building2 className="h-5 w-5 inline mr-2" />
                 Merchant Packages
               </Link>
-              <Link
-                to="/merchant/login"
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Merchant Login
-              </Link>
+              {/* Mobile merchant login */}
+              {!user && (
+                <div className="block">
+                  <MerchantLoginDialog>
+                    <button
+                      className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 flex items-center"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Building2 className="h-5 w-5 inline mr-2" />
+                      Merchant Login
+                    </button>
+                  </MerchantLoginDialog>
+                </div>
+              )}
+
+              {/* Mobile user registration */}
+              {!user && (
+                <div className="block">
+                  <UserRegistrationDialog>
+                    <button
+                      className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 flex items-center"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <UserPlus className="h-5 w-5 inline mr-2" />
+                      Register
+                    </button>
+                  </UserRegistrationDialog>
+                </div>
+              )}
+
+              {/* Mobile user login */}
+              {!user && (
+                <div className="block">
+                  <UserLoginDialog>
+                    <button
+                      className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-blue-600 bg-blue-50 flex items-center"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <User className="h-5 w-5 inline mr-2" />
+                      Member Login
+                    </button>
+                  </UserLoginDialog>
+                </div>
+              )}
+
+              {/* Mobile logout for logged in users */}
+              {user && (
+                <button
+                  className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 flex items-center"
+                  onClick={() => {
+                    signOut();
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <LogOut className="h-5 w-5 inline mr-2" />
+                  Sign Out
+                </button>
+              )}
             </div>
           </div>
         )}
       </header>
 
-      {/* Main content */}
-      <main className="flex-1">
-        {children}
-      </main>
+      {/* Location permission prompt */}
+      {showLocationPrompt && (
+        <div className="bg-blue-50 border-t border-blue-200 p-3">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <MapPin className="h-5 w-5 text-blue-500 mr-2" />
+                <p className="text-sm text-blue-700">
+                  Enable location services to discover nearby deals and events
+                </p>
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowLocationPrompt(false)}
+                >
+                  Not Now
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={getUserLocation}
+                >
+                  Enable Location
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main content with sidebar */}
+      <div className="flex-1 flex">
+        {/* Main content */}
+        <main className="flex-1">
+          {children}
+        </main>
+
+        {/* Sidebar with ads and app download */}
+        <aside className="hidden lg:block w-80 p-4 border-l border-gray-200">
+          <div className="sticky top-20 space-y-8">
+            {/* Video Ad */}
+            {showSidebarAd && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-2">Sponsored</h3>
+                <VideoAd placement="sidebar" autoplay={false} />
+              </div>
+            )}
+
+            {/* App Download QR Code */}
+            <AppDownloadQR />
+          </div>
+        </aside>
+      </div>
+
+      {/* Share button (fixed) */}
+      <button
+        onClick={handleShare}
+        className="fixed bottom-20 right-4 bg-white p-3 rounded-full shadow-lg hover:bg-gray-100 z-30"
+        aria-label="Share"
+      >
+        <Share2 className="h-5 w-5 text-blue-600" />
+      </button>
+
+      {/* Offline indicator */}
+      <OfflineIndicator />
 
       {/* Modern Footer */}
       <footer className="bg-gray-900 text-white py-12 px-4">
