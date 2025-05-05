@@ -58,110 +58,88 @@ const App = () => (
                 <HashRouter>
                   <KeyboardNavigation />
                   <InstallPrompt />
-            <Routes>
-              <Route path="/" element={
-                <Suspense fallback={<PageLoadingFallback />}>
-                    <Index />
-                  </Suspense>
-              } />
-              <Route path="/deals" element={
-
-                  <Suspense fallback={<PageLoadingFallback />}>
-                    <Deals />
-                  </Suspense>
-
-              } />
-              <Route path="/deals/:id" element={
-
-                  <Suspense fallback={<PageLoadingFallback />}>
-                    <DealDetail />
-                  </Suspense>
-
-              } />
-              <Route path="/events" element={
-                  <Suspense fallback={<PageLoadingFallback />}>
-                    <Events />
-                  </Suspense>
-              } />
-              <Route path="/events/:id" element={
-                  <Suspense fallback={<PageLoadingFallback />}>
-                    <EventDetail />
-                  </Suspense>
-              } />
-              <Route path="/contact" element={
-
-                  <Suspense fallback={<PageLoadingFallback />}>
-                    <Contact />
-                  </Suspense>
-
-              } />
-              <Route path="/terms" element={
-
-                  <Suspense fallback={<PageLoadingFallback />}>
-                    <Terms />
-                  </Suspense>
-
-              } />
-              <Route path="/merchant/login" element={
-
-                  <Suspense fallback={<PageLoadingFallback />}>
-                    <MerchantLogin />
-                  </Suspense>
-
-              } />
-              <Route path="/merchant/dashboard" element={
-
-                  <Suspense fallback={<PageLoadingFallback />}>
-                    <ProtectedRoute requiredRole="merchant">
-                      <MerchantDashboard />
-                    </ProtectedRoute>
-                  </Suspense>
-
-              } />
-              <Route path="/merchant/packages" element={
-
-                  <Suspense fallback={<PageLoadingFallback />}>
-                    <MerchantPackages />
-                  </Suspense>
-
-              } />
-              <Route path="/admin/dashboard" element={
-
-                  <Suspense fallback={<PageLoadingFallback />}>
-                    <ProtectedRoute requiredRole="admin">
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  </Suspense>
-
-              } />
-              <Route path="/unauthorized" element={
-
-                  <Suspense fallback={<PageLoadingFallback />}>
-                    <Unauthorized />
-                  </Suspense>
-
-              } />
-              <Route path="/auth/callback" element={
-
-                  <Suspense fallback={<PageLoadingFallback />}>
-                    <AuthCallback />
-                  </Suspense>
-
-              } />
-              <Route path="/forgot-password" element={
-
-                  <Suspense fallback={<PageLoadingFallback />}>
-                    <ForgotPassword />
-                  </Suspense>
-
-              } />
-              <Route path="*" element={
-                <Suspense fallback={<PageLoadingFallback />}>
-                  <NotFound />
-                </Suspense>
-              } />
-            </Routes>
-          </HashRouter>
+                  <Routes>
+                    <Route path="/" element={
+                      <Suspense fallback={<PageLoadingFallback />}>
+                        <Index />
+                      </Suspense>
+                    } />
+                    <Route path="/deals" element={
+                      <Suspense fallback={<PageLoadingFallback />}>
+                        <Deals />
+                      </Suspense>
+                    } />
+                    <Route path="/deals/:id" element={
+                      <Suspense fallback={<PageLoadingFallback />}>
+                        <DealDetail />
+                      </Suspense>
+                    } />
+                    <Route path="/events" element={
+                      <Suspense fallback={<PageLoadingFallback />}>
+                        <Events />
+                      </Suspense>
+                    } />
+                    <Route path="/events/:id" element={
+                      <Suspense fallback={<PageLoadingFallback />}>
+                        <EventDetail />
+                      </Suspense>
+                    } />
+                    <Route path="/contact" element={
+                      <Suspense fallback={<PageLoadingFallback />}>
+                        <Contact />
+                      </Suspense>
+                    } />
+                    <Route path="/terms" element={
+                      <Suspense fallback={<PageLoadingFallback />}>
+                        <Terms />
+                      </Suspense>
+                    } />
+                    <Route path="/merchant/login" element={
+                      <Suspense fallback={<PageLoadingFallback />}>
+                        <MerchantLogin />
+                      </Suspense>
+                    } />
+                    <Route path="/merchant/dashboard" element={
+                      <Suspense fallback={<PageLoadingFallback />}>
+                        <ProtectedRoute requiredRole="merchant">
+                          <MerchantDashboard />
+                        </ProtectedRoute>
+                      </Suspense>
+                    } />
+                    <Route path="/merchant/packages" element={
+                      <Suspense fallback={<PageLoadingFallback />}>
+                        <MerchantPackages />
+                      </Suspense>
+                    } />
+                    <Route path="/admin/dashboard" element={
+                      <Suspense fallback={<PageLoadingFallback />}>
+                        <ProtectedRoute requiredRole="admin">
+                          <AdminDashboard />
+                        </ProtectedRoute>
+                      </Suspense>
+                    } />
+                    <Route path="/unauthorized" element={
+                      <Suspense fallback={<PageLoadingFallback />}>
+                        <Unauthorized />
+                      </Suspense>
+                    } />
+                    <Route path="/auth/callback" element={
+                      <Suspense fallback={<PageLoadingFallback />}>
+                        <AuthCallback />
+                      </Suspense>
+                    } />
+                    <Route path="/forgot-password" element={
+                      <Suspense fallback={<PageLoadingFallback />}>
+                        <ForgotPassword />
+                      </Suspense>
+                    } />
+                    <Route path="*" element={
+                      <Suspense fallback={<PageLoadingFallback />}>
+                        <NotFound />
+                      </Suspense>
+                    } />
+                  </Routes>
+                </HashRouter>
               </TooltipProvider>
             </HelmetProvider>
           </PreferencesProvider>

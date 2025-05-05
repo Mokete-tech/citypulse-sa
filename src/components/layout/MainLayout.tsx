@@ -8,29 +8,49 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const [isOpen, setIsOpen] = useState(() => {
-    // Initialize from localStorage, default to true (open) if not set
+  const [isOpen, setIsOpen] = useState(true);
+
+  // Initialize from localStorage on client-side only
+  useEffect(() => {
     const stored = localStorage.getItem('sidebarClosed');
-    return stored ? stored !== 'true' : true;
-  });
+    if (stored === 'true') {
+      setIsOpen(false);
+    }
+  }, []);
 
   // Effect to add sidebar-closed class to body
   useEffect(() => {
-    if (isOpen) {
-      document.body.classList.remove('sidebar-closed');
-    } else {
-      document.body.classList.add('sidebar-closed');
-    }
+    try {
+      if (typeof document !== 'undefined') {
+        if (isOpen) {
+          document.body.classList.remove('sidebar-closed');
+        } else {
+          document.body.classList.add('sidebar-closed');
+        }
 
-    // Cleanup function
-    return () => {
-      document.body.classList.remove('sidebar-closed');
-    };
+        // Cleanup function
+        return () => {
+          try {
+            document.body.classList.remove('sidebar-closed');
+          } catch (e) {
+            console.error('Error in cleanup function:', e);
+          }
+        };
+      }
+    } catch (e) {
+      console.error('Error in sidebar effect:', e);
+    }
   }, [isOpen]);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
-    localStorage.setItem('sidebarClosed', String(!isOpen));
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('sidebarClosed', String(!isOpen));
+      }
+    } catch (e) {
+      console.error('Error saving sidebar state:', e);
+    }
   };
 
   return (
