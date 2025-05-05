@@ -1,84 +1,59 @@
 
 import React from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import Index from './pages/Index';
-import Deals from './pages/Deals';
-import DealDetail from './pages/DealDetail';
-import Events from './pages/Events';
-import EventDetail from './pages/EventDetail';
-import Contact from './pages/Contact';
-import Terms from './pages/Terms';
-import MerchantLogin from './pages/MerchantLogin';
-import MerchantDashboard from './pages/MerchantDashboard';
-import MerchantPackages from './pages/MerchantPackages';
-import NotFound from './pages/NotFound';
-import Unauthorized from './pages/Unauthorized';
-import AdminDashboard from './pages/AdminDashboard';
-import AuthCallback from './pages/auth/Callback';
-import ForgotPassword from './pages/ForgotPassword';
-import { AuthProvider } from './contexts/AuthContext';
-import { StripeProvider } from './contexts/StripeContext';
-import { PreferencesProvider } from './hooks/usePreferences';
-import ProtectedRoute from './components/ProtectedRoute';
-import { Toaster } from '@/components/ui/toaster';
-import { Toaster as Sonner } from '@/components/ui/sonner';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import MainLayout from './components/layout/MainLayout';
 
-// Create a new QueryClient instance
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+// Minimal Home component
+const Home = () => (
+  <MainLayout>
+    <div className="p-8">
+      <h1 className="text-3xl font-bold mb-4">Welcome to CityPulse South Africa</h1>
+      <p className="mb-4">Discover the best local deals and events across South Africa.</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-bold mb-2">Nearby Deals</h2>
+          <p>Discover deals close to your current location</p>
+        </div>
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-bold mb-2">Upcoming Events</h2>
+          <p>Find events happening near you</p>
+        </div>
+      </div>
+    </div>
+  </MainLayout>
+);
 
+// Minimal Deals component
+const Deals = () => (
+  <MainLayout>
+    <div className="p-8">
+      <h1 className="text-3xl font-bold mb-4">Deals</h1>
+      <p>Browse all deals in your area.</p>
+    </div>
+  </MainLayout>
+);
+
+// Minimal Events component
+const Events = () => (
+  <MainLayout>
+    <div className="p-8">
+      <h1 className="text-3xl font-bold mb-4">Events</h1>
+      <p>Browse all events in your area.</p>
+    </div>
+  </MainLayout>
+);
+
+// Minimal App component
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <StripeProvider>
-          <PreferencesProvider>
-            <Toaster />
-            <Sonner />
-            <HashRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/deals" element={<Deals />} />
-                <Route path="/deals/:id" element={<DealDetail />} />
-                <Route path="/events" element={<Events />} />
-                <Route path="/events/:id" element={<EventDetail />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/merchant/login" element={<MerchantLogin />} />
-                <Route
-                  path="/merchant/dashboard"
-                  element={
-                    <ProtectedRoute requiredRole="merchant">
-                      <MerchantDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/merchant/packages" element={<MerchantPackages />} />
-                <Route
-                  path="/admin/dashboard"
-                  element={
-                    <ProtectedRoute requiredRole="admin">
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/unauthorized" element={<Unauthorized />} />
-                <Route path="/auth/callback" element={<AuthCallback />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </HashRouter>
-          </PreferencesProvider>
-        </StripeProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <HashRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/deals" element={<Deals />} />
+        <Route path="/events" element={<Events />} />
+        <Route path="*" element={<Home />} />
+      </Routes>
+    </HashRouter>
   );
 };
 
