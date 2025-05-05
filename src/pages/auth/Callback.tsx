@@ -2,17 +2,24 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
         // Get the URL hash and handle the OAuth callback
         const { data, error } = await supabase.auth.getSession();
-        
+
         if (error) {
           throw error;
         }
@@ -20,7 +27,7 @@ const AuthCallback = () => {
         if (data?.session) {
           // Redirect to home page or dashboard based on user role
           const userRole = data.session.user.app_metadata?.role;
-          
+
           if (userRole === 'merchant') {
             navigate('/merchant/dashboard');
           } else if (userRole === 'admin') {
@@ -44,20 +51,26 @@ const AuthCallback = () => {
   }, [navigate]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      {error ? (
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Authentication Error</h1>
-          <p className="text-gray-700 mb-4">{error}</p>
-          <p className="text-gray-500">Redirecting you to the home page...</p>
-        </div>
-      ) : (
-        <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Completing Authentication</h1>
-          <p className="text-gray-600">Please wait while we log you in...</p>
-        </div>
-      )}
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      <Navbar toggleSidebar={toggleSidebar} />
+
+      <div className="flex-1 flex items-center justify-center p-4">
+        {error ? (
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-red-600 mb-4">Authentication Error</h1>
+            <p className="text-gray-700 mb-4">{error}</p>
+            <p className="text-gray-500">Redirecting you to the home page...</p>
+          </div>
+        ) : (
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-sa-blue mb-4" />
+            <h1 className="text-2xl font-bold mb-2">Completing Authentication</h1>
+            <p className="text-gray-600">Please wait while we log you in...</p>
+          </div>
+        )}
+      </div>
+
+      <Footer />
     </div>
   );
 };

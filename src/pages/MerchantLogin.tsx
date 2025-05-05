@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -166,13 +168,22 @@ const MerchantLogin = () => {
     }
   }
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md space-y-8">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold">Merchant Portal</CardTitle>
-        </CardHeader>
-        <CardContent>
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      <Navbar toggleSidebar={toggleSidebar} />
+
+      <div className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <Card className="w-full max-w-md space-y-8">
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl font-bold">Merchant Portal</CardTitle>
+          </CardHeader>
+          <CardContent>
           <Tabs defaultValue="login" className="space-y-4">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
@@ -354,6 +365,9 @@ const MerchantLogin = () => {
           </Tabs>
         </CardContent>
       </Card>
+      </div>
+
+      <Footer />
     </div>
   );
 };
