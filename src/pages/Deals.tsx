@@ -15,6 +15,7 @@ import DealMap, { MapItem } from '@/components/maps/DealMap';
 import { Button } from '@/components/ui/button';
 import { usePreferences } from '@/hooks/usePreferences';
 import SEO from '@/components/seo/SEO';
+import FilterCategories from '@/components/filters/FilterCategories';
 
 const Deals = () => {
   const { preferences } = usePreferences();
