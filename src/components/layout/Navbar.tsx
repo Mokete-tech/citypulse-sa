@@ -55,6 +55,7 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
               variant="ghost"
               size="icon"
               className="md:hidden"
+              data-sidebar-toggle="true"
             >
               <Menu className="h-5 w-5" />
             </Button>
