@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, Search, Menu, LogIn, User, LogOut } from 'lucide-react';
+import { Bell, Menu, LogIn, User, LogOut, SearchIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
@@ -51,7 +51,7 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
 
       <div className="hidden md:flex items-center flex-1 max-w-md mx-4">
         <div className="relative w-full">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             placeholder="Search deals, events or locations..."
             className="pl-10 w-full bg-gray-50"
@@ -61,7 +61,7 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
 
       <div className="flex items-center space-x-3">
         <Button variant="ghost" size="icon" className="text-gray-500">
-          <Search className="h-5 w-5 md:hidden" />
+          <SearchIcon className="h-5 w-5 md:hidden" />
         </Button>
 
         {/* User is not logged in */}
