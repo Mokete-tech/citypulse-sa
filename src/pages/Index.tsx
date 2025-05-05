@@ -6,11 +6,10 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Sidebar from '@/components/layout/Sidebar';
 import { Button } from '@/components/ui/button';
-import { Tag, Calendar, AlertCircle } from 'lucide-react';
+import { Tag, Calendar } from 'lucide-react';
 import { LoadingState } from '@/components/ui/loading-state';
 import { handleError } from '@/lib/error-handler';
 import { toast } from '@/components/ui/sonner';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { fallbackDeals, fallbackEvents } from '@/data/fallback-data';
 import { EnvWarning } from '@/components/ui/env-warning';
 import { DealCard } from '@/components/cards/DealCard';
@@ -25,7 +24,8 @@ const Index = () => {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // We're not showing errors anymore, but keeping the state for future use
+  const [, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
@@ -242,13 +242,7 @@ const Index = () => {
               <p className="text-muted-foreground">
                 Discover the best local deals and events across South Africa.
               </p>
-              {/* Don't show error in production */}
-              {error && !import.meta.env.PROD && (
-                <Alert className="mt-4">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
+              {/* Don't show any error messages */}
             </div>
 
             {/* Nearby Deals and Events Section */}
