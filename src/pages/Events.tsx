@@ -8,7 +8,7 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { EventCard } from '@/components/cards/EventCard';
 import { supabase } from '@/integrations/supabase/client';
 import { handleSupabaseError } from '@/lib/error-handler';
-import { Search, Calendar, MapPin, Clock } from 'lucide-react';
+import { SearchIcon, Calendar, MapPin, Clock } from 'lucide-react';
 import { fallbackEvents } from '@/data/fallback-data';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -80,7 +80,7 @@ const Events = () => {
 
           <div className="mb-8">
             <div className="relative w-full max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder="Search events by name or location..."
                 className="pl-10 w-full bg-white"
