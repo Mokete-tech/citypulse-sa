@@ -91,7 +91,8 @@ const Events = () => {
           </div>
 
           <LoadingState isLoading={loading} type="card" count={6}>
-            {error && (
+            {/* Don't show error in production */}
+            {error && !import.meta.env.PROD && (
               <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-md mb-6">
                 {error}
               </div>

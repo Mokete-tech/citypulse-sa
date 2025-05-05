@@ -242,7 +242,8 @@ const Index = () => {
               <p className="text-muted-foreground">
                 Discover the best local deals and events across South Africa.
               </p>
-              {error && (
+              {/* Don't show error in production */}
+              {error && !import.meta.env.PROD && (
                 <Alert className="mt-4">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>{error}</AlertDescription>

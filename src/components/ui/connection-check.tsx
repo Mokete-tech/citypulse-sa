@@ -5,6 +5,12 @@ import { AlertCircle, RefreshCw, ExternalLink } from 'lucide-react';
 import { checkSupabaseConnection } from '@/integrations/supabase/client';
 
 export function ConnectionCheck() {
+  // In production, don't show the connection error at all
+  // This is a temporary fix until we properly set up the environment variables
+  if (import.meta.env.PROD) {
+    return null;
+  }
+
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [isChecking, setIsChecking] = useState(true);
   const [errorDetails, setErrorDetails] = useState<{ error?: string; details?: any } | null>(null);
@@ -18,18 +24,18 @@ export function ConnectionCheck() {
   };
 
   useEffect(() => {
-    // Only check connection in production
-    if (import.meta.env.PROD) {
+    // Only check connection in development
+    if (import.meta.env.DEV) {
       checkConnection();
     } else {
-      // In development, don't show the connection error
+      // In production, don't show the connection error
       setIsConnected(true);
       setIsChecking(false);
     }
   }, []);
 
-  // Don't show anything if connected, still checking initially, or in development mode
-  if (isConnected === true || isConnected === null || import.meta.env.DEV) {
+  // Don't show anything if connected or still checking initially
+  if (isConnected === true || isConnected === null) {
     return null;
   }
 
