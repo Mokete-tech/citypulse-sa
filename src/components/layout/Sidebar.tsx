@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import MerchantLoginDialog from '@/components/auth/MerchantLoginDialog';
 import { useAuth } from '@/contexts/AuthContext';
-import SimpleCategories from '@/components/filters/SimpleCategories';
+import FilterCategories from '@/components/filters/FilterCategories';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -94,7 +94,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
             {/* Categories section */}
             {showCategories && (
               <div className="border-t border-sky-700">
-                <SimpleCategories />
+                <FilterCategories />
               </div>
             )}
           </div>
