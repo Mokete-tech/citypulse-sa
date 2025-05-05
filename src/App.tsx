@@ -88,16 +88,53 @@ const Home = () => {
     <MainLayout>
       <div className="p-4 md:p-8">
         {/* Hero section */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-6 md:p-10 mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Welcome to CityPulse South Africa</h1>
-          <p className="text-lg md:text-xl mb-6">Discover the best local deals and events across South Africa.</p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <a href="#deals" className="bg-white text-blue-600 px-6 py-2 rounded-md font-medium hover:bg-gray-100 text-center">
-              Browse Deals
-            </a>
-            <a href="#events" className="bg-transparent border border-white text-white px-6 py-2 rounded-md font-medium hover:bg-white/10 text-center">
-              Find Events
-            </a>
+        <div className="relative overflow-hidden">
+          {/* Background with overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-90"></div>
+          <div className="absolute inset-0 bg-[url('/hero-bg.jpg')] bg-cover bg-center mix-blend-overlay"></div>
+
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-32 text-center">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-6 tracking-tight">
+              Discover South Africa's <span className="text-yellow-300">Best Deals & Events</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto">
+              Your local guide to amazing experiences and incredible savings across South Africa.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a
+                href="#deals"
+                className="bg-white text-blue-600 px-8 py-3 rounded-full font-medium hover:bg-gray-100 text-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+              >
+                Browse Deals
+              </a>
+              <a
+                href="#events"
+                className="bg-transparent border-2 border-white text-white px-8 py-3 rounded-full font-medium hover:bg-white/10 text-center transition-all duration-300 transform hover:-translate-y-1"
+              >
+                Find Events
+              </a>
+            </div>
+
+            {/* Search bar in hero */}
+            <div className="mt-12 max-w-2xl mx-auto">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search for deals, events, or locations..."
+                  className="w-full pl-5 pr-12 py-4 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+                />
+                <button className="absolute right-3 top-3 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors">
+                  <Search className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Wave shape divider */}
+          <div className="absolute bottom-0 left-0 right-0">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120" fill="#f9fafb" preserveAspectRatio="none">
+              <path d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z"></path>
+            </svg>
           </div>
         </div>
 
