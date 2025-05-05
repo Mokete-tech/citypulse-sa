@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   Tag, Calendar, Building2, UserPlus,
   LogIn, Settings, ChevronRight, ChevronLeft, Mail,
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import MerchantLoginDialog from '@/components/auth/MerchantLoginDialog';
 import { useAuth } from '@/contexts/AuthContext';
+import Categories from '@/components/sidebar/Categories';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -24,6 +25,10 @@ const menuItems = [
 
 const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   const { isMerchant } = useAuth();
+  const location = useLocation();
+
+  // Check if we're on a page that should show categories
+  const showCategories = location.pathname === '/deals' || location.pathname === '/events';
 
   return (
     <>
@@ -49,41 +54,50 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
             </Button>
           </div>
 
-          <nav className="flex-1 pt-4 pb-4 overflow-y-auto">
-            <ul className="space-y-1 px-2">
-              {menuItems.map((item) => (
-                <li key={item.name}>
-                  <Link
-                    to={item.path}
-                    className="flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors"
-                  >
-                    <item.icon className="h-5 w-5 mr-3" />
-                    <span>{item.name}</span>
-                  </Link>
-                </li>
-              ))}
+          <div className="flex-1 overflow-y-auto">
+            <nav className="pt-4 pb-4">
+              <ul className="space-y-1 px-2">
+                {menuItems.map((item) => (
+                  <li key={item.name}>
+                    <Link
+                      to={item.path}
+                      className="flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors"
+                    >
+                      <item.icon className="h-5 w-5 mr-3" />
+                      <span>{item.name}</span>
+                    </Link>
+                  </li>
+                ))}
 
-              {/* Merchant Login/Dashboard */}
-              <li>
-                {isMerchant ? (
-                  <Link
-                    to="/merchant/dashboard"
-                    className="flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors"
-                  >
-                    <Building2 className="h-5 w-5 mr-3" />
-                    <span>Merchant Dashboard</span>
-                  </Link>
-                ) : (
-                  <MerchantLoginDialog>
-                    <button className="flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors w-full text-left">
-                      <LogIn className="h-5 w-5 mr-3" />
-                      <span>Merchant Login</span>
-                    </button>
-                  </MerchantLoginDialog>
-                )}
-              </li>
-            </ul>
-          </nav>
+                {/* Merchant Login/Dashboard */}
+                <li>
+                  {isMerchant ? (
+                    <Link
+                      to="/merchant/dashboard"
+                      className="flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors"
+                    >
+                      <Building2 className="h-5 w-5 mr-3" />
+                      <span>Merchant Dashboard</span>
+                    </Link>
+                  ) : (
+                    <MerchantLoginDialog>
+                      <button className="flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors w-full text-left">
+                        <LogIn className="h-5 w-5 mr-3" />
+                        <span>Merchant Login</span>
+                      </button>
+                    </MerchantLoginDialog>
+                  )}
+                </li>
+              </ul>
+            </nav>
+
+            {/* Categories section */}
+            {showCategories && (
+              <div className="border-t border-sky-700">
+                <Categories />
+              </div>
+            )}
+          </div>
 
           <div className="p-4 border-t border-sky-700">
             <div className="px-4 py-2">

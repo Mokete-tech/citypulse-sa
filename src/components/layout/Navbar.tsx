@@ -151,6 +151,7 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
           size="icon"
           className="hidden md:flex"
           onClick={toggleSidebar}
+          data-sidebar-toggle="true"
         >
           <Menu className="h-5 w-5" />
         </Button>

@@ -1,0 +1,70 @@
+/* Simple sidebar styles */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 256px;
+  background-color: #1e40af;
+  color: white;
+  z-index: 50;
+  transition: transform 0.3s ease;
+}
+
+body.sidebar-closed .sidebar {
+  transform: translateX(-256px);
+}
+
+.main-content {
+  transition: margin-left 0.3s ease;
+  margin-left: 256px;
+}
+
+body.sidebar-closed .main-content {
+  margin-left: 0;
+}
+
+.sidebar-toggle {
+  position: fixed;
+  bottom: 20px;
+  left: 256px;
+  z-index: 60;
+  transition: left 0.3s ease;
+}
+
+body.sidebar-closed .sidebar-toggle {
+  left: 0;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-256px);
+  }
+  
+  .main-content {
+    margin-left: 0;
+  }
+  
+  body.sidebar-open .sidebar {
+    transform: translateX(0);
+  }
+  
+  .sidebar-toggle {
+    display: none;
+  }
+  
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+  }
+  
+  body.sidebar-open .sidebar-overlay {
+    display: block;
+  }
+}
