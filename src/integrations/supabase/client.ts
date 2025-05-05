@@ -5,13 +5,17 @@ import type { Database } from './types';
 // Production and development fallback values
 const FALLBACK = {
   SUPABASE_URL: 'https://qghojdkspxhyjeurxagx.supabase.co',
-  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFnaG9qZGtzcHhoeWpldXJ4YWd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTg3NjQ4MDAsImV4cCI6MjAxNDM0MDgwMH0.fallback-key-for-development'
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFnaG9qZGtzcHhoeWpldXJ4YWd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ2NTU4NjUsImV4cCI6MjA2MDIzMTg2NX0.QInil2Wr7x14JwpRKKkIcgG6WwyOIUFx-O_kL8o2jdg'
 };
 
-// Use environment variables for Supabase credentials
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Use environment variables for Supabase credentials (support both VITE_ and NEXT_PUBLIC_ prefixes)
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const IS_DEV = import.meta.env.DEV || import.meta.env.MODE === 'development';
+
+// Log environment variables for debugging
+console.log('Supabase URL:', SUPABASE_URL ? SUPABASE_URL.substring(0, 30) + '...' : 'Not set');
+console.log('Supabase Anon Key:', SUPABASE_ANON_KEY ? 'Key is set' : 'Not set');
 
 // Validate environment variables and use fallbacks in development if needed
 let supabaseUrl = SUPABASE_URL;
@@ -78,8 +82,8 @@ export const checkSupabaseConnection = async (): Promise<{ success: boolean; err
       };
     }
 
-    // Try to query a table to verify connection
-    const { data, error } = await supabase.from('health_check').select('*').limit(1).maybeSingle();
+    // Try to query a table to verify connection - use deals table since we know it exists
+    const { data, error } = await supabase.from('deals').select('id').limit(1);
 
     if (error) {
       console.error('Supabase connection error:', error);

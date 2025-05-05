@@ -39,21 +39,41 @@ const NearbyDeals = ({
   // Get user's location
   useEffect(() => {
     const getUserLocation = () => {
-      if (!navigator.geolocation) {
-        setLocationError('Geolocation is not supported by your browser');
+      // Use default coordinates for Johannesburg if geolocation is not available
+      const useDefaultLocation = () => {
+        console.log('Using default location (Johannesburg)');
+        // Johannesburg coordinates
+        setCoordinates({
+          latitude: -26.2041,
+          longitude: 28.0473,
+        });
         setLoading(false);
+      };
+
+      if (!navigator.geolocation) {
+        setLocationError('Geolocation is not supported by your browser. Using default location.');
+        useDefaultLocation();
         return;
       }
 
       // Set options for geolocation request
       const options = {
         enableHighAccuracy: true,  // Use GPS if available
-        timeout: 10000,            // Time to wait for a position
+        timeout: 5000,             // Reduced timeout to 5 seconds for better UX
         maximumAge: 300000         // Accept positions up to 5 minutes old
       };
 
+      const locationTimeout = setTimeout(() => {
+        // If geolocation takes too long, use default location
+        if (!coordinates) {
+          setLocationError('Location request timed out. Using default location.');
+          useDefaultLocation();
+        }
+      }, 6000); // Slightly longer than the geolocation timeout
+
       navigator.geolocation.getCurrentPosition(
         (position) => {
+          clearTimeout(locationTimeout);
           setCoordinates({
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
@@ -65,27 +85,28 @@ const NearbyDeals = ({
           localStorage.setItem('locationPermission', 'granted');
         },
         (error) => {
+          clearTimeout(locationTimeout);
           console.error('Error getting location:', error);
 
           // Provide more specific error messages based on the error code
-          let errorMessage = 'Unable to retrieve your location';
+          let errorMessage = 'Unable to retrieve your location. Using default location.';
 
           switch(error.code) {
             case error.PERMISSION_DENIED:
-              errorMessage = 'Location permission denied. Please enable location services to see nearby deals.';
+              errorMessage = 'Location permission denied. Using default location.';
               setLocationPermission('denied');
               localStorage.setItem('locationPermission', 'denied');
               break;
             case error.POSITION_UNAVAILABLE:
-              errorMessage = 'Location information is unavailable. Please try again later.';
+              errorMessage = 'Location information is unavailable. Using default location.';
               break;
             case error.TIMEOUT:
-              errorMessage = 'Location request timed out. Please try again.';
+              errorMessage = 'Location request timed out. Using default location.';
               break;
           }
 
           setLocationError(errorMessage);
-          setLoading(false);
+          useDefaultLocation();
         },
         options
       );
@@ -97,12 +118,17 @@ const NearbyDeals = ({
       setLocationPermission('granted');
     } else if (storedPermission === 'denied') {
       setLocationPermission('denied');
-      setLocationError('Location permission was previously denied. Please enable location services to see nearby deals.');
+      setLocationError('Location permission was previously denied. Using default location.');
+      // Use default location for Johannesburg
+      setCoordinates({
+        latitude: -26.2041,
+        longitude: 28.0473,
+      });
       setLoading(false);
+    } else {
+      getUserLocation();
     }
-
-    getUserLocation();
-  }, []);
+  }, [coordinates]);
 
   // Fetch nearby deals when coordinates or radius changes
   useEffect(() => {

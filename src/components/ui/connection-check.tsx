@@ -18,11 +18,19 @@ export function ConnectionCheck() {
   };
 
   useEffect(() => {
-    checkConnection();
+    // Only check connection in production
+    if (import.meta.env.PROD) {
+      checkConnection();
+    } else {
+      // In development, don't show the connection error
+      setIsConnected(true);
+      setIsChecking(false);
+    }
   }, []);
 
-  if (isConnected === true || isConnected === null) {
-    return null; // Don't show anything if connected or still checking initially
+  // Don't show anything if connected, still checking initially, or in development mode
+  if (isConnected === true || isConnected === null || import.meta.env.DEV) {
+    return null;
   }
 
   return (
