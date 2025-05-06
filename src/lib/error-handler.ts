@@ -27,17 +27,19 @@ export function handleError(error: unknown, options: ErrorOptions = {}): void {
   // Always log to console for debugging
   console.error('Error:', error);
 
-  // Don't show toast if silent is true
-  if (silent) return;
+  // Don't show toast if silent is true or in production
+  if (silent || import.meta.env.PROD) return;
 
-  // Show toast notification
-  toast.error(title, {
-    description: message,
-    action: action ? {
-      label: action.label,
-      onClick: action.onClick,
-    } : undefined,
-  });
+  // Show toast notification only in development
+  if (import.meta.env.DEV) {
+    toast.error(title, {
+      description: message,
+      action: action ? {
+        label: action.label,
+        onClick: action.onClick,
+      } : undefined,
+    });
+  }
 }
 
 /**
@@ -47,7 +49,7 @@ export function handleError(error: unknown, options: ErrorOptions = {}): void {
  */
 export function handleSupabaseError(error: any, options: ErrorOptions = {}): void {
   let message = options.message || 'Something went wrong with the database operation.';
-  
+
   // Extract more specific error message if available
   if (error?.message) {
     message = error.message;

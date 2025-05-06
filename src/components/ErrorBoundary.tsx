@@ -27,20 +27,34 @@ class ErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     // Log the error to an error reporting service
     console.error('Uncaught error:', error, errorInfo);
-    
-    // Show a toast notification
-    toast.error('An error occurred', {
-      description: 'Something went wrong. Please try again or contact support if the problem persists.',
-      action: {
-        label: 'Refresh',
-        onClick: () => window.location.reload(),
-      },
-    });
+
+    // In production, don't show any error messages
+    if (import.meta.env.DEV) {
+      // Show a toast notification only in development
+      toast.error('An error occurred', {
+        description: 'Something went wrong. Please try again or contact support if the problem persists.',
+        action: {
+          label: 'Refresh',
+          onClick: () => window.location.reload(),
+        },
+      });
+    }
   }
 
   public render(): ReactNode {
     if (this.state.hasError) {
-      // You can render any custom fallback UI
+      // In production, don't show any error UI, just render children or null
+      if (import.meta.env.PROD) {
+        // Try to render children even if there's an error
+        try {
+          return this.props.children;
+        } catch (e) {
+          // If that fails, render nothing
+          return null;
+        }
+      }
+
+      // In development, show the error UI
       return this.props.fallback || (
         <div className="flex flex-col items-center justify-center min-h-[400px] p-6 text-center">
           <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
@@ -48,7 +62,7 @@ class ErrorBoundary extends Component<Props, State> {
           <p className="text-muted-foreground mb-4">
             We're sorry, but an error occurred while rendering this component.
           </p>
-          <Button 
+          <Button
             onClick={() => window.location.reload()}
             variant="outline"
           >

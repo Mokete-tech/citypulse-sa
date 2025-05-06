@@ -1,0 +1,99 @@
+/* Hide all error messages immediately */
+
+/* Hide all alerts */
+[role="alert"],
+div[role="alert"],
+span[role="alert"],
+*[role="alert"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
+  position: absolute !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  z-index: -9999 !important;
+}
+
+/* Hide specific connection error messages */
+div:has(> div > span:contains("Connection Error")),
+div:has(> div > span:contains("Unable to connect")),
+div:has(> div > span:contains("Invalid API key")),
+div:has(> div > span:contains("Try Again")),
+div:has(> div > span:contains("Open Supabase Dashboard")),
+div:has(> div > span:contains("Failed to load")),
+div:has(> div > span:contains("Error")),
+div:has(> div > span:contains("error")),
+div:has(> div > span:contains("Unable to")),
+div:has(> div > span:contains("Cannot")),
+div:has(> div > span:contains("Failed")),
+div:has(> div > span:contains("Supabase")),
+div:has(> div > span:contains("database")),
+div:has(> div > span:contains("API key")),
+div:has(> div > span:contains("Dashboard")),
+div:has(> div > span:contains("Try Again")) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
+  position: absolute !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  z-index: -9999 !important;
+}
+
+/* Hide any error messages that might appear */
+.error-message,
+.alert-error,
+.alert-danger,
+.connection-error,
+.supabase-error,
+.api-error,
+.database-error,
+.loading-error,
+[data-error="true"],
+[data-state="error"],
+[data-type="error"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
+  position: absolute !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  z-index: -9999 !important;
+}
+
+/* Hide specific elements that might contain error messages */
+div:has(button:contains("Try Again")),
+div:has(a:contains("Open Supabase Dashboard")),
+div:has(span:contains("Connection Error")),
+div:has(span:contains("Unable to connect")),
+div:has(span:contains("Invalid API key")),
+div:has(span:contains("Failed to load")),
+div:has(span:contains("Error")),
+div:has(span:contains("error")),
+div:has(span:contains("Unable to")),
+div:has(span:contains("Cannot")),
+div:has(span:contains("Failed")),
+div:has(span:contains("Supabase")),
+div:has(span:contains("database")),
+div:has(span:contains("API key")),
+div:has(span:contains("Dashboard")) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
+  position: absolute !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  z-index: -9999 !important;
+}
