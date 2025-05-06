@@ -8,6 +8,7 @@
     <title>CityPulse South Africa - Local Deals & Events</title>
     <meta name="theme-color" content="#0EA5E9" />
     <meta name="description" content="Discover the best local deals and events in South Africa with CityPulse" />
+    <link rel="stylesheet" href="/hide-connection-error.css" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
@@ -35,18 +36,40 @@
           // Find all elements with role="alert"
           const alerts = document.querySelectorAll('[role="alert"]');
           alerts.forEach(alert => {
-            // Check if it contains connection error text
-            if (alert.textContent.includes('Connection Error') ||
-                alert.textContent.includes('Unable to connect to the database') ||
-                alert.textContent.includes('Error: Invalid API key')) {
-              alert.style.display = 'none';
+            // Remove all alerts completely
+            alert.remove();
+          });
+
+          // Find all elements that might contain error messages
+          const allElements = document.querySelectorAll('*');
+          allElements.forEach(element => {
+            if (element.textContent && (
+                element.textContent.includes('Connection Error') ||
+                element.textContent.includes('Unable to connect to the database') ||
+                element.textContent.includes('Error: Invalid API key') ||
+                element.textContent.includes('Failed to load')
+              )) {
+              // Try to find the closest container and remove it
+              const container = element.closest('.alert') ||
+                               element.closest('[role="alert"]') ||
+                               element.closest('.error-message') ||
+                               element.closest('.mb-6') || // Common margin class for alerts
+                               element;
+
+              if (container.parentNode) {
+                container.remove();
+              }
             }
           });
         }
 
-        // Run immediately and then every second
+        // Run immediately and then every 500ms
         removeConnectionErrors();
-        setInterval(removeConnectionErrors, 1000);
+        setInterval(removeConnectionErrors, 500);
+
+        // Also run when DOM changes
+        const observer = new MutationObserver(removeConnectionErrors);
+        observer.observe(document.body, { childList: true, subtree: true });
       });
     </script>
   </body>

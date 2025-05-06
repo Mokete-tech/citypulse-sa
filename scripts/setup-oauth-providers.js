@@ -1,9 +1,9 @@
 /**
  * Script to automate the setup of OAuth providers in Supabase
- * 
+ *
  * Usage:
  * node scripts/setup-oauth-providers.js
- * 
+ *
  * Environment variables:
  * SUPABASE_URL - The URL of your Supabase project
  * SUPABASE_SERVICE_ROLE_KEY - The service role key for your Supabase project
@@ -11,7 +11,7 @@
  * GOOGLE_CLIENT_SECRET - The client secret for Google OAuth
  * FACEBOOK_CLIENT_ID - The client ID for Facebook OAuth
  * FACEBOOK_CLIENT_SECRET - The client secret for Facebook OAuth
- * SITE_URL - The URL of your site (default: https://citypulse-sa.vercel.app)
+ * SITE_URL - The URL of your site (default: https://citypulse-sa-git-main-velleyvelley-gmailcoms-projects.vercel.app)
  */
 
 const fetch = require('node-fetch');
@@ -24,7 +24,7 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const FACEBOOK_CLIENT_ID = process.env.FACEBOOK_CLIENT_ID;
 const FACEBOOK_CLIENT_SECRET = process.env.FACEBOOK_CLIENT_SECRET;
-const SITE_URL = process.env.SITE_URL || 'https://citypulse-sa.vercel.app';
+const SITE_URL = process.env.SITE_URL || 'https://citypulse-sa-git-main-velleyvelley-gmailcoms-projects.vercel.app';
 
 // Validate required environment variables
 if (!SUPABASE_SERVICE_ROLE_KEY) {
@@ -88,10 +88,10 @@ async function main() {
     await updateAuthSettings(settings);
 
     console.log('OAuth providers setup completed successfully!');
-    
+
     // Print instructions for Google and Facebook developer consoles
     console.log('\nNext steps:');
-    
+
     if (GOOGLE_CLIENT_ID) {
       console.log('\nGoogle OAuth Setup:');
       console.log('1. Go to https://console.developers.google.com/');
@@ -102,7 +102,7 @@ async function main() {
       console.log('   - http://localhost:5173/auth/v1/callback');
       console.log('   - http://localhost:3000/auth/v1/callback');
     }
-    
+
     if (FACEBOOK_CLIENT_ID) {
       console.log('\nFacebook OAuth Setup:');
       console.log('1. Go to https://developers.facebook.com/apps/');
@@ -113,7 +113,7 @@ async function main() {
       console.log('   - http://localhost:5173/auth/v1/callback');
       console.log('   - http://localhost:3000/auth/v1/callback');
     }
-    
+
   } catch (error) {
     console.error('Error setting up OAuth providers:', error);
     process.exit(1);

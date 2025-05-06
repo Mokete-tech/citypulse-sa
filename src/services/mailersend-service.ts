@@ -153,7 +153,7 @@ export const mailerSendService = {
         amount: amount,
         transaction_id: transactionId,
         payment_date: new Date().toLocaleDateString('en-ZA'),
-        dashboard_url: 'https://citypulse-sa.vercel.app/merchant/dashboard'
+        dashboard_url: 'https://citypulse-sa-git-main-velleyvelley-gmailcoms-projects.vercel.app/merchant/dashboard'
       },
       tags: ['receipt', 'merchant']
     });
@@ -188,7 +188,7 @@ export const mailerSendService = {
             <div style="text-align: center; margin: 30px 0;">
               <a href="${statementPdfUrl}" style="background-color: #0EA5E9; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">View Statement</a>
             </div>
-            <p>Or you can access all your statements from your <a href="https://citypulse-sa.vercel.app/merchant/dashboard" style="color: #0EA5E9; text-decoration: none;">Merchant Dashboard</a>.</p>
+            <p>Or you can access all your statements from your <a href="https://citypulse-sa-git-main-velleyvelley-gmailcoms-projects.vercel.app/merchant/dashboard" style="color: #0EA5E9; text-decoration: none;">Merchant Dashboard</a>.</p>
             <p>Thank you for your partnership with CityPulse South Africa.</p>
             <p>Best regards,<br>The CityPulse Team</p>
           </div>

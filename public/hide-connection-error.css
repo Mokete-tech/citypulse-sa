@@ -1,0 +1,35 @@
+/* CSS to hide connection error messages */
+
+/* Hide all alerts */
+[role="alert"] {
+  display: none !important;
+}
+
+/* Hide specific connection error messages */
+div:has(> div > div > span:contains("Connection Error")),
+div:has(> div > div > span:contains("Unable to connect to the database")),
+div:has(> div > div > span:contains("Error: Invalid API key")) {
+  display: none !important;
+}
+
+/* Hide elements with specific text content */
+*:contains("Connection Error"),
+*:contains("Unable to connect to the database"),
+*:contains("Error: Invalid API key") {
+  display: none !important;
+}
+
+/* Hide elements with specific class names that might be used for alerts */
+.alert-error,
+.alert-danger,
+.connection-error,
+.error-message {
+  display: none !important;
+}
+
+/* Hide elements with specific data attributes */
+[data-error="connection"],
+[data-type="error"],
+[data-component="alert"] {
+  display: none !important;
+}
