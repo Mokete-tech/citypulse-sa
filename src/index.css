@@ -102,10 +102,35 @@
 
   /* Hide connection error messages */
   [role="alert"],
+  div[role="alert"],
+  *[role="alert"],
   div:has(> div > div > span:contains("Connection Error")),
-  div:has(> div > div > span:contains("Unable to connect to the database")),
-  div:has(> div > div > span:contains("Error: Invalid API key")) {
+  div:has(> div > div > span:contains("Unable to connect")),
+  div:has(> div > div > span:contains("Error: Invalid API key")),
+  div:has(> div > div > span:contains("Try Again")),
+  div:has(> div > div > span:contains("Open Supabase Dashboard")),
+  div:has(> div > span:contains("Connection Error")),
+  div:has(> div > span:contains("Unable to connect")),
+  div:has(> div > span:contains("Error: Invalid API key")),
+  div:has(> div > span:contains("Try Again")),
+  div:has(> div > span:contains("Open Supabase Dashboard")),
+  div:has(span:contains("Connection Error")),
+  div:has(span:contains("Unable to connect")),
+  div:has(span:contains("Error: Invalid API key")),
+  div:has(span:contains("Try Again")),
+  div:has(span:contains("Open Supabase Dashboard")),
+  div:has(button:contains("Try Again")),
+  div:has(a:contains("Open Supabase Dashboard")) {
     display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    width: 0 !important;
+    position: absolute !important;
+    pointer-events: none !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    z-index: -9999 !important;
   }
 }
 

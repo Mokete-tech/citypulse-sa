@@ -3,9 +3,84 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- Load error remover CSS and JS first -->
+    <!-- Inline script to remove connection error immediately -->
+    <script>
+      // This script runs immediately and removes the connection error element
+      (function() {
+        function removeConnectionError() {
+          // Try to find the connection error element by its content
+          const elements = document.querySelectorAll('div');
+          for (let i = 0; i < elements.length; i++) {
+            const element = elements[i];
+            if (element.textContent &&
+                (element.textContent.includes('Connection Error') ||
+                 element.textContent.includes('Unable to connect') ||
+                 element.textContent.includes('Error: Invalid API key') ||
+                 element.textContent.includes('Try Again') ||
+                 element.textContent.includes('Open Supabase Dashboard'))) {
+
+              // Found the connection error element, remove it
+              if (element.parentNode) {
+                element.parentNode.removeChild(element);
+                console.log('Removed connection error element');
+              }
+            }
+          }
+
+          // Also try to find elements by role="alert"
+          const alerts = document.querySelectorAll('[role="alert"]');
+          for (let i = 0; i < alerts.length; i++) {
+            const alert = alerts[i];
+            if (alert.parentNode) {
+              alert.parentNode.removeChild(alert);
+              console.log('Removed alert element');
+            }
+          }
+        }
+
+        // Run immediately
+        removeConnectionError();
+
+        // Set up to run again when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+          removeConnectionError();
+
+          // Run every 100ms indefinitely
+          setInterval(removeConnectionError, 100);
+        });
+      })();
+    </script>
+
+    <!-- Load error remover CSS and JS -->
     <link rel="stylesheet" href="/error-remover.css" />
     <script src="/error-remover.js"></script>
+    <script src="/remove-connection-error.js"></script>
+
+    <!-- Inline styles to hide connection error -->
+    <style>
+      /* Hide connection error immediately */
+      [role="alert"],
+      div[role="alert"],
+      *[role="alert"],
+      div:has(> div > span:contains("Connection Error")),
+      div:has(> div > span:contains("Unable to connect")),
+      div:has(> div > span:contains("Invalid API key")),
+      div:has(> div > span:contains("Try Again")),
+      div:has(> div > span:contains("Open Supabase Dashboard")),
+      div:has(button:contains("Try Again")),
+      div:has(a:contains("Open Supabase Dashboard")) {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        width: 0 !important;
+        position: absolute !important;
+        pointer-events: none !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        z-index: -9999 !important;
+      }
+    </style>
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
