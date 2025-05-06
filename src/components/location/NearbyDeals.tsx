@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { DealCard } from '@/components/cards/DealCard';
 import { LoadingState } from '@/components/ui/loading-state';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/no-error-client';
 import { handleSupabaseError } from '@/lib/error-handler';
 import { MapPin, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';

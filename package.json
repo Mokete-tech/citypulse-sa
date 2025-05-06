@@ -2,20 +2,21 @@
   "name": "vite_react_shadcn_ts",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "build:dev": "vite build --mode development",
+    "dev": "node scripts/replace-index.js && vite",
+    "build": "node scripts/replace-index.js && vite build",
+    "build:dev": "node scripts/replace-index.js && vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "deploy": "node scripts/deploy.js",
-    "deploy:vercel": "vercel --prod",
+    "deploy": "node scripts/replace-index.js && node scripts/deploy.js",
+    "deploy:vercel": "node scripts/replace-index.js && vercel --prod",
     "deploy:check": "node scripts/deploy.js --check-only",
-    "setup:env": "node scripts/setup-env-vars.js"
+    "setup:env": "node scripts/setup-env-vars.js",
+    "clean-index": "node scripts/replace-index.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

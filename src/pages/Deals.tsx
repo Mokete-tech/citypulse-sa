@@ -7,7 +7,7 @@ import Footer from '@/components/layout/Footer';
 import { Input } from '@/components/ui/input';
 import { LoadingState } from '@/components/ui/loading-state';
 import { DealCard } from '@/components/cards/DealCard';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/no-error-client';
 import { handleSupabaseError } from '@/lib/error-handler';
 import { SearchIcon, Tag, X } from 'lucide-react';
 import { fallbackDeals } from '@/data/fallback-data';

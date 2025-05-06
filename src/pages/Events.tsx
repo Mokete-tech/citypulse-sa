@@ -7,7 +7,7 @@ import Footer from '@/components/layout/Footer';
 import { Input } from '@/components/ui/input';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EventCard } from '@/components/cards/EventCard';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/no-error-client';
 import { handleSupabaseError } from '@/lib/error-handler';
 import { SearchIcon, Calendar, MapPin, Clock, X } from 'lucide-react';
 import { fallbackEvents } from '@/data/fallback-data';
