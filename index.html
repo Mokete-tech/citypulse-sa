@@ -7,6 +7,82 @@
     <script>
       // This script runs immediately and removes the connection error element
       (function() {
+        // Monkey patch the DOM API to prevent error elements from being created
+        try {
+          // Override appendChild to prevent error elements from being added to the DOM
+          const originalAppendChild = Node.prototype.appendChild;
+          Node.prototype.appendChild = function(child) {
+            // Check if this is a div with error content
+            if (child && child.nodeType === 1 && child.tagName === 'DIV') {
+              // Check if it has role="alert"
+              if (child.getAttribute && child.getAttribute('role') === 'alert') {
+                console.log('Blocked alert element from being added to DOM');
+                return child; // Return without actually appending
+              }
+
+              // Check if it contains error text
+              if (child.textContent && (
+                  child.textContent.includes('Connection Error') ||
+                  child.textContent.includes('Unable to connect') ||
+                  child.textContent.includes('Error: Invalid API key') ||
+                  child.textContent.includes('Try Again') ||
+                  child.textContent.includes('Open Supabase Dashboard')
+                )) {
+                console.log('Blocked error element from being added to DOM');
+                return child; // Return without actually appending
+              }
+            }
+
+            // Check if this is a text node with error content
+            if (child && child.nodeType === 3 && child.textContent) {
+              const text = child.textContent;
+              if (
+                text.includes('Connection Error') ||
+                text.includes('Unable to connect') ||
+                text.includes('Error: Invalid API key') ||
+                text.includes('Try Again') ||
+                text.includes('Open Supabase Dashboard')
+              ) {
+                console.log('Blocked error text from being added to DOM');
+                return child; // Return without actually appending
+              }
+            }
+
+            // Otherwise, proceed normally
+            return originalAppendChild.call(this, child);
+          };
+
+          // Override insertBefore to prevent error elements from being added to the DOM
+          const originalInsertBefore = Node.prototype.insertBefore;
+          Node.prototype.insertBefore = function(newNode, referenceNode) {
+            // Check if this is a div with error content
+            if (newNode && newNode.nodeType === 1 && newNode.tagName === 'DIV') {
+              // Check if it has role="alert"
+              if (newNode.getAttribute && newNode.getAttribute('role') === 'alert') {
+                console.log('Blocked alert element from being inserted into DOM');
+                return newNode; // Return without actually inserting
+              }
+
+              // Check if it contains error text
+              if (newNode.textContent && (
+                  newNode.textContent.includes('Connection Error') ||
+                  newNode.textContent.includes('Unable to connect') ||
+                  newNode.textContent.includes('Error: Invalid API key') ||
+                  newNode.textContent.includes('Try Again') ||
+                  newNode.textContent.includes('Open Supabase Dashboard')
+                )) {
+                console.log('Blocked error element from being inserted into DOM');
+                return newNode; // Return without actually inserting
+              }
+            }
+
+            // Otherwise, proceed normally
+            return originalInsertBefore.call(this, newNode, referenceNode);
+          };
+        } catch (e) {
+          console.error('Failed to patch DOM API', e);
+        }
+
         function removeConnectionError() {
           // Try to find the connection error element by its content
           const elements = document.querySelectorAll('div');
@@ -21,8 +97,10 @@
 
               // Found the connection error element, remove it
               if (element.parentNode) {
-                element.parentNode.removeChild(element);
-                console.log('Removed connection error element');
+                try {
+                  element.parentNode.removeChild(element);
+                  console.log('Removed connection error element');
+                } catch (e) {}
               }
             }
           }
@@ -32,8 +110,10 @@
           for (let i = 0; i < alerts.length; i++) {
             const alert = alerts[i];
             if (alert.parentNode) {
-              alert.parentNode.removeChild(alert);
-              console.log('Removed alert element');
+              try {
+                alert.parentNode.removeChild(alert);
+                console.log('Removed alert element');
+              } catch (e) {}
             }
           }
         }
@@ -45,8 +125,8 @@
         document.addEventListener('DOMContentLoaded', function() {
           removeConnectionError();
 
-          // Run every 100ms indefinitely
-          setInterval(removeConnectionError, 100);
+          // Run every 50ms indefinitely
+          setInterval(removeConnectionError, 50);
         });
       })();
     </script>
@@ -55,6 +135,9 @@
     <link rel="stylesheet" href="/error-remover.css" />
     <script src="/error-remover.js"></script>
     <script src="/remove-connection-error.js"></script>
+    <script src="/iframe-isolator.js"></script>
+    <script src="/mobile-error-remover.js"></script>
+    <script src="/register-sw.js"></script>
 
     <!-- Inline styles to hide connection error -->
     <style>
