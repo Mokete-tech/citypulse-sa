@@ -1,10 +1,7 @@
 
-import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Tag, Calendar, Building2, UserPlus,
-  LogIn, Settings, ChevronRight, ChevronLeft, Mail,
-  CreditCard
+  Tag, Calendar, LogIn, ChevronLeft, CreditCard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -60,6 +57,80 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                 </li>
               ))}
             </ul>
+
+            {/* Filter Categories */}
+            <div className="mt-6 px-4">
+              <h3 className="text-sm font-semibold mb-3 text-white/80">Filter Categories</h3>
+              <ul className="space-y-1">
+                <li>
+                  <Link to="/deals?category=food-drink" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 mr-2"></span>
+                    <span>Food & Drink</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/deals?category=retail" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 mr-2"></span>
+                    <span>Retail</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/deals?category=beauty" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors">
+                    <span className="w-2 h-2 rounded-full bg-pink-400 mr-2"></span>
+                    <span>Beauty</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/deals?category=entertainment" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors">
+                    <span className="w-2 h-2 rounded-full bg-purple-400 mr-2"></span>
+                    <span>Entertainment</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/deals?category=travel" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors">
+                    <span className="w-2 h-2 rounded-full bg-blue-400 mr-2"></span>
+                    <span>Travel</span>
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Event Categories */}
+            <div className="mt-6 px-4">
+              <h3 className="text-sm font-semibold mb-3 text-white/80">Event Types</h3>
+              <ul className="space-y-1">
+                <li>
+                  <Link to="/events?category=music" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors">
+                    <span className="w-2 h-2 rounded-full bg-red-400 mr-2"></span>
+                    <span>Music</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/events?category=food-shopping" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors">
+                    <span className="w-2 h-2 rounded-full bg-yellow-400 mr-2"></span>
+                    <span>Food & Shopping</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/events?category=networking" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors">
+                    <span className="w-2 h-2 rounded-full bg-indigo-400 mr-2"></span>
+                    <span>Networking</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/events?category=sports" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors">
+                    <span className="w-2 h-2 rounded-full bg-green-400 mr-2"></span>
+                    <span>Sports</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/events?category=arts" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors">
+                    <span className="w-2 h-2 rounded-full bg-orange-400 mr-2"></span>
+                    <span>Arts & Culture</span>
+                  </Link>
+                </li>
+              </ul>
+            </div>
           </nav>
 
           <div className="p-4 border-t border-sky-700">

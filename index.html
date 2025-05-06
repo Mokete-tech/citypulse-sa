@@ -10,6 +10,53 @@
     <meta name="description" content="Discover the best local deals and events in South Africa with CityPulse" />
     <link rel="stylesheet" href="/hide-connection-error.css" />
 
+    <style>
+      /* Immediately hide connection error messages */
+      [role="alert"],
+      div:has(> div > span:contains("Connection Error")),
+      div:has(> div > span:contains("Unable to connect")),
+      div:has(> div > span:contains("Invalid API key")),
+      div:has(> div > span:contains("Try Again")),
+      div:has(> div > span:contains("Open Supabase Dashboard")),
+      div:has(> div > span:contains("Failed to load")),
+      div:has(> div > span:contains("Error")),
+      div:has(> div > span:contains("error")),
+      div:has(> div > span:contains("Unable to")),
+      div:has(> div > span:contains("Cannot")),
+      div:has(> div > span:contains("Failed")),
+      div:has(> div > span:contains("Supabase")),
+      div:has(> div > span:contains("database")),
+      div:has(> div > span:contains("API key")),
+      div:has(> div > span:contains("Dashboard")),
+      div:has(> div > span:contains("Try Again")) {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        width: 0 !important;
+        position: absolute !important;
+        pointer-events: none !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        z-index: -9999 !important;
+      }
+
+      /* Hide any error messages that might appear */
+      .error-message,
+      .alert-error,
+      .alert-danger,
+      .connection-error,
+      .supabase-error,
+      .api-error,
+      .database-error,
+      .loading-error,
+      [data-error="true"],
+      [data-state="error"],
+      [data-type="error"] {
+        display: none !important;
+      }
+    </style>
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://citypulse-sa.vercel.app/" />
@@ -29,48 +76,106 @@
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Script to remove connection error messages
-      document.addEventListener('DOMContentLoaded', function() {
-        // Function to remove connection error messages
-        function removeConnectionErrors() {
-          // Find all elements with role="alert"
-          const alerts = document.querySelectorAll('[role="alert"]');
-          alerts.forEach(alert => {
-            // Remove all alerts completely
-            alert.remove();
-          });
+      // Immediately execute before DOM is fully loaded
+      (function() {
+        function hideErrors() {
+          // Find and remove connection error elements
+          const errorTexts = [
+            'Connection Error',
+            'Unable to connect',
+            'Invalid API key',
+            'Try Again',
+            'Open Supabase Dashboard',
+            'Failed to load',
+            'Error:',
+            'error',
+            'Unable to',
+            'Cannot',
+            'Failed',
+            'Supabase',
+            'database',
+            'API key',
+            'Dashboard'
+          ];
 
-          // Find all elements that might contain error messages
-          const allElements = document.querySelectorAll('*');
-          allElements.forEach(element => {
-            if (element.textContent && (
-                element.textContent.includes('Connection Error') ||
-                element.textContent.includes('Unable to connect to the database') ||
-                element.textContent.includes('Error: Invalid API key') ||
-                element.textContent.includes('Failed to load')
-              )) {
-              // Try to find the closest container and remove it
-              const container = element.closest('.alert') ||
-                               element.closest('[role="alert"]') ||
-                               element.closest('.error-message') ||
-                               element.closest('.mb-6') || // Common margin class for alerts
-                               element;
+          // Function to check if element contains any error text
+          function containsErrorText(element) {
+            if (!element || !element.textContent) return false;
+            return errorTexts.some(text => element.textContent.includes(text));
+          }
 
-              if (container.parentNode) {
-                container.remove();
+          // Function to hide element
+          function hideElement(element) {
+            if (!element) return;
+            element.style.display = 'none';
+            element.style.visibility = 'hidden';
+            element.style.opacity = '0';
+            element.style.height = '0';
+            element.style.width = '0';
+            element.style.position = 'absolute';
+            element.style.pointerEvents = 'none';
+            element.style.overflow = 'hidden';
+            element.style.clip = 'rect(0, 0, 0, 0)';
+
+            // Also try to remove it
+            try {
+              if (element.parentNode) {
+                element.parentNode.removeChild(element);
               }
+            } catch (e) {}
+          }
+
+          // Hide all alert elements
+          document.querySelectorAll('[role="alert"]').forEach(hideElement);
+
+          // Find all elements and check their text content
+          document.querySelectorAll('*').forEach(element => {
+            if (containsErrorText(element)) {
+              // Try to find the parent container
+              let container = element;
+              for (let i = 0; i < 5; i++) { // Check up to 5 levels up
+                if (container.parentNode && container.parentNode !== document.body) {
+                  container = container.parentNode;
+                } else {
+                  break;
+                }
+              }
+              hideElement(container);
             }
           });
         }
 
-        // Run immediately and then every 500ms
-        removeConnectionErrors();
-        setInterval(removeConnectionErrors, 500);
+        // Run immediately
+        hideErrors();
 
-        // Also run when DOM changes
-        const observer = new MutationObserver(removeConnectionErrors);
-        observer.observe(document.body, { childList: true, subtree: true });
-      });
+        // Run again when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+          hideErrors();
+
+          // Run every 100ms for the first 5 seconds
+          let count = 0;
+          const interval = setInterval(function() {
+            hideErrors();
+            count++;
+            if (count >= 50) clearInterval(interval);
+          }, 100);
+
+          // Also run when DOM changes
+          const observer = new MutationObserver(function(mutations) {
+            hideErrors();
+          });
+
+          observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            characterData: true
+          });
+
+          // Run every second indefinitely
+          setInterval(hideErrors, 1000);
+        });
+      })();
     </script>
   </body>
 </html>

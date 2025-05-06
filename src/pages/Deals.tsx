@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import Footer from '@/components/layout/Footer';
@@ -8,47 +9,101 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { DealCard } from '@/components/cards/DealCard';
 import { supabase } from '@/integrations/supabase/client';
 import { handleSupabaseError } from '@/lib/error-handler';
-import { SearchIcon, Tag } from 'lucide-react';
+import { SearchIcon, Tag, X } from 'lucide-react';
 import { fallbackDeals } from '@/data/fallback-data';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 const Deals = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [deals, setDeals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Get category from URL query parameter
+  const queryParams = new URLSearchParams(location.search);
+  const categoryFilter = queryParams.get('category');
+
+  // Category display names mapping
+  const categoryNames: Record<string, string> = {
+    'food-drink': 'Food & Drink',
+    'retail': 'Retail',
+    'beauty': 'Beauty',
+    'entertainment': 'Entertainment',
+    'travel': 'Travel'
+  };
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
+  // Clear category filter
+  const clearCategoryFilter = () => {
+    navigate('/deals');
+  };
+
   useEffect(() => {
     fetchDeals();
-  }, []);
+  }, [categoryFilter]);
 
   const fetchDeals = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('deals')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
+
+      // Apply category filter if present
+      if (categoryFilter) {
+        // Convert URL parameter format to database format
+        const dbCategory = categoryFilter === 'food-drink'
+          ? 'Food & Drink'
+          : categoryFilter.charAt(0).toUpperCase() + categoryFilter.slice(1);
+
+        query = query.ilike('category', dbCategory);
+      }
+
+      // Add ordering
+      query = query.order('created_at', { ascending: false });
+
+      const { data, error } = await query;
 
       if (error) {
         throw error;
       }
 
-      setDeals(data || fallbackDeals);
+      // If no results and we have a category filter, use filtered fallback data
+      if ((!data || data.length === 0) && categoryFilter) {
+        const filteredFallbacks = fallbackDeals.filter(deal =>
+          deal.category.toLowerCase().includes(categoryFilter.replace('-', ' '))
+        );
+        setDeals(filteredFallbacks.length > 0 ? filteredFallbacks : fallbackDeals);
+      } else {
+        setDeals(data || fallbackDeals);
+      }
     } catch (error) {
       handleSupabaseError(error, {
         title: 'Error loading deals',
         message: 'Could not load deals. Using fallback data instead.',
         silent: true
       });
+
+      // If we have a category filter, use filtered fallback data
+      if (categoryFilter) {
+        const filteredFallbacks = fallbackDeals.filter(deal =>
+          deal.category.toLowerCase().includes(categoryFilter.replace('-', ' '))
+        );
+        setDeals(filteredFallbacks.length > 0 ? filteredFallbacks : fallbackDeals);
+      } else {
+        setDeals(fallbackDeals);
+      }
+
       setError('Failed to load deals. Showing sample data instead.');
-      setDeals(fallbackDeals);
     } finally {
       setLoading(false);
     }
@@ -86,6 +141,24 @@ const Deals = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
+
+            {/* Active category filter */}
+            {categoryFilter && (
+              <div className="mt-4 flex items-center">
+                <span className="text-sm text-muted-foreground mr-2">Filtered by:</span>
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  {categoryNames[categoryFilter] || categoryFilter}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-4 w-4 p-0 ml-1"
+                    onClick={clearCategoryFilter}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              </div>
+            )}
           </div>
 
           <LoadingState isLoading={loading} type="card" count={6}>
