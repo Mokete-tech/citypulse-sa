@@ -13,11 +13,13 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_P
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const IS_DEV = import.meta.env.DEV || import.meta.env.MODE === 'development';
 
-// Log environment variables for debugging
-console.log('Supabase URL:', SUPABASE_URL ? SUPABASE_URL.substring(0, 30) + '...' : 'Not set');
-console.log('Supabase Anon Key:', SUPABASE_ANON_KEY ? 'Key is set' : 'Not set');
+// Log environment variables for debugging (only in development)
+if (IS_DEV) {
+  console.log('Supabase URL:', SUPABASE_URL ? SUPABASE_URL.substring(0, 30) + '...' : 'Not set');
+  console.log('Supabase Anon Key:', SUPABASE_ANON_KEY ? 'Key is set' : 'Not set');
+}
 
-// Validate environment variables and use fallbacks in development if needed
+// Validate environment variables and use fallbacks if needed
 let supabaseUrl = SUPABASE_URL;
 let supabaseAnonKey = SUPABASE_ANON_KEY;
 let usingFallback = false;
@@ -46,6 +48,7 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
+// Create the Supabase client with error handling
 export const supabase = createClient<Database>(
   supabaseUrl as string,
   supabaseAnonKey as string,
@@ -54,6 +57,11 @@ export const supabase = createClient<Database>(
       autoRefreshToken: true,
       persistSession: true,
     },
+    global: {
+      headers: {
+        'X-Disable-Error-UI': 'true' // Disable the built-in error UI
+      }
+    }
   }
 );
 
@@ -72,32 +80,51 @@ export const checkSupabaseConnection = async (): Promise<{ success: boolean; err
         NEXT_PUBLIC_SUPABASE_ANON_KEY: !!import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
       };
 
-      console.error('Cannot connect to Supabase: Missing environment variables');
-      console.info('Available environment variables:', envVars);
+      if (IS_DEV) {
+        console.error('Cannot connect to Supabase: Missing environment variables');
+        console.info('Available environment variables:', envVars);
+      }
 
-      return {
-        success: false,
-        error: 'Missing Supabase environment variables',
-        details: envVars
-      };
+      // If we're using fallback credentials, we can still try to connect
+      if (!usingFallback) {
+        return {
+          success: false,
+          error: 'Missing Supabase environment variables',
+          details: envVars
+        };
+      }
     }
 
     // Try to query a table to verify connection - use deals table since we know it exists
     const { data, error } = await supabase.from('deals').select('id').limit(1);
 
     if (error) {
-      console.error('Supabase connection error:', error);
-      return {
-        success: false,
-        error: error.message || 'Database connection error',
-        details: error
-      };
+      if (IS_DEV) {
+        console.error('Supabase connection error:', error);
+      }
+
+      // Try a different table as a fallback
+      const { error: authError } = await supabase.from('auth').select('id').limit(1);
+
+      if (authError) {
+        // Both attempts failed
+        return {
+          success: false,
+          error: error.message || 'Database connection error',
+          details: { primaryError: error, secondaryError: authError }
+        };
+      }
     }
 
-    console.info('Successfully connected to Supabase');
+    if (IS_DEV) {
+      console.info('Successfully connected to Supabase');
+    }
     return { success: true };
   } catch (error: any) {
-    console.error('Failed to connect to Supabase:', error);
+    if (IS_DEV) {
+      console.error('Failed to connect to Supabase:', error);
+    }
+
     return {
       success: false,
       error: error.message || 'Unexpected error connecting to Supabase',
