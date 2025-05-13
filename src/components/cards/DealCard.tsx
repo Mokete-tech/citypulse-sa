@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ReactionButton } from '@/components/ui/reaction-button';
-import { Tag, Share2 } from 'lucide-react';
+import ShareButton from '@/components/ui/share-button';
+import { Tag } from 'lucide-react';
 
 interface DealCardProps {
   id: number;
@@ -95,12 +96,15 @@ export function DealCard({
 
         <div className="flex items-center gap-2">
           <Button size="sm" onClick={handleClick}>View Deal</Button>
-          <Button size="sm" variant="ghost" onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/deals/${id}`);
-          }}>
-            <Share2 className="h-4 w-4" />
-          </Button>
+          <ShareButton
+            title={title}
+            description="deal"
+            url={`${window.location.origin}/deals/${id}`}
+            size="sm"
+            variant="ghost"
+            itemId={id}
+            itemType="deal"
+          />
         </div>
       </CardFooter>
     </Card>

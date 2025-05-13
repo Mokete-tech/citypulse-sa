@@ -14,8 +14,8 @@ const reactionButtonVariants = cva(
   {
     variants: {
       state: {
-        active: "bg-gradient-to-r from-blue-600 to-blue-400 text-white border-transparent hover:from-blue-700 hover:to-blue-500 shadow-lg hover:shadow-xl ring-2 ring-blue-300 ring-offset-2 font-extrabold",
-        inactive: "bg-white hover:bg-gray-50 border-gray-300 hover:border-blue-400 hover:shadow-md hover:ring-2 hover:ring-blue-200 hover:ring-offset-2"
+        active: "bg-gradient-to-r from-green-600 to-green-400 text-white border-transparent hover:from-green-700 hover:to-green-500 shadow-lg hover:shadow-xl ring-2 ring-green-300 ring-offset-2 font-extrabold",
+        inactive: "bg-white hover:bg-gray-50 border-gray-300 hover:border-green-400 hover:shadow-md hover:ring-2 hover:ring-green-200 hover:ring-offset-2"
       },
       animation: {
         pulse: "hover:animate-pulse",
@@ -183,7 +183,7 @@ export function ReactionButton({
                 size: buttonSize
               }),
               'border-2 transition-all duration-300 font-bold',
-              hasReacted ? 'border-blue-400' : 'border-gray-300',
+              hasReacted ? 'border-green-400' : 'border-gray-300',
               className
             )}
             onClick={handleReaction}
@@ -195,14 +195,14 @@ export function ReactionButton({
                 <Check className={cn(
                   'transition-all duration-300',
                   buttonSize === 'sm' ? 'h-4 w-4' : buttonSize === 'lg' ? 'h-6 w-6' : 'h-5 w-5',
-                  hasReacted ? 'text-white scale-125 stroke-[4] drop-shadow-md' : 'text-gray-600 stroke-[3]',
+                  hasReacted ? 'text-white scale-125 stroke-[5] drop-shadow-md' : 'text-gray-600 stroke-[4]',
                   showCount ? 'mr-2' : ''
                 )} />
               ) : (
                 <ThumbsUp className={cn(
                   'transition-all duration-300',
                   buttonSize === 'sm' ? 'h-4 w-4' : buttonSize === 'lg' ? 'h-6 w-6' : 'h-5 w-5',
-                  hasReacted ? 'text-white scale-125 stroke-[4] drop-shadow-md' : 'text-gray-600 stroke-[2]',
+                  hasReacted ? 'text-white scale-125 stroke-[4] drop-shadow-md' : 'text-gray-600 stroke-[3]',
                   showCount ? 'mr-2' : ''
                 )} />
               )}
@@ -211,7 +211,7 @@ export function ReactionButton({
               {hasReacted && (
                 <>
                   <span className="absolute inset-0 rounded-full animate-ping opacity-30 bg-white" />
-                  <span className="absolute inset-0 rounded-full animate-pulse opacity-20 bg-blue-200" />
+                  <span className="absolute inset-0 rounded-full animate-pulse opacity-20 bg-green-200" />
                 </>
               )}
             </span>
