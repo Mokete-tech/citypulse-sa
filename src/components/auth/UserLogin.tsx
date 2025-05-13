@@ -9,6 +9,7 @@ import { AlertCircle, Mail, Lock } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
+import { resetPassword } from '@/lib/auth-helpers';
 import { handleError } from '@/lib/error-handler';
 import { toast } from '@/components/ui/sonner';
 import PhoneLogin from './PhoneLogin';
@@ -31,12 +32,36 @@ const UserLogin = ({ onClose }: UserLoginProps) => {
     e.preventDefault();
     setFormError("");
 
+    // Basic validation
+    if (!email) {
+      setFormError("Please enter your email address");
+      return;
+    }
+
+    if (!password) {
+      setFormError("Please enter your password");
+      return;
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setFormError("Please enter a valid email address");
+      return;
+    }
+
     try {
       await signIn(email, password);
       if (onClose) onClose();
-    } catch (error) {
-      // Error is already handled by the auth context
-      setFormError("Invalid email or password. Please try again.");
+    } catch (error: any) {
+      // Set a user-friendly error message
+      if (error?.message?.includes("Invalid login credentials")) {
+        setFormError("Invalid email or password. Please try again.");
+      } else if (error?.message?.includes("Email not confirmed")) {
+        setFormError("Please verify your email address before logging in.");
+      } else {
+        setFormError("An error occurred during login. Please try again.");
+      }
     }
   };
 
@@ -44,8 +69,36 @@ const UserLogin = ({ onClose }: UserLoginProps) => {
     e.preventDefault();
     setFormError("");
 
-    if (!registerEmail || !registerPassword) {
-      setFormError("Please fill in all required fields");
+    // Basic validation
+    if (!registerEmail) {
+      setFormError("Please enter your email address");
+      return;
+    }
+
+    if (!registerPassword) {
+      setFormError("Please enter a password");
+      return;
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(registerEmail)) {
+      setFormError("Please enter a valid email address");
+      return;
+    }
+
+    // Password strength validation
+    if (registerPassword.length < 6) {
+      setFormError("Password must be at least 6 characters long");
+      return;
+    }
+
+    // Check for at least one number and one letter
+    const hasNumber = /\d/.test(registerPassword);
+    const hasLetter = /[a-zA-Z]/.test(registerPassword);
+
+    if (!hasNumber || !hasLetter) {
+      setFormError("Password must contain at least one letter and one number");
       return;
     }
 
@@ -62,11 +115,19 @@ const UserLogin = ({ onClose }: UserLoginProps) => {
       toast.success("Registration successful", {
         description: "Please check your email to verify your account before logging in."
       });
-    } catch (error) {
-      handleError(error, {
-        title: "Registration failed",
-        message: "Could not create your account. Please try again."
-      });
+    } catch (error: any) {
+      // Set a user-friendly error message
+      if (error?.message?.includes("already registered")) {
+        setFormError("This email is already registered. Please try logging in instead.");
+      } else if (error?.message?.includes("weak password")) {
+        setFormError("Please use a stronger password.");
+      } else {
+        setFormError("Registration failed. Please try again.");
+        handleError(error, {
+          title: "Registration failed",
+          message: "Could not create your account. Please try again."
+        });
+      }
     }
   };
 

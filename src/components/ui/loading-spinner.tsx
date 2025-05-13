@@ -2,15 +2,40 @@ import { cn } from '@/lib/utils';
 
 interface LoadingSpinnerProps {
   className?: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  variant?: 'default' | 'circle';
 }
 
-export function LoadingSpinner({ className, size = 'md' }: LoadingSpinnerProps) {
+export function LoadingSpinner({
+  className,
+  size = 'md',
+  variant = 'default'
+}: LoadingSpinnerProps) {
   const sizeClasses = {
     sm: 'h-4 w-4',
     md: 'h-5 w-5',
-    lg: 'h-6 w-6'
+    lg: 'h-6 w-6',
+    xl: 'h-8 w-8'
   };
+
+  if (variant === 'circle') {
+    return (
+      <div
+        className={cn(
+          'animate-spin rounded-full border-solid border-current border-t-transparent',
+          {
+            'border-2': size === 'sm' || size === 'md',
+            'border-3': size === 'lg',
+            'border-4': size === 'xl',
+          },
+          sizeClasses[size],
+          className
+        )}
+      >
+        <span className="sr-only">Loading...</span>
+      </div>
+    );
+  }
 
   return (
     <svg
