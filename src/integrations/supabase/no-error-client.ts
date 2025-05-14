@@ -2,19 +2,29 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 import { fallbackDeals, fallbackEvents } from '@/data/fallback-data';
 
-// Production and development fallback values
-const FALLBACK = {
-  SUPABASE_URL: 'https://qghojdkspxhyjeurxagx.supabase.co',
-  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFnaG9qZGtzcHhoeWpldXJ4YWd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ2NTU4NjUsImV4cCI6MjA2MDIzMTg2NX0.QInil2Wr7x14JwpRKKkIcgG6WwyOIUFx-O_kL8o2jdg'
+// Environment variable configuration
+const ENV_CONFIG = {
+  // Default Supabase project URL - this is just the project URL, not a secret
+  DEFAULT_SUPABASE_URL: 'https://qghojdkspxhyjeurxagx.supabase.co',
 };
 
 // Use environment variables for Supabase credentials (support both VITE_ and NEXT_PUBLIC_ prefixes)
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const IS_DEV = import.meta.env.DEV || import.meta.env.MODE === 'development';
 
-// Validate environment variables and use fallbacks
-let supabaseUrl = SUPABASE_URL || FALLBACK.SUPABASE_URL;
-let supabaseAnonKey = SUPABASE_ANON_KEY || FALLBACK.SUPABASE_ANON_KEY;
+// Use environment variables or default URL, but don't use a hardcoded key
+const supabaseUrl = SUPABASE_URL || ENV_CONFIG.DEFAULT_SUPABASE_URL;
+const supabaseAnonKey = SUPABASE_ANON_KEY || '';
+
+// Log warning in development mode if missing credentials
+if (IS_DEV && !SUPABASE_ANON_KEY) {
+  console.warn(
+    '⚠️ No-error client: Missing Supabase API key. ' +
+    'This client will use fallback data instead of connecting to Supabase. ' +
+    'Set up your .env file with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY for real data.'
+  );
+}
 
 // Create a real Supabase client for actual API calls
 const realClient = createClient<Database>(
@@ -111,7 +121,7 @@ const noErrorClient = {
       }
     }
   },
-  
+
   // Database methods
   from: (table: string) => {
     return {
@@ -124,27 +134,27 @@ const noErrorClient = {
                   const result = await realClient.from(table).select(columns).order(column, options).limit(limit);
                   if (result.error) {
                     console.error(`Database error intercepted for ${table}:`, result.error);
-                    
+
                     // Return fallback data based on the table
                     if (table === 'deals') {
                       return { data: fallbackDeals.slice(0, limit), error: null };
                     } else if (table === 'events') {
                       return { data: fallbackEvents.slice(0, limit), error: null };
                     }
-                    
+
                     return { data: [], error: null };
                   }
                   return result;
                 } catch (error) {
                   console.error(`Database error intercepted for ${table}:`, error);
-                  
+
                   // Return fallback data based on the table
                   if (table === 'deals') {
                     return { data: fallbackDeals.slice(0, limit), error: null };
                   } else if (table === 'events') {
                     return { data: fallbackEvents.slice(0, limit), error: null };
                   }
-                  
+
                   return { data: [], error: null };
                 }
               },
@@ -153,27 +163,27 @@ const noErrorClient = {
                   const result = await realClient.from(table).select(columns).order(column, options);
                   if (result.error) {
                     console.error(`Database error intercepted for ${table}:`, result.error);
-                    
+
                     // Return fallback data based on the table
                     if (table === 'deals') {
                       return { data: fallbackDeals, error: null };
                     } else if (table === 'events') {
                       return { data: fallbackEvents, error: null };
                     }
-                    
+
                     return { data: [], error: null };
                   }
                   return result;
                 } catch (error) {
                   console.error(`Database error intercepted for ${table}:`, error);
-                  
+
                   // Return fallback data based on the table
                   if (table === 'deals') {
                     return { data: fallbackDeals, error: null };
                   } else if (table === 'events') {
                     return { data: fallbackEvents, error: null };
                   }
-                  
+
                   return { data: [], error: null };
                 }
               }
@@ -184,27 +194,27 @@ const noErrorClient = {
               const result = await realClient.from(table).select(columns);
               if (result.error) {
                 console.error(`Database error intercepted for ${table}:`, result.error);
-                
+
                 // Return fallback data based on the table
                 if (table === 'deals') {
                   return { data: fallbackDeals, error: null };
                 } else if (table === 'events') {
                   return { data: fallbackEvents, error: null };
                 }
-                
+
                 return { data: [], error: null };
               }
               return result;
             } catch (error) {
               console.error(`Database error intercepted for ${table}:`, error);
-              
+
               // Return fallback data based on the table
               if (table === 'deals') {
                 return { data: fallbackDeals, error: null };
               } else if (table === 'events') {
                 return { data: fallbackEvents, error: null };
               }
-              
+
               return { data: [], error: null };
             }
           }

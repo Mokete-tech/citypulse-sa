@@ -31,18 +31,14 @@
   ],
   "env": {
     "VITE_SUPABASE_URL": "https://qghojdkspxhyjeurxagx.supabase.co",
-    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFnaG9qZGtzcHhoeWpldXJ4YWd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTg3NjQ4MDAsImV4cCI6MjAxNDM0MDgwMH0.fallback-key-for-development",
     "VITE_APP_NAME": "CityPulse South Africa",
-    "VITE_APP_ENV": "production",
-    "VITE_STRIPE_PUBLISHABLE_KEY": "pk_live_51IRNxfHieGkyNl5wOGvmEAtaXxZ6VHEPmHcXuwfsfOPTt0umFFEY9QpsJMXo4IAo0uzl0R66CpaJFRKCaXo0k5DZ00uGSXCeCN"
+    "VITE_APP_ENV": "production"
   },
   "build": {
     "env": {
       "VITE_SUPABASE_URL": "https://qghojdkspxhyjeurxagx.supabase.co",
-      "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFnaG9qZGtzcHhoeWpldXJ4YWd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTg3NjQ4MDAsImV4cCI6MjAxNDM0MDgwMH0.fallback-key-for-development",
       "VITE_APP_NAME": "CityPulse South Africa",
-      "VITE_APP_ENV": "production",
-      "VITE_STRIPE_PUBLISHABLE_KEY": "pk_live_51IRNxfHieGkyNl5wOGvmEAtaXxZ6VHEPmHcXuwfsfOPTt0umFFEY9QpsJMXo4IAo0uzl0R66CpaJFRKCaXo0k5DZ00uGSXCeCN"
+      "VITE_APP_ENV": "production"
     }
   }
 }
