@@ -5,7 +5,7 @@
  * and provides warnings for developers and users when using fallbacks.
  */
 
-import { isUsingFallbackCredentials } from '@/integrations/supabase/client';
+import { isUsingDefaultCredentials } from '@/integrations/supabase';
 
 interface EnvCheckResult {
   isValid: boolean;
@@ -14,14 +14,21 @@ interface EnvCheckResult {
   warnings: string[];
 }
 
-// Check if SMTP is configured
-function isSmtpConfigured(): boolean {
-  return Boolean(
-    process.env.SMTP_HOST &&
-    process.env.SMTP_USER &&
-    process.env.SMTP_PASS
+// Helper function to check if email configuration is available
+const hasEmailConfig = () => {
+  const hasSmtp = Boolean(
+    import.meta.env.SMTP_HOST &&
+    import.meta.env.SMTP_USER &&
+    import.meta.env.SMTP_PASS
   );
-}
+
+  const hasSendgrid = Boolean(
+    import.meta.env.VITE_SENDGRID_API_KEY &&
+    import.meta.env.VITE_SENDGRID_FROM_EMAIL
+  );
+
+  return hasSmtp || hasSendgrid;
+};
 
 /**
  * Checks if all required environment variables are set
@@ -57,30 +64,21 @@ export function checkEnvironmentVariables(): EnvCheckResult {
 
   const warnings = [];
 
-  if (isUsingFallbackCredentials) {
+  if (isUsingDefaultCredentials) {
     warnings.push(
-      'Using development fallback credentials for Supabase. This is not secure for production use.'
+      'Using default Supabase configuration. This is not secure for production use.'
     );
   }
 
   if (missingOptionalVars.length > 0) {
-    // Group missing variables by category
-    const sendgridVars = missingOptionalVars.filter(v => v.includes('SENDGRID'));
-    const smtpVars = missingOptionalVars.filter(v => v.includes('SMTP'));
+    // Group missing variables by category for better reporting
     const appVars = missingOptionalVars.filter(v => v.includes('APP_'));
     const otherVars = missingOptionalVars.filter(v =>
       !v.includes('SENDGRID') && !v.includes('SMTP') && !v.includes('APP_')
     );
 
     // Only warn about email configuration if both SendGrid and SMTP are missing
-    const hasSmtpConfig = import.meta.env.SMTP_HOST &&
-                          import.meta.env.SMTP_USER &&
-                          import.meta.env.SMTP_PASS;
-
-    const hasSendgridConfig = import.meta.env.VITE_SENDGRID_API_KEY &&
-                              import.meta.env.VITE_SENDGRID_FROM_EMAIL;
-
-    if (!hasSmtpConfig && !hasSendgridConfig) {
+    if (!hasEmailConfig()) {
       warnings.push(
         `Email configuration missing. Email features will not work correctly.`
       );
@@ -100,9 +98,9 @@ export function checkEnvironmentVariables(): EnvCheckResult {
   }
 
   return {
-    isValid: missingVars.length === 0 || isUsingFallbackCredentials,
+    isValid: missingVars.length === 0 || isUsingDefaultCredentials,
     missingVars,
-    usingFallbacks: isUsingFallbackCredentials,
+    usingFallbacks: isUsingDefaultCredentials,
     warnings,
   };
 }
@@ -119,28 +117,21 @@ export function getEnvironmentWarningMessage(): string | null {
   }
 
   if (usingFallbacks) {
-    return '⚠️ Using development fallback credentials. Not suitable for production use.';
+    return '⚠️ Using default Supabase configuration. Not suitable for production use.';
   }
 
   // Check if we have either SMTP or SendGrid configured
-  const hasSmtpConfig = import.meta.env.SMTP_HOST &&
-                        import.meta.env.SMTP_USER &&
-                        import.meta.env.SMTP_PASS;
-
-  const hasSendgridConfig = import.meta.env.VITE_SENDGRID_API_KEY &&
-                            import.meta.env.VITE_SENDGRID_FROM_EMAIL;
-
   // If we have email configured, don't show warnings about missing optional vars
-  if ((hasSmtpConfig || hasSendgridConfig) &&
+  if (hasEmailConfig() &&
       warnings.length === 1 &&
       warnings[0].includes('Email configuration')) {
     return null;
   }
 
   if (warnings.length > 0) {
-    // Filter out email warnings if we have either config
+    // Filter out email warnings if we have email config
     const filteredWarnings = warnings.filter(w =>
-      !(hasSmtpConfig || hasSendgridConfig) || !w.includes('Email configuration')
+      !hasEmailConfig() || !w.includes('Email configuration')
     );
 
     if (filteredWarnings.length > 0) {
