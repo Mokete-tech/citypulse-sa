@@ -1,7 +1,8 @@
 
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Tag, Calendar, LogIn, ChevronLeft, CreditCard
+  Tag, Calendar, LogIn, ChevronLeft, CreditCard, ChevronDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -17,6 +18,103 @@ const menuItems = [
   { name: 'Merchant Login', icon: LogIn, path: '/merchant/login' },
   { name: 'Merchant Packages', icon: CreditCard, path: '/merchant/packages' },
 ];
+
+// Filter categories data
+const filterCategories = [
+  { name: 'Food & Drink', color: 'bg-amber-400', path: '/deals?category=food-drink' },
+  { name: 'Retail', color: 'bg-emerald-400', path: '/deals?category=retail' },
+  { name: 'Beauty', color: 'bg-pink-400', path: '/deals?category=beauty' },
+  { name: 'Entertainment', color: 'bg-purple-400', path: '/deals?category=entertainment' },
+  { name: 'Travel', color: 'bg-blue-400', path: '/deals?category=travel' },
+];
+
+// Event types data
+const eventTypes = [
+  { name: 'Music', color: 'bg-red-400', path: '/events?category=music' },
+  { name: 'Food & Shopping', color: 'bg-yellow-400', path: '/events?category=food-shopping' },
+  { name: 'Networking', color: 'bg-indigo-400', path: '/events?category=networking' },
+  { name: 'Sports', color: 'bg-green-400', path: '/events?category=sports' },
+  { name: 'Arts & Culture', color: 'bg-orange-400', path: '/events?category=arts' },
+];
+
+// Collapsible section component
+interface CollapsibleSectionProps {
+  title: string;
+  id: string;
+  children: React.ReactNode;
+  defaultExpanded?: boolean;
+}
+
+const CollapsibleSection = ({ title, id, children, defaultExpanded = true }: CollapsibleSectionProps) => {
+  // Initialize state from localStorage or default
+  const [isExpanded, setIsExpanded] = useState(() => {
+    // Check if we have a stored preference
+    const storedState = localStorage.getItem(`sidebar-section-${id}`);
+    // If on mobile, default to collapsed
+    if (window.innerWidth < 768) return false;
+    // Otherwise use stored preference or default
+    return storedState !== null ? storedState === 'true' : defaultExpanded;
+  });
+
+  // Toggle section expanded state
+  const toggleSection = () => {
+    const newState = !isExpanded;
+    setIsExpanded(newState);
+    localStorage.setItem(`sidebar-section-${id}`, newState.toString());
+  };
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      const isMobileView = window.innerWidth < 768;
+
+      // Only auto-adjust if user hasn't manually set it
+      const userHasSetPreference = localStorage.getItem(`sidebar-section-${id}`) !== null;
+
+      if (!userHasSetPreference) {
+        // Auto-collapse on mobile, expand on desktop
+        setIsExpanded(!isMobileView);
+      }
+    };
+
+    // Add event listener for window resize
+    window.addEventListener('resize', handleResize);
+
+    // Clean up event listener
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [id]);
+
+  return (
+    <div className="mt-6 px-4">
+      <button
+        onClick={toggleSection}
+        className="flex items-center justify-between w-full text-sm font-semibold mb-2 text-white/80 hover:text-white transition-colors"
+        aria-expanded={isExpanded}
+        aria-controls={`section-${id}`}
+      >
+        <span>{title}</span>
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 transition-transform duration-200",
+            isExpanded ? "" : "-rotate-90"
+          )}
+        />
+      </button>
+
+      <div
+        id={`section-${id}`}
+        className={cn(
+          "overflow-hidden transition-all duration-300 ease-in-out",
+          isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        )}
+      >
+        {children}
+      </div>
+    </div>
+  );
+};
 
 const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   return (
@@ -62,78 +160,38 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
             </ul>
 
             {/* Filter Categories */}
-            <div className="mt-6 px-4">
-              <h3 className="text-sm font-semibold mb-3 text-white/80">Filter Categories</h3>
+            <CollapsibleSection title="Filter Categories" id="filter-categories" defaultExpanded={true}>
               <ul className="space-y-1">
-                <li>
-                  <Link to="/deals?category=food-drink" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors">
-                    <span className="w-2 h-2 rounded-full bg-amber-400 mr-2"></span>
-                    <span>Food & Drink</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/deals?category=retail" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 mr-2"></span>
-                    <span>Retail</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/deals?category=beauty" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors">
-                    <span className="w-2 h-2 rounded-full bg-pink-400 mr-2"></span>
-                    <span>Beauty</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/deals?category=entertainment" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors">
-                    <span className="w-2 h-2 rounded-full bg-purple-400 mr-2"></span>
-                    <span>Entertainment</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/deals?category=travel" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors">
-                    <span className="w-2 h-2 rounded-full bg-blue-400 mr-2"></span>
-                    <span>Travel</span>
-                  </Link>
-                </li>
+                {filterCategories.map((category) => (
+                  <li key={category.name}>
+                    <Link
+                      to={category.path}
+                      className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors"
+                    >
+                      <span className={`w-2 h-2 rounded-full ${category.color} mr-2`}></span>
+                      <span>{category.name}</span>
+                    </Link>
+                  </li>
+                ))}
               </ul>
-            </div>
+            </CollapsibleSection>
 
             {/* Event Categories */}
-            <div className="mt-6 px-4">
-              <h3 className="text-sm font-semibold mb-3 text-white/80">Event Types</h3>
+            <CollapsibleSection title="Event Types" id="event-types" defaultExpanded={true}>
               <ul className="space-y-1">
-                <li>
-                  <Link to="/events?category=music" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors">
-                    <span className="w-2 h-2 rounded-full bg-red-400 mr-2"></span>
-                    <span>Music</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/events?category=food-shopping" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors">
-                    <span className="w-2 h-2 rounded-full bg-yellow-400 mr-2"></span>
-                    <span>Food & Shopping</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/events?category=networking" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors">
-                    <span className="w-2 h-2 rounded-full bg-indigo-400 mr-2"></span>
-                    <span>Networking</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/events?category=sports" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors">
-                    <span className="w-2 h-2 rounded-full bg-green-400 mr-2"></span>
-                    <span>Sports</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/events?category=arts" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors">
-                    <span className="w-2 h-2 rounded-full bg-orange-400 mr-2"></span>
-                    <span>Arts & Culture</span>
-                  </Link>
-                </li>
+                {eventTypes.map((eventType) => (
+                  <li key={eventType.name}>
+                    <Link
+                      to={eventType.path}
+                      className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sky-700 transition-colors"
+                    >
+                      <span className={`w-2 h-2 rounded-full ${eventType.color} mr-2`}></span>
+                      <span>{eventType.name}</span>
+                    </Link>
+                  </li>
+                ))}
               </ul>
-            </div>
+            </CollapsibleSection>
           </nav>
 
           <div className="p-4 border-t border-sky-700">
