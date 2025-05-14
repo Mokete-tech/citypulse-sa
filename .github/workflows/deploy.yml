@@ -31,28 +31,25 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Set up environment variables safely
-      - name: Set up environment variables
-        id: env_setup
+      # Check for secrets without directly referencing them
+      - name: Check for secrets
+        id: check_secrets
         run: |
-          # Initialize variables with defaults
-          SUPABASE_URL="${DEFAULT_SUPABASE_URL}"
-          SUPABASE_ANON_KEY=""
+          # This step checks if secrets exist without accessing their values directly
+
+          # Initialize result variables
           HAS_SUPABASE_SECRETS="false"
           HAS_VERCEL_SECRETS="false"
 
-          # Check for Supabase secrets
-          if [ -n "$SUPABASE_URL_SECRET" ] && [ -n "$SUPABASE_ANON_KEY_SECRET" ]; then
-            SUPABASE_URL="$SUPABASE_URL_SECRET"
-            SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY_SECRET"
+          # Check if environment variables are set (they will be empty strings if secrets don't exist)
+          if [ -n "$CHECK_SUPABASE_URL" ] && [ -n "$CHECK_SUPABASE_ANON_KEY" ]; then
             HAS_SUPABASE_SECRETS="true"
             echo "Supabase secrets found"
           else
-            echo "::warning::Missing Supabase secrets. Using default configuration."
+            echo "::warning::Missing Supabase secrets. Will use default configuration."
           fi
 
-          # Check for Vercel secrets
-          if [ -n "$VERCEL_TOKEN_SECRET" ] && [ -n "$VERCEL_ORG_ID_SECRET" ] && [ -n "$VERCEL_PROJECT_ID_SECRET" ]; then
+          if [ -n "$CHECK_VERCEL_TOKEN" ] && [ -n "$CHECK_VERCEL_ORG_ID" ] && [ -n "$CHECK_VERCEL_PROJECT_ID" ]; then
             HAS_VERCEL_SECRETS="true"
             echo "Vercel secrets found"
           else
@@ -60,46 +57,79 @@ jobs:
           fi
 
           # Export variables for later steps
-          echo "supabase_url=${SUPABASE_URL}" >> $GITHUB_OUTPUT
-          echo "supabase_anon_key=${SUPABASE_ANON_KEY}" >> $GITHUB_OUTPUT
           echo "has_supabase_secrets=${HAS_SUPABASE_SECRETS}" >> $GITHUB_OUTPUT
           echo "has_vercel_secrets=${HAS_VERCEL_SECRETS}" >> $GITHUB_OUTPUT
         env:
-          # Access secrets safely
-          SUPABASE_URL_SECRET: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY_SECRET: ${{ secrets.SUPABASE_ANON_KEY }}
-          VERCEL_TOKEN_SECRET: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID_SECRET: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID_SECRET: ${{ secrets.VERCEL_PROJECT_ID }}
+          # We're just checking if these are set, not accessing their values
+          CHECK_SUPABASE_URL: ${{ secrets.SUPABASE_URL != '' && '1' || '' }}
+          CHECK_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY != '' && '1' || '' }}
+          CHECK_VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN != '' && '1' || '' }}
+          CHECK_VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID != '' && '1' || '' }}
+          CHECK_VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID != '' && '1' || '' }}
+
+      # Set up Supabase environment variables if secrets are available
+      - name: Configure Supabase with secrets
+        id: supabase_config
+        if: steps.check_secrets.outputs.has_supabase_secrets == 'true'
+        run: |
+          # Store Supabase URL and key for the build step
+          echo "supabase_url=$SUPABASE_URL" >> $GITHUB_OUTPUT
+          echo "supabase_anon_key=$SUPABASE_ANON_KEY" >> $GITHUB_OUTPUT
+          echo "Using configured Supabase project"
+        env:
+          # These are used only in this step
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+      # Set up default Supabase URL if secrets are not available
+      - name: Configure default Supabase
+        id: supabase_default
+        if: steps.check_secrets.outputs.has_supabase_secrets != 'true'
+        run: |
+          # Use default Supabase URL and empty key
+          echo "supabase_url=${DEFAULT_SUPABASE_URL}" >> $GITHUB_OUTPUT
+          echo "supabase_anon_key=" >> $GITHUB_OUTPUT
+          echo "Using default Supabase configuration"
+
+      # Set up Vercel credentials if available
+      - name: Configure Vercel
+        id: vercel_config
+        if: steps.check_secrets.outputs.has_vercel_secrets == 'true'
+        run: |
+          # Store Vercel credentials as environment variables for the deployment step
+          echo "vercel_token=$VERCEL_TOKEN" >> $GITHUB_OUTPUT
+          echo "vercel_org_id=$VERCEL_ORG_ID" >> $GITHUB_OUTPUT
+          echo "vercel_project_id=$VERCEL_PROJECT_ID" >> $GITHUB_OUTPUT
+          echo "Vercel credentials configured for deployment"
+        env:
+          # These are used only in this step
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
       # Build the application with the appropriate environment variables
       - name: Build
         run: npm run build
         env:
-          # Use the safely processed environment variables
-          VITE_SUPABASE_URL: ${{ steps.env_setup.outputs.supabase_url }}
-          VITE_SUPABASE_ANON_KEY: ${{ steps.env_setup.outputs.supabase_anon_key }}
+          # Use the safely processed environment variables from previous steps
+          VITE_SUPABASE_URL: ${{ steps.supabase_config.outputs.supabase_url || steps.supabase_default.outputs.supabase_url }}
+          VITE_SUPABASE_ANON_KEY: ${{ steps.supabase_config.outputs.supabase_anon_key || steps.supabase_default.outputs.supabase_anon_key }}
 
       # Deploy to Vercel only if all required secrets are available
       - name: Deploy to Vercel
-        if: steps.env_setup.outputs.has_vercel_secrets == 'true'
+        if: steps.check_secrets.outputs.has_vercel_secrets == 'true'
         uses: amondnet/vercel-action@v25
-        env:
-          # These environment variables are used by the action internally
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         with:
-          # Use environment variables to avoid direct secret access in 'with' section
-          vercel-token: ${{ env.VERCEL_TOKEN }}
-          vercel-org-id: ${{ env.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ env.VERCEL_PROJECT_ID }}
+          # Use outputs from the vercel_config step
+          vercel-token: ${{ steps.vercel_config.outputs.vercel_token }}
+          vercel-org-id: ${{ steps.vercel_config.outputs.vercel_org_id }}
+          vercel-project-id: ${{ steps.vercel_config.outputs.vercel_project_id }}
           working-directory: ./
           vercel-args: '--prod'
 
       # Provide instructions if deployment is skipped
       - name: Deployment skipped
-        if: steps.env_setup.outputs.has_vercel_secrets != 'true'
+        if: steps.check_secrets.outputs.has_vercel_secrets != 'true'
         run: |
           echo "Vercel deployment was skipped due to missing secrets."
           echo "To deploy to Vercel, please add the following secrets to your repository:"
@@ -119,9 +149,9 @@ jobs:
 
           # Supabase configuration status
           echo "### Supabase Configuration" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ steps.env_setup.outputs.has_supabase_secrets }}" == "true" ]; then
+          if [ "${{ steps.check_secrets.outputs.has_supabase_secrets }}" == "true" ]; then
             echo "✅ **Complete** - Using configured Supabase project" >> $GITHUB_STEP_SUMMARY
-            echo "- Project URL: \`${{ steps.env_setup.outputs.supabase_url }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Project URL: \`${{ steps.supabase_config.outputs.supabase_url }}\`" >> $GITHUB_STEP_SUMMARY
           else
             echo "⚠️ **Incomplete** - Using default configuration" >> $GITHUB_STEP_SUMMARY
             echo "- Project URL: \`${DEFAULT_SUPABASE_URL}\`" >> $GITHUB_STEP_SUMMARY
@@ -137,7 +167,7 @@ jobs:
 
           # Vercel deployment status
           echo "### Vercel Deployment" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ steps.env_setup.outputs.has_vercel_secrets }}" == "true" ]; then
+          if [ "${{ steps.check_secrets.outputs.has_vercel_secrets }}" == "true" ]; then
             echo "✅ **Complete** - Deployed to Vercel production environment" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ **Skipped** - Missing required secrets" >> $GITHUB_STEP_SUMMARY
