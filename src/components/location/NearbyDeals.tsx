@@ -6,11 +6,13 @@ import { DealCard } from '@/components/cards/DealCard';
 import { LoadingState } from '@/components/ui/loading-state';
 import { supabase } from '@/integrations/supabase/client';
 import { handleSupabaseError } from '@/lib/error-handler';
-import { MapPin, AlertCircle } from 'lucide-react';
+import { MapPin, AlertCircle, Map } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { fallbackDeals } from '@/data/fallback-data';
 import { toast } from 'sonner';
 import { filterItemsByDistance } from '@/lib/geo-utils';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import LocationMap from './LocationMap';
 
 interface NearbyDealsProps {
   initialRadius?: number;
@@ -243,6 +245,10 @@ const NearbyDeals = ({
     );
   };
 
+  const handleDealClick = (id: number) => {
+    window.location.href = `/deals/${id}`;
+  };
+
   return (
     <Card className={className}>
       <CardHeader>
@@ -272,7 +278,17 @@ const NearbyDeals = ({
         ) : loading && !deals.length ? (
           <LoadingState isLoading={true} type="card" count={maxDeals} />
         ) : deals.length > 0 ? (
-          <div className="space-y-6">
+          <Tabs defaultValue="list" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="list" className="flex items-center gap-2">
+                <span>List View</span>
+              </TabsTrigger>
+              <TabsTrigger value="map" className="flex items-center gap-2">
+                <Map className="h-4 w-4" />
+                <span>Map View</span>
+              </TabsTrigger>
+            </TabsList>
+
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm">Distance: {radius} km</span>
@@ -289,37 +305,52 @@ const NearbyDeals = ({
               />
             </div>
 
-            <div className="space-y-4">
-              {deals.map((deal) => (
-                <div key={deal.id} className="relative">
-                  <DealCard
-                    id={deal.id}
-                    title={deal.title}
-                    description={deal.description}
-                    merchant_name={deal.merchant_name}
-                    category={deal.category}
-                    expiration_date={deal.expiration_date}
-                    discount={deal.discount}
-                    image_url={deal.image_url}
-                    featured={deal.featured}
-                  />
-                  <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
-                    {deal.distance.toFixed(1)} km
+            <TabsContent value="list" className="space-y-4 mt-0">
+              <div className="space-y-4">
+                {deals.map((deal) => (
+                  <div key={deal.id} className="relative">
+                    <DealCard
+                      id={deal.id}
+                      title={deal.title}
+                      description={deal.description}
+                      merchant_name={deal.merchant_name}
+                      category={deal.category}
+                      expiration_date={deal.expiration_date}
+                      discount={deal.discount}
+                      image_url={deal.image_url}
+                      featured={deal.featured}
+                    />
+                    <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
+                      {deal.distance.toFixed(1)} km
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </TabsContent>
 
-            <Button variant="outline" className="w-full" onClick={() => setRadius(Math.min(radius + 10, 50))}>
-              Show More Deals
-            </Button>
-          </div>
+            <TabsContent value="map" className="mt-0">
+              <LocationMap
+                coordinates={coordinates}
+                items={deals.map(deal => ({
+                  id: deal.id,
+                  title: deal.title,
+                  latitude: deal.latitude,
+                  longitude: deal.longitude,
+                  distance: deal.distance,
+                  type: 'deal'
+                }))}
+                height="300px"
+                onItemClick={(id) => handleDealClick(id)}
+                className="mb-4"
+              />
+            </TabsContent>
+          </Tabs>
         ) : (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">No deals found within {radius} km</p>
+          <div className="text-center py-4">
+            <p className="text-muted-foreground mb-4">No deals found within {radius} km</p>
             <Button
               variant="outline"
-              className="mt-4"
+              className="w-full"
               onClick={() => setRadius(Math.min(radius + 10, 50))}
             >
               Increase Search Radius

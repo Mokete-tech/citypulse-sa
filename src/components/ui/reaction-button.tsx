@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Check, ThumbsUp } from 'lucide-react';
+import { ThumbsUp } from 'lucide-react';
+import { BoldTickIcon } from './custom-tick-icon';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -170,7 +171,7 @@ export function ReactionButton({
           description: `You've given this ${itemType} a tick! It's now saved to your profile.`,
           className: 'bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 text-white font-bold',
           duration: 3000,
-          icon: <Check className="h-5 w-5 text-white stroke-[5]" />
+          icon: <BoldTickIcon size="md" isActive={true} className="text-white" />
         });
 
         // Log to console for debugging
@@ -218,12 +219,15 @@ export function ReactionButton({
             {/* Reaction icon with animated effect */}
             <span className="relative flex items-center justify-center">
               {iconType === 'check' ? (
-                <Check className={cn(
-                  'transition-all duration-300',
-                  buttonSize === 'sm' ? 'h-4 w-4' : buttonSize === 'lg' ? 'h-6 w-6' : 'h-5 w-5',
-                  hasReacted ? 'text-white scale-125 stroke-[6] drop-shadow-md' : 'text-purple-600 stroke-[5]',
-                  showCount ? 'mr-2' : ''
-                )} />
+                <BoldTickIcon
+                  size={buttonSize === 'sm' ? 'sm' : buttonSize === 'lg' ? 'lg' : 'md'}
+                  isActive={hasReacted}
+                  className={cn(
+                    'transition-all duration-300',
+                    hasReacted ? 'scale-125 drop-shadow-md' : 'text-purple-600',
+                    showCount ? 'mr-2' : ''
+                  )}
+                />
               ) : (
                 <ThumbsUp className={cn(
                   'transition-all duration-300',

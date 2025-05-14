@@ -6,11 +6,13 @@ import { EventCard } from '@/components/cards/EventCard';
 import { LoadingState } from '@/components/ui/loading-state';
 import { supabase } from '@/integrations/supabase/client';
 import { handleSupabaseError } from '@/lib/error-handler';
-import { MapPin, AlertCircle } from 'lucide-react';
+import { MapPin, AlertCircle, Map } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { fallbackEvents } from '@/data/fallback-data';
 import { toast } from 'sonner';
 import { filterItemsByDistance } from '@/lib/geo-utils';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import LocationMap from './LocationMap';
 
 interface NearbyEventsProps {
   initialRadius?: number;
@@ -243,6 +245,10 @@ const NearbyEvents = ({
     );
   };
 
+  const handleEventClick = (id: number) => {
+    window.location.href = `/events/${id}`;
+  };
+
   return (
     <Card className={className}>
       <CardHeader>
@@ -272,7 +278,17 @@ const NearbyEvents = ({
         ) : loading && !events.length ? (
           <LoadingState isLoading={true} type="card" count={maxEvents} />
         ) : events.length > 0 ? (
-          <div className="space-y-6">
+          <Tabs defaultValue="list" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="list" className="flex items-center gap-2">
+                <span>List View</span>
+              </TabsTrigger>
+              <TabsTrigger value="map" className="flex items-center gap-2">
+                <Map className="h-4 w-4" />
+                <span>Map View</span>
+              </TabsTrigger>
+            </TabsList>
+
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm">Distance: {radius} km</span>
@@ -289,39 +305,58 @@ const NearbyEvents = ({
               />
             </div>
 
-            <div className="space-y-4">
-              {events.map((event) => (
-                <div key={event.id} className="relative">
-                  <EventCard
-                    id={event.id}
-                    title={event.title}
-                    description={event.description}
-                    merchant_name={event.merchant_name}
-                    category={event.category}
-                    date={event.date}
-                    time={event.time}
-                    location={event.location}
-                    price={event.price}
-                    image_url={event.image_url}
-                    featured={event.featured}
-                  />
-                  <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
-                    {event.distance.toFixed(1)} km
+            <TabsContent value="list" className="space-y-4 mt-0">
+              <div className="space-y-4">
+                {events.map((event) => (
+                  <div key={event.id} className="relative">
+                    <EventCard
+                      id={event.id}
+                      title={event.title}
+                      description={event.description}
+                      merchant_name={event.merchant_name}
+                      category={event.category}
+                      date={event.date}
+                      time={event.time}
+                      location={event.location}
+                      price={event.price}
+                      image_url={event.image_url}
+                      featured={event.featured}
+                    />
+                    <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
+                      {event.distance.toFixed(1)} km
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
 
-            <Button variant="outline" className="w-full" onClick={() => setRadius(Math.min(radius + 10, 50))}>
-              Show More Events
-            </Button>
-          </div>
+              <Button variant="outline" className="w-full" onClick={() => setRadius(Math.min(radius + 10, 50))}>
+                Show More Events
+              </Button>
+            </TabsContent>
+
+            <TabsContent value="map" className="mt-0">
+              <LocationMap
+                coordinates={coordinates}
+                items={events.map(event => ({
+                  id: event.id,
+                  title: event.title,
+                  latitude: event.latitude,
+                  longitude: event.longitude,
+                  distance: event.distance,
+                  type: 'event'
+                }))}
+                height="300px"
+                onItemClick={(id) => handleEventClick(id)}
+                className="mb-4"
+              />
+            </TabsContent>
+          </Tabs>
         ) : (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">No events found within {radius} km</p>
+          <div className="text-center py-4">
+            <p className="text-muted-foreground mb-4">No events found within {radius} km</p>
             <Button
               variant="outline"
-              className="mt-4"
+              className="w-full"
               onClick={() => setRadius(Math.min(radius + 10, 50))}
             >
               Increase Search Radius
