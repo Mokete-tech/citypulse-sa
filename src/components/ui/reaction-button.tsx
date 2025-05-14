@@ -14,8 +14,8 @@ const reactionButtonVariants = cva(
   {
     variants: {
       state: {
-        active: "bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 text-white border-transparent hover:from-blue-700 hover:via-purple-600 hover:to-pink-600 shadow-lg hover:shadow-xl ring-2 ring-purple-300 ring-offset-2 font-extrabold",
-        inactive: "bg-white hover:bg-gray-50 border-purple-300 hover:border-purple-400 hover:shadow-md hover:ring-2 hover:ring-purple-200 hover:ring-offset-2"
+        active: "bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 text-white border-transparent hover:from-blue-700 hover:via-purple-600 hover:to-pink-600 shadow-lg hover:shadow-xl ring-2 ring-purple-300 ring-offset-2 font-extrabold animate-[subtle-pulse_3s_ease-in-out_infinite]",
+        inactive: "bg-white hover:bg-gray-50 border-purple-300 hover:border-purple-400 hover:shadow-md hover:ring-2 hover:ring-purple-200 hover:ring-offset-2 hover:scale-105 transition-transform"
       },
       animation: {
         pulse: "hover:animate-pulse",
@@ -23,6 +23,8 @@ const reactionButtonVariants = cva(
         scale: "hover:scale-110 active:scale-95",
         wiggle: "hover:animate-[wiggle_0.5s_ease-in-out]",
         sparkle: "hover:animate-[sparkle_1s_ease-in-out]",
+        pop: "hover:animate-[pop_0.4s_cubic-bezier(0.175,0.885,0.32,1.275)]",
+        glow: "hover:animate-[glow_1.5s_ease-in-out_infinite]",
         none: ""
       },
       size: {
@@ -38,7 +40,7 @@ const reactionButtonVariants = cva(
     },
     defaultVariants: {
       state: "inactive",
-      animation: "wiggle",
+      animation: "pop",
       size: "md",
       prominence: "medium"
     }
@@ -52,7 +54,7 @@ interface ReactionButtonProps {
   showCount?: boolean;
   size?: 'default' | 'sm' | 'lg' | 'icon';
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
-  animation?: 'pulse' | 'bounce' | 'scale' | 'wiggle' | 'sparkle' | 'none';
+  animation?: 'pulse' | 'bounce' | 'scale' | 'wiggle' | 'sparkle' | 'pop' | 'glow' | 'none';
   iconType?: 'check' | 'thumbsUp';
   buttonSize?: 'sm' | 'md' | 'lg';
   prominence?: 'low' | 'medium' | 'high';
@@ -68,7 +70,7 @@ export function ReactionButton({
   // variant is used in the className but TypeScript doesn't detect it
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   variant = 'outline',
-  animation = 'wiggle',
+  animation = 'pop',
   iconType = 'check',
   buttonSize = 'md',
   prominence = 'medium',
@@ -166,7 +168,9 @@ export function ReactionButton({
         // Show success toast for adding tick
         toast.success('Give it a tick!', {
           description: `You've given this ${itemType} a tick! It's now saved to your profile.`,
-          className: 'bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 text-white'
+          className: 'bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 text-white font-bold',
+          duration: 3000,
+          icon: <Check className="h-5 w-5 text-white stroke-[5]" />
         });
 
         // Log to console for debugging
@@ -217,14 +221,14 @@ export function ReactionButton({
                 <Check className={cn(
                   'transition-all duration-300',
                   buttonSize === 'sm' ? 'h-4 w-4' : buttonSize === 'lg' ? 'h-6 w-6' : 'h-5 w-5',
-                  hasReacted ? 'text-white scale-125 stroke-[5] drop-shadow-md' : 'text-purple-600 stroke-[4]',
+                  hasReacted ? 'text-white scale-125 stroke-[6] drop-shadow-md' : 'text-purple-600 stroke-[5]',
                   showCount ? 'mr-2' : ''
                 )} />
               ) : (
                 <ThumbsUp className={cn(
                   'transition-all duration-300',
                   buttonSize === 'sm' ? 'h-4 w-4' : buttonSize === 'lg' ? 'h-6 w-6' : 'h-5 w-5',
-                  hasReacted ? 'text-white scale-125 stroke-[4] drop-shadow-md' : 'text-purple-600 stroke-[3]',
+                  hasReacted ? 'text-white scale-125 stroke-[5] drop-shadow-md' : 'text-purple-600 stroke-[4]',
                   showCount ? 'mr-2' : ''
                 )} />
               )}
@@ -233,18 +237,25 @@ export function ReactionButton({
               {hasReacted && (
                 <>
                   <span className={cn(
-                    "absolute inset-0 rounded-full opacity-30 bg-white",
+                    "absolute inset-0 rounded-full opacity-40 bg-white",
                     isAnimating ? "animate-ping" : ""
                   )} />
                   <span className={cn(
-                    "absolute inset-0 rounded-full opacity-20 bg-purple-200",
+                    "absolute inset-0 rounded-full opacity-30 bg-purple-200",
                     isAnimating ? "animate-pulse" : ""
                   )} />
                   <span className={cn(
-                    "absolute -inset-1 rounded-full opacity-10 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500",
+                    "absolute -inset-1 rounded-full opacity-20 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500",
                     isAnimating ? "animate-pulse" : ""
                   )} />
+                  {/* Permanent subtle animation for active state */}
+                  <span className="absolute inset-0 rounded-full opacity-20 bg-white animate-[subtle-glow_3s_ease-in-out_infinite]" />
                 </>
+              )}
+
+              {/* Click animation effect */}
+              {isAnimating && (
+                <span className="absolute inset-0 rounded-full animate-[click-ripple_0.5s_ease-out] bg-purple-300 opacity-0" />
               )}
             </span>
 
@@ -289,6 +300,35 @@ if (document.head && !document.getElementById('wiggle-animation')) {
       100% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0); }
     }
 
+    @keyframes pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes glow {
+      0% { box-shadow: 0 0 5px 0 rgba(168, 85, 247, 0.5); }
+      50% { box-shadow: 0 0 20px 5px rgba(168, 85, 247, 0.3); }
+      100% { box-shadow: 0 0 5px 0 rgba(168, 85, 247, 0.5); }
+    }
+
+    @keyframes subtle-pulse {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes subtle-glow {
+      0% { opacity: 0.1; }
+      50% { opacity: 0.3; }
+      100% { opacity: 0.1; }
+    }
+
+    @keyframes click-ripple {
+      0% { transform: scale(0.8); opacity: 0.5; }
+      100% { transform: scale(2); opacity: 0; }
+    }
+
     .border-3 {
       border-width: 3px;
     }
@@ -296,6 +336,7 @@ if (document.head && !document.getElementById('wiggle-animation')) {
     /* Ensure consistent styling across all instances */
     .reaction-button-active {
       background-image: linear-gradient(to right, #2563eb, #9333ea, #ec4899);
+      background-size: 200% 200%;
       color: white;
       font-weight: 800;
     }
@@ -303,6 +344,7 @@ if (document.head && !document.getElementById('wiggle-animation')) {
     .reaction-button-inactive {
       background-color: white;
       border-color: #d8b4fe;
+      transition: all 0.3s ease;
     }
   `;
   document.head.appendChild(style);

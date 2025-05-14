@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Deals from "./pages/Deals";
 import DealDetail from "./pages/DealDetail";
 import Events from "./pages/Events";
+import EventDetail from "./pages/EventDetail";
 import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
 import MerchantLogin from "./pages/MerchantLogin";
@@ -60,6 +61,11 @@ const App = () => (
               <Route path="/events" element={
                 <ErrorBoundary>
                   <Events />
+                </ErrorBoundary>
+              } />
+              <Route path="/events/:id" element={
+                <ErrorBoundary>
+                  <EventDetail />
                 </ErrorBoundary>
               } />
               <Route path="/contact" element={

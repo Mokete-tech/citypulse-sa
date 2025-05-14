@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -120,6 +120,8 @@ export function EventCard({
           itemType="event"
           buttonSize="md"
           className="min-w-[70px]"
+          animation="pop"
+          prominence="high"
         />
         <div className="flex items-center gap-2">
           <ShareButton

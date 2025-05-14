@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -89,7 +89,12 @@ export function DealCard({
 
       <CardFooter className="pt-0 flex justify-between items-center border-t pt-4">
         <div className="flex items-center gap-2">
-          <ReactionButton itemId={id} itemType="deal" />
+          <ReactionButton
+            itemId={id}
+            itemType="deal"
+            animation="pop"
+            prominence="high"
+          />
 
           {expiration_date && (
             <span className="text-sm text-muted-foreground">
