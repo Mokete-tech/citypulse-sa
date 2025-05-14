@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Facebook, Instagram, Linkedin } from 'lucide-react';
 
 // Custom X (formerly Twitter) icon
 const XIcon = () => (
@@ -32,8 +33,17 @@ const Footer = () => {
           </div>
 
           <div className="flex items-center space-x-6">
-            <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-sa-blue transition-colors">
+            <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-sa-blue transition-colors" aria-label="X (Twitter)">
               <XIcon />
+            </a>
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-sa-blue transition-colors" aria-label="Facebook">
+              <Facebook className="h-5 w-5" />
+            </a>
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-sa-blue transition-colors" aria-label="Instagram">
+              <Instagram className="h-5 w-5" />
+            </a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-sa-blue transition-colors" aria-label="LinkedIn">
+              <Linkedin className="h-5 w-5" />
             </a>
           </div>
 
