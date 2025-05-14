@@ -22,18 +22,25 @@ const reactionButtonVariants = cva(
         bounce: "hover:animate-bounce",
         scale: "hover:scale-110 active:scale-95",
         wiggle: "hover:animate-[wiggle_0.5s_ease-in-out]",
+        sparkle: "hover:animate-[sparkle_1s_ease-in-out]",
         none: ""
       },
       size: {
         sm: "text-xs py-1.5 px-3",
         md: "text-sm py-2 px-4",
         lg: "text-base py-2.5 px-5"
+      },
+      prominence: {
+        low: "",
+        medium: "shadow-sm",
+        high: "shadow-md"
       }
     },
     defaultVariants: {
       state: "inactive",
       animation: "wiggle",
-      size: "md"
+      size: "md",
+      prominence: "medium"
     }
   }
 );
@@ -45,9 +52,11 @@ interface ReactionButtonProps {
   showCount?: boolean;
   size?: 'default' | 'sm' | 'lg' | 'icon';
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
-  animation?: 'pulse' | 'bounce' | 'scale' | 'none';
+  animation?: 'pulse' | 'bounce' | 'scale' | 'wiggle' | 'sparkle' | 'none';
   iconType?: 'check' | 'thumbsUp';
   buttonSize?: 'sm' | 'md' | 'lg';
+  prominence?: 'low' | 'medium' | 'high';
+  initialState?: boolean;
 }
 
 export function ReactionButton({
@@ -59,15 +68,15 @@ export function ReactionButton({
   // variant is used in the className but TypeScript doesn't detect it
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   variant = 'outline',
-  animation = 'scale',
+  animation = 'wiggle',
   iconType = 'check',
-  buttonSize = 'md'
+  buttonSize = 'md',
+  prominence = 'medium',
+  initialState
 }: ReactionButtonProps) {
   const [count, setCount] = useState(0);
   const [hasReacted, setHasReacted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  // isAnimating is set but not directly used in the component
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isAnimating, setIsAnimating] = useState(false);
   const { user } = useAuth();
 
@@ -91,13 +100,21 @@ export function ReactionButton({
     // For demo purposes, use fallback data directly
     const fallbackCount = generateFallbackCount(itemId, itemType);
 
-    // Set a consistent "hasReacted" state based on itemId and user
-    const userSeed = user ? parseInt(user.id.substring(0, 8), 16) % 100 : 0;
-    const itemSeed = itemId % 100;
-    const combinedSeed = (userSeed + itemSeed) % 100;
+    // Determine initial state
+    let userHasReacted: boolean;
 
-    // User has reacted if the combined seed is greater than 70
-    const userHasReacted = combinedSeed > 70;
+    // If initialState is provided, use it
+    if (initialState !== undefined) {
+      userHasReacted = initialState;
+    } else {
+      // Otherwise, set a consistent "hasReacted" state based on itemId and user
+      const userSeed = user ? parseInt(user.id.substring(0, 8), 16) % 100 : 0;
+      const itemSeed = itemId % 100;
+      const combinedSeed = (userSeed + itemSeed) % 100;
+
+      // User has reacted if the combined seed is greater than 70
+      userHasReacted = combinedSeed > 70;
+    }
 
     if (isMounted) {
       setCount(fallbackCount);
@@ -182,7 +199,8 @@ export function ReactionButton({
               reactionButtonVariants({
                 state: hasReacted ? 'active' : 'inactive',
                 animation,
-                size: buttonSize
+                size: buttonSize,
+                prominence
               }),
               'border-3 transition-all duration-300 font-bold',
               hasReacted ? 'border-purple-400' : 'border-purple-200',
@@ -190,6 +208,8 @@ export function ReactionButton({
             )}
             onClick={handleReaction}
             disabled={isLoading}
+            aria-pressed={hasReacted}
+            aria-label={hasReacted ? `Remove tick from ${itemType}` : `Give ${itemType} a tick`}
           >
             {/* Reaction icon with animated effect */}
             <span className="relative flex items-center justify-center">
@@ -212,9 +232,18 @@ export function ReactionButton({
               {/* Animated effects when active */}
               {hasReacted && (
                 <>
-                  <span className="absolute inset-0 rounded-full animate-ping opacity-30 bg-white" />
-                  <span className="absolute inset-0 rounded-full animate-pulse opacity-20 bg-purple-200" />
-                  <span className="absolute -inset-1 rounded-full animate-pulse opacity-10 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+                  <span className={cn(
+                    "absolute inset-0 rounded-full opacity-30 bg-white",
+                    isAnimating ? "animate-ping" : ""
+                  )} />
+                  <span className={cn(
+                    "absolute inset-0 rounded-full opacity-20 bg-purple-200",
+                    isAnimating ? "animate-pulse" : ""
+                  )} />
+                  <span className={cn(
+                    "absolute -inset-1 rounded-full opacity-10 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500",
+                    isAnimating ? "animate-pulse" : ""
+                  )} />
                 </>
               )}
             </span>
@@ -255,12 +284,25 @@ if (document.head && !document.getElementById('wiggle-animation')) {
     }
 
     @keyframes sparkle {
-      0%, 100% { opacity: 0; }
-      50% { opacity: 1; }
+      0% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(147, 51, 234, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0); }
     }
 
     .border-3 {
       border-width: 3px;
+    }
+
+    /* Ensure consistent styling across all instances */
+    .reaction-button-active {
+      background-image: linear-gradient(to right, #2563eb, #9333ea, #ec4899);
+      color: white;
+      font-weight: 800;
+    }
+
+    .reaction-button-inactive {
+      background-color: white;
+      border-color: #d8b4fe;
     }
   `;
   document.head.appendChild(style);

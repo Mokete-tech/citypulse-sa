@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0EA5E9" />
+      <stop offset="100%" stop-color="#10B981" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="10" />
+      <feOffset dx="0" dy="4" result="offsetblur" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3" />
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Main background -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGradient)" />
+  
+  <!-- CP Text -->
+  <g filter="url(#shadow)">
+    <text x="256" y="300" font-family="Arial, sans-serif" font-size="220" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">CP</text>
+  </g>
+  
+  <!-- Decorative elements -->
+  <circle cx="400" cy="120" r="24" fill="white" fill-opacity="0.3" />
+  <circle cx="112" cy="380" r="16" fill="white" fill-opacity="0.2" />
+  <path d="M80,200 L120,240 L80,280 Z" fill="white" fill-opacity="0.2" />
+  <path d="M400,320 L440,360 L400,400 Z" fill="white" fill-opacity="0.15" />
+</svg>

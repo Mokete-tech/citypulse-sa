@@ -1,9 +1,8 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, Menu, LogIn, User, LogOut, SearchIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import UserLoginDialog from '@/components/auth/UserLoginDialog';
 import { SearchDialog } from '@/components/search/SearchDialog';
@@ -22,7 +21,7 @@ interface NavbarProps {
 }
 
 const Navbar = ({ toggleSidebar }: NavbarProps) => {
-  const { user, signOut, loading, isMerchant } = useAuth();
+  const { user, signOut, isMerchant } = useAuth();
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
 
   // Get user initials for avatar fallback
@@ -32,13 +31,14 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 md:px-6">
-      <div className="flex items-center space-x-4">
+    <nav className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-2 sm:px-4 md:px-6 sticky top-0 z-40 shadow-sm">
+      <div className="flex items-center space-x-2 sm:space-x-4">
         <Button
           variant="ghost"
           size="icon"
           className="md:hidden"
           onClick={toggleSidebar}
+          aria-label="Toggle sidebar"
         >
           <Menu className="h-5 w-5" />
         </Button>
@@ -54,20 +54,21 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
       <div className="hidden md:flex items-center flex-1 max-w-md mx-4">
         <Button
           variant="outline"
-          className="w-full flex justify-start pl-3 bg-gray-50 text-gray-500 hover:bg-gray-100"
+          className="w-full flex justify-start pl-3 bg-gray-50 text-gray-500 hover:bg-gray-100 border-gray-200"
           onClick={() => setSearchDialogOpen(true)}
         >
           <SearchIcon className="h-4 w-4 mr-2" />
-          Search deals, events or locations...
+          <span className="truncate">Search deals, events or locations...</span>
         </Button>
       </div>
 
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-1 sm:space-x-3">
         <Button
           variant="ghost"
           size="icon"
           className="text-gray-500"
           onClick={() => setSearchDialogOpen(true)}
+          aria-label="Search"
         >
           <SearchIcon className="h-5 w-5 md:hidden" />
         </Button>
@@ -78,7 +79,7 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
         {/* User is not logged in */}
         {!user && (
           <>
-            <UserLoginDialog className="flex items-center gap-2" />
+            <UserLoginDialog className="flex items-center gap-1 sm:gap-2" />
           </>
         )}
 
@@ -86,31 +87,40 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
         {user && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
+              <Button variant="ghost" size="icon" className="rounded-full relative" aria-label="User menu">
+                {/* Notification indicator */}
+                <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full border-2 border-white"></span>
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.user_metadata?.avatar_url} />
+                  <AvatarImage src={user.user_metadata?.avatar_url} alt={getUserInitials()} />
                   <AvatarFallback>{getUserInitials()}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link to="/profile">
+                <Link to="/profile" className="flex items-center w-full">
                   <User className="mr-2 h-4 w-4" />
                   <span>Profile</span>
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/saved" className="flex items-center w-full">
+                  <Bell className="mr-2 h-4 w-4" />
+                  <span>Saved Items</span>
+                </Link>
+              </DropdownMenuItem>
               {isMerchant && (
                 <DropdownMenuItem asChild>
-                  <Link to="/merchant/dashboard">
+                  <Link to="/merchant/dashboard" className="flex items-center w-full">
                     <LogIn className="mr-2 h-4 w-4" />
                     <span>Merchant Dashboard</span>
                   </Link>
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem onClick={() => signOut()}>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => signOut()} className="text-red-600 focus:text-red-600">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Sign out</span>
               </DropdownMenuItem>
@@ -120,10 +130,10 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
 
         {/* Always show Merchant Login in sidebar for mobile */}
         {!isMerchant && (
-          <Link to="/merchant/login" className="md:hidden">
+          <Link to="/merchant/login" className="hidden sm:block md:hidden">
             <Button variant="outline" size="sm" className="flex items-center gap-2">
               <LogIn className="h-4 w-4" />
-              <span className="sr-only md:not-sr-only">Merchant</span>
+              <span>Merchant</span>
             </Button>
           </Link>
         )}

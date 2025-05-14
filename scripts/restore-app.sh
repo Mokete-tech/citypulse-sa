@@ -22,19 +22,19 @@ usage() {
 list_backups() {
   echo "Available backups:"
   echo "------------------"
-  
+
   if [ ! -d "$BACKUP_DIR" ] || [ -z "$(ls -A $BACKUP_DIR/*.tar.gz 2>/dev/null)" ]; then
     echo "No backups found in $BACKUP_DIR"
     exit 1
   fi
-  
+
   # List backups with their creation date
   for backup in "$BACKUP_DIR"/*.tar.gz; do
     if [ -f "$backup" ]; then
       filename=$(basename "$backup")
       created=$(date -r "$backup" "+%Y-%m-%d %H:%M:%S")
       size=$(du -h "$backup" | cut -f1)
-      
+
       # Check if this is the latest backup
       if [ -L "$BACKUP_DIR/latest_backup.tar.gz" ] && [ "$(readlink -f $BACKUP_DIR/latest_backup.tar.gz)" = "$(readlink -f $backup)" ]; then
         echo "* $filename ($size) - Created: $created [LATEST]"
@@ -100,15 +100,26 @@ mkdir -p "$TEMP_DIR"
 
 # Extract backup to temporary directory
 echo "Extracting backup to temporary location..."
-tar -xzf "$BACKUP_FILE" -C "$TEMP_DIR"
+if ! tar -xzf "$BACKUP_FILE" -C "$TEMP_DIR"; then
+  echo "Error: Failed to extract backup file. The file may be corrupted."
+  rm -rf "$TEMP_DIR"
+  exit 1
+fi
 
 # Save current git state
-GIT_BRANCH=$(git -C "$APP_DIR" rev-parse --abbrev-ref HEAD)
-GIT_COMMIT=$(git -C "$APP_DIR" rev-parse HEAD)
+GIT_BRANCH=$(git -C "$APP_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "Unknown")
+GIT_COMMIT=$(git -C "$APP_DIR" rev-parse HEAD 2>/dev/null || echo "Unknown")
 
-# Backup current .git directory
-echo "Preserving git repository..."
-cp -r "$APP_DIR/.git" "$TEMP_DIR/.git.bak"
+# Create a pre-restore backup
+PRE_RESTORE_BACKUP="$BACKUP_DIR/pre_restore_$(date +"%Y%m%d_%H%M%S").tar.gz"
+echo "Creating pre-restore backup: $PRE_RESTORE_BACKUP"
+tar --exclude="node_modules" --exclude=".git" --exclude="dist" --exclude="build" --exclude="backups" -czf "$PRE_RESTORE_BACKUP" -C "$APP_DIR" .
+
+# Backup current .git directory if it exists
+if [ -d "$APP_DIR/.git" ]; then
+  echo "Preserving git repository..."
+  cp -r "$APP_DIR/.git" "$TEMP_DIR/.git.bak"
+fi
 
 # Remove current app files (except .git and node_modules)
 echo "Removing current app files..."
@@ -116,6 +127,11 @@ find "$APP_DIR" -mindepth 1 -maxdepth 1 \
   ! -name ".git" \
   ! -name "node_modules" \
   ! -name "backups" \
+  ! -name ".env" \
+  ! -name ".env.local" \
+  ! -name ".env.development.local" \
+  ! -name ".env.test.local" \
+  ! -name ".env.production.local" \
   -exec rm -rf {} \;
 
 # Copy files from temp directory to app directory
@@ -124,10 +140,12 @@ find "$TEMP_DIR" -mindepth 1 -maxdepth 1 \
   ! -name ".git.bak" \
   -exec cp -r {} "$APP_DIR/" \;
 
-# Restore original .git directory
-echo "Restoring git repository..."
-rm -rf "$APP_DIR/.git"
-mv "$TEMP_DIR/.git.bak" "$APP_DIR/.git"
+# Restore original .git directory if it was backed up
+if [ -d "$TEMP_DIR/.git.bak" ]; then
+  echo "Restoring git repository..."
+  rm -rf "$APP_DIR/.git"
+  mv "$TEMP_DIR/.git.bak" "$APP_DIR/.git"
+fi
 
 # Clean up
 echo "Cleaning up..."
@@ -136,7 +154,23 @@ rm -rf "$TEMP_DIR"
 echo "Restoration completed successfully!"
 echo "Previous git state: branch=$GIT_BRANCH, commit=$GIT_COMMIT"
 echo "Current git status:"
-git -C "$APP_DIR" status --short
+git -C "$APP_DIR" status --short 2>/dev/null || echo "Git repository not available"
 
 echo ""
-echo "NOTE: You may need to run 'npm install' if dependencies have changed."
+echo "Pre-restore backup created at: $PRE_RESTORE_BACKUP"
+echo "If you need to revert this restoration, you can use this backup."
+echo ""
+echo "Next steps:"
+echo "1. Run 'npm install' to ensure dependencies are up to date"
+echo "2. Verify the application works as expected"
+echo "3. Check for any environment variables that may need to be restored"
+
+# Check if package.json exists and suggest running npm install
+if [ -f "$APP_DIR/package.json" ]; then
+  echo ""
+  read -p "Would you like to run 'npm install' now? (y/N): " run_npm
+  if [[ "$run_npm" =~ ^[Yy]$ ]]; then
+    echo "Running npm install..."
+    cd "$APP_DIR" && npm install
+  fi
+fi
