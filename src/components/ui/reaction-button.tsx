@@ -14,13 +14,14 @@ const reactionButtonVariants = cva(
   {
     variants: {
       state: {
-        active: "bg-gradient-to-r from-green-600 to-green-400 text-white border-transparent hover:from-green-700 hover:to-green-500 shadow-lg hover:shadow-xl ring-2 ring-green-300 ring-offset-2 font-extrabold",
-        inactive: "bg-white hover:bg-gray-50 border-gray-300 hover:border-green-400 hover:shadow-md hover:ring-2 hover:ring-green-200 hover:ring-offset-2"
+        active: "bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 text-white border-transparent hover:from-blue-700 hover:via-purple-600 hover:to-pink-600 shadow-lg hover:shadow-xl ring-2 ring-purple-300 ring-offset-2 font-extrabold",
+        inactive: "bg-white hover:bg-gray-50 border-purple-300 hover:border-purple-400 hover:shadow-md hover:ring-2 hover:ring-purple-200 hover:ring-offset-2"
       },
       animation: {
         pulse: "hover:animate-pulse",
         bounce: "hover:animate-bounce",
         scale: "hover:scale-110 active:scale-95",
+        wiggle: "hover:animate-[wiggle_0.5s_ease-in-out]",
         none: ""
       },
       size: {
@@ -31,7 +32,7 @@ const reactionButtonVariants = cva(
     },
     defaultVariants: {
       state: "inactive",
-      animation: "scale",
+      animation: "wiggle",
       size: "md"
     }
   }
@@ -147,7 +148,8 @@ export function ReactionButton({
 
         // Show success toast for adding tick
         toast.success('Give it a tick!', {
-          description: `You've given this ${itemType} a tick! It's now saved to your profile.`
+          description: `You've given this ${itemType} a tick! It's now saved to your profile.`,
+          className: 'bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 text-white'
         });
 
         // Log to console for debugging
@@ -182,8 +184,8 @@ export function ReactionButton({
                 animation,
                 size: buttonSize
               }),
-              'border-2 transition-all duration-300 font-bold',
-              hasReacted ? 'border-green-400' : 'border-gray-300',
+              'border-3 transition-all duration-300 font-bold',
+              hasReacted ? 'border-purple-400' : 'border-purple-200',
               className
             )}
             onClick={handleReaction}
@@ -195,14 +197,14 @@ export function ReactionButton({
                 <Check className={cn(
                   'transition-all duration-300',
                   buttonSize === 'sm' ? 'h-4 w-4' : buttonSize === 'lg' ? 'h-6 w-6' : 'h-5 w-5',
-                  hasReacted ? 'text-white scale-125 stroke-[5] drop-shadow-md' : 'text-gray-600 stroke-[4]',
+                  hasReacted ? 'text-white scale-125 stroke-[5] drop-shadow-md' : 'text-purple-600 stroke-[4]',
                   showCount ? 'mr-2' : ''
                 )} />
               ) : (
                 <ThumbsUp className={cn(
                   'transition-all duration-300',
                   buttonSize === 'sm' ? 'h-4 w-4' : buttonSize === 'lg' ? 'h-6 w-6' : 'h-5 w-5',
-                  hasReacted ? 'text-white scale-125 stroke-[4] drop-shadow-md' : 'text-gray-600 stroke-[3]',
+                  hasReacted ? 'text-white scale-125 stroke-[4] drop-shadow-md' : 'text-purple-600 stroke-[3]',
                   showCount ? 'mr-2' : ''
                 )} />
               )}
@@ -211,7 +213,8 @@ export function ReactionButton({
               {hasReacted && (
                 <>
                   <span className="absolute inset-0 rounded-full animate-ping opacity-30 bg-white" />
-                  <span className="absolute inset-0 rounded-full animate-pulse opacity-20 bg-green-200" />
+                  <span className="absolute inset-0 rounded-full animate-pulse opacity-20 bg-purple-200" />
+                  <span className="absolute -inset-1 rounded-full animate-pulse opacity-10 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
                 </>
               )}
             </span>
@@ -221,7 +224,7 @@ export function ReactionButton({
               <span className={cn(
                 "font-bold transition-all duration-300",
                 buttonSize === 'sm' ? 'text-xs' : buttonSize === 'lg' ? 'text-base' : 'text-sm',
-                hasReacted ? 'text-white' : 'text-gray-700',
+                hasReacted ? 'text-white' : 'text-purple-700',
                 count > 0 ? 'opacity-100 scale-105' : 'opacity-0',
                 hasReacted && count > 0 && 'drop-shadow-sm'
               )}>
@@ -249,6 +252,15 @@ if (document.head && !document.getElementById('wiggle-animation')) {
       50% { transform: rotate(10deg) scale(1.2); }
       75% { transform: rotate(-5deg) scale(1.1); }
       100% { transform: rotate(0deg); }
+    }
+
+    @keyframes sparkle {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 1; }
+    }
+
+    .border-3 {
+      border-width: 3px;
     }
   `;
   document.head.appendChild(style);

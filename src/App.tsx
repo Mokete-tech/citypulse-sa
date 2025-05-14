@@ -16,6 +16,7 @@ import MerchantPackages from "./pages/MerchantPackages";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
 import AdminDashboard from "./pages/AdminDashboard";
+import Demo from "./pages/Demo";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./contexts/AuthContext";
 import { StripeProvider } from "./contexts/StripeContext";
@@ -98,6 +99,11 @@ const App = () => (
               <Route path="/unauthorized" element={
                 <ErrorBoundary>
                   <Unauthorized />
+                </ErrorBoundary>
+              } />
+              <Route path="/demo" element={
+                <ErrorBoundary>
+                  <Demo />
                 </ErrorBoundary>
               } />
               <Route path="*" element={<NotFound />} />
