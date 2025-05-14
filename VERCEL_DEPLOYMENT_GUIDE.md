@@ -34,20 +34,31 @@ Create a `.env.vercel` file with your production environment variables:
 
 ```
 # Supabase Configuration
-VITE_SUPABASE_URL=https://qghojdkspxhyjeurxagx.supabase.co
+VITE_SUPABASE_URL=your-supabase-project-url
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 
 # Email Configuration
 VITE_SENDGRID_API_KEY=your-sendgrid-api-key
-VITE_SENDGRID_FROM_EMAIL=noreply@citypulse-sa.com
-VITE_SENDGRID_FROM_NAME=CityPulse South Africa
+VITE_SENDGRID_FROM_EMAIL=noreply@your-domain.com
+VITE_SENDGRID_FROM_NAME=Your App Name
 
 # Stripe Configuration
 VITE_STRIPE_PUBLISHABLE_KEY=your-stripe-publishable-key
+STRIPE_SECRET_KEY=your-stripe-secret-key
+STRIPE_WEBHOOK_SECRET=your-stripe-webhook-secret
+
+# OAuth Configuration
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+FACEBOOK_CLIENT_ID=your-facebook-client-id
+FACEBOOK_CLIENT_SECRET=your-facebook-client-secret
 
 # Application Settings
-VITE_APP_NAME=CityPulse South Africa
+VITE_APP_NAME=Your App Name
 VITE_APP_ENV=production
+VITE_APP_URL=https://your-app-domain.com
 ```
 
 ### 3. Deploy to Vercel
@@ -103,12 +114,16 @@ If your application is showing fallback data:
 
 Solution:
 
-Make sure these environment variables are set in Vercel:
+Make sure your Supabase environment variables are set correctly in Vercel:
 
 ```
-VITE_SUPABASE_URL=https://qghojdkspxhyjeurxagx.supabase.co
-VITE_SUPABASE_ANON_KEY=your-actual-anon-key
+VITE_SUPABASE_URL=your-supabase-project-url
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
+
+Also check the browser console for any specific error messages related to Supabase authentication or data fetching.
 
 ### 404 Errors on Page Refresh
 

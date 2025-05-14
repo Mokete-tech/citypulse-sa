@@ -8,17 +8,17 @@ on:
 
 # Define environment variables at the workflow level
 env:
-  # Fixed Supabase credentials
-  VITE_SUPABASE_URL: "https://qghojdkspxhyjeurxagx.supabase.co"
-  VITE_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFnaG9qZGtzcHhoeWpldXJ4YWd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ2NTU4NjUsImV4cCI6MjA2MDIzMTg2NX0.QInil2Wr7x14JwpRKKkIcgG6WwyOIUFx-O_kL8o2jdg"
-  NEXT_PUBLIC_SUPABASE_URL: "https://qghojdkspxhyjeurxagx.supabase.co"
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFnaG9qZGtzcHhoeWpldXJ4YWd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ2NTU4NjUsImV4cCI6MjA2MDIzMTg2NX0.QInil2Wr7x14JwpRKKkIcgG6WwyOIUFx-O_kL8o2jdg"
+  # Use secrets for sensitive credentials
+  VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
   # App configuration
   VITE_APP_NAME: "CityPulse South Africa"
   VITE_APP_ENV: "production"
-  VITE_STRIPE_PUBLISHABLE_KEY: "pk_live_51IRNxfHieGkyNl5wOGvmEAtaXxZ6VHEPmHcXuwfsfOPTt0umFFEY9QpsJMXo4IAo0uzl0R66CpaJFRKCaXo0k5DZ00uGSXCeCN"
-  VITE_APP_URL: "https://citypulse-sa-git-main-velleyvelley-gmailcoms-projects.vercel.app"
+  VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
+  VITE_APP_URL: ${{ secrets.APP_URL }}
 
 jobs:
   deploy:
