@@ -22,8 +22,11 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   return (
     <>
       <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-sa-blue text-white transform transition-transform duration-300 ease-in-out md:translate-x-0",
-        isOpen ? "translate-x-0" : "-translate-x-full"
+        "fixed inset-y-0 left-0 z-50 w-64 bg-sa-blue text-white transform transition-all duration-300 ease-in-out",
+        // Mobile: translate based on isOpen state
+        isOpen ? "translate-x-0" : "-translate-x-full",
+        // Desktop: translate based on isOpen state (fixed)
+        isOpen ? "md:translate-x-0" : "md:-translate-x-full"
       )}>
         <div className="h-full flex flex-col">
           <div className="flex items-center justify-between h-16 px-4 border-b border-sky-700">
@@ -156,14 +159,18 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
         ></div>
       )}
 
-      <div className="hidden md:block fixed bottom-4 left-0 ml-64 z-50">
+      <div className={cn(
+        "hidden md:block fixed bottom-4 z-50 transition-all duration-300",
+        isOpen ? "left-64" : "left-0"
+      )}>
         <Button
           variant="secondary"
           size="sm"
-          className="rounded-l-none"
+          className="rounded-l-none shadow-md"
           onClick={toggleSidebar}
         >
           <ChevronLeft className={cn("h-4 w-4 transition-transform", !isOpen && "rotate-180")} />
+          <span className="sr-only">{isOpen ? "Close sidebar" : "Open sidebar"}</span>
         </Button>
       </div>
     </>

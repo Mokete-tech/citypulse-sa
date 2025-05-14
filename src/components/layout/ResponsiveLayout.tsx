@@ -24,36 +24,51 @@ export function ResponsiveLayout({
   className,
   fullWidth = false,
 }: ResponsiveLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
+  // Initialize sidebar state from localStorage or default to true
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    // Check if we have a stored preference
+    const storedState = localStorage.getItem('sidebarOpen');
+    // If on mobile, default to closed
+    if (window.innerWidth < 768) return false;
+    // Otherwise use stored preference or default to open
+    return storedState !== null ? storedState === 'true' : true;
+  });
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  // Toggle sidebar
+  // Toggle sidebar with enhanced functionality
   const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
+    // Toggle the sidebar state
+    setSidebarOpen(prevState => !prevState);
+
+    // Store the sidebar state in localStorage for persistence
+    localStorage.setItem('sidebarOpen', (!sidebarOpen).toString());
+
+    // Force a layout recalculation to ensure the transition works
+    document.body.offsetHeight;
   };
 
-  // Check if the device is mobile
+  // Handle responsive behavior
   useEffect(() => {
-    const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-      
-      // Auto-close sidebar on mobile
-      if (window.innerWidth < 768) {
-        setSidebarOpen(false);
-      } else {
-        setSidebarOpen(true);
+    const handleResize = () => {
+      const isMobileView = window.innerWidth < 768;
+      setIsMobile(isMobileView);
+
+      // Only auto-adjust sidebar if user hasn't manually set it
+      // (we check this by looking for the localStorage item)
+      const userHasSetPreference = localStorage.getItem('sidebarOpen') !== null;
+
+      if (!userHasSetPreference) {
+        // Auto-close sidebar on mobile, open on desktop
+        setSidebarOpen(!isMobileView);
       }
     };
 
-    // Initial check
-    checkIsMobile();
-
     // Add event listener for window resize
-    window.addEventListener('resize', checkIsMobile);
+    window.addEventListener('resize', handleResize);
 
     // Clean up event listener
     return () => {
-      window.removeEventListener('resize', checkIsMobile);
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 
@@ -61,10 +76,10 @@ export function ResponsiveLayout({
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
-      <div 
+      <div
         className={cn(
           "flex-1 flex flex-col transition-all duration-300",
-          sidebarOpen ? 'md:ml-64' : '',
+          sidebarOpen ? 'md:ml-64' : 'ml-0',
           className
         )}
       >

@@ -15,13 +15,13 @@ const Terms = () => {
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : ''}`}>
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'ml-0'}`}>
         <Navbar toggleSidebar={toggleSidebar} />
 
         <main className="flex-1 p-4 md:p-6">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-3xl font-bold mb-6">Terms and Conditions</h1>
-            
+
             <Card className="mb-6">
               <CardHeader>
                 <CardTitle>1. Introduction</CardTitle>
@@ -29,7 +29,7 @@ const Terms = () => {
               <CardContent className="prose max-w-none">
                 <p>
                   Welcome to CityPulse South Africa. These Terms and Conditions govern your use of our website and services.
-                  By accessing or using CityPulse South Africa, you agree to be bound by these Terms. If you disagree with any part of the terms, 
+                  By accessing or using CityPulse South Africa, you agree to be bound by these Terms. If you disagree with any part of the terms,
                   you may not access the service.
                 </p>
               </CardContent>
@@ -41,7 +41,7 @@ const Terms = () => {
               </CardHeader>
               <CardContent className="prose max-w-none">
                 <p>
-                  When you create an account with us, you must provide accurate, complete, and current information. 
+                  When you create an account with us, you must provide accurate, complete, and current information.
                   You are responsible for safeguarding the password and for all activities that occur under your account.
                 </p>
                 <p>
@@ -72,7 +72,7 @@ const Terms = () => {
               </CardHeader>
               <CardContent className="prose max-w-none">
                 <p>
-                  Our service allows you to post, link, store, share and otherwise make available certain information, text, graphics, or other material. 
+                  Our service allows you to post, link, store, share and otherwise make available certain information, text, graphics, or other material.
                   You are responsible for the content you post and its legality.
                 </p>
                 <p>
@@ -91,7 +91,7 @@ const Terms = () => {
                   Merchants may be charged fees for listing deals and events on the platform. All fees are non-refundable unless otherwise specified.
                 </p>
                 <p>
-                  Payment processing is handled by our third-party payment processor, Stripe. By using our payment services, 
+                  Payment processing is handled by our third-party payment processor, Stripe. By using our payment services,
                   you agree to Stripe's terms of service.
                 </p>
               </CardContent>
@@ -115,7 +115,7 @@ const Terms = () => {
               </CardHeader>
               <CardContent className="prose max-w-none">
                 <p>
-                  CityPulse South Africa shall not be liable for any indirect, incidental, special, consequential or punitive damages, 
+                  CityPulse South Africa shall not be liable for any indirect, incidental, special, consequential or punitive damages,
                   including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the service.
                 </p>
               </CardContent>
@@ -143,7 +143,7 @@ const Terms = () => {
                 </p>
               </CardContent>
             </Card>
-            
+
             <p className="text-sm text-muted-foreground text-center mt-8">
               Last updated: {new Date().toLocaleDateString()}
             </p>
