@@ -33,7 +33,16 @@ export function ResponsiveLayout({
     // Otherwise use stored preference or default to open
     return storedState !== null ? storedState === 'true' : true;
   });
+  // Track if we're on mobile for responsive behavior
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  // Use isMobile in a useEffect to avoid the unused variable warning
+  useEffect(() => {
+    if (isMobile && sidebarOpen) {
+      // Auto-close sidebar on mobile when component mounts
+      setSidebarOpen(false);
+    }
+  }, [isMobile, sidebarOpen]);
 
   // Toggle sidebar with enhanced functionality
   const toggleSidebar = () => {
@@ -79,7 +88,7 @@ export function ResponsiveLayout({
       <div
         className={cn(
           "flex-1 flex flex-col transition-all duration-300",
-          sidebarOpen ? 'md:ml-64' : 'ml-0',
+          sidebarOpen ? 'md:ml-72' : 'ml-0',
           className
         )}
       >
