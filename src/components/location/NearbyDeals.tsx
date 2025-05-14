@@ -10,6 +10,7 @@ import { MapPin, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { fallbackDeals } from '@/data/fallback-data';
 import { toast } from 'sonner';
+import { filterItemsByDistance } from '@/lib/geo-utils';
 
 interface NearbyDealsProps {
   initialRadius?: number;
@@ -172,15 +173,9 @@ const NearbyDeals = ({
     fetchNearbyDeals();
   }, [coordinates, radius, maxDeals]);
 
-  // Simulate distance calculation
-  // In a real app, you would use the Haversine formula or a geospatial database
-  const filterDealsByDistance = (deals: any[], _coords: Coordinates, radiusKm: number) => {
-    // For demo purposes, we'll randomly assign distances to deals
-    return deals.map(deal => ({
-      ...deal,
-      distance: Math.random() * radiusKm // Random distance within the radius
-    })).filter(deal => deal.distance <= radiusKm)
-      .sort((a, b) => a.distance - b.distance);
+  // Use the Haversine formula to calculate actual distances
+  const filterDealsByDistance = (deals: any[], coords: Coordinates, radiusKm: number) => {
+    return filterItemsByDistance(deals, coords, radiusKm);
   };
 
   const handleRequestLocation = () => {
