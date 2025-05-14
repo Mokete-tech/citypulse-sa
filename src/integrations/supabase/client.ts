@@ -6,8 +6,8 @@ import type { Database } from './types';
 const ENV_CONFIG = {
   // Default Supabase project for this application
   DEFAULT_SUPABASE_URL: 'https://qghojdkspxhyjeurxagx.supabase.co',
-  // Placeholder for API key - will be replaced by environment variables
-  DEFAULT_SUPABASE_ANON_KEY: ''
+  // Default API key - this is the actual working key for the CityPulse project
+  DEFAULT_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFnaG9qZGtzcHhoeWpldXJ4YWd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ2NTU4NjUsImV4cCI6MjA2MDIzMTg2NX0.QInil2Wr7x14JwpRKKkIcgG6WwyOIUFx-O_kL8o2jdg'
 };
 
 // Get environment variables (support both VITE_ and NEXT_PUBLIC_ prefixes)

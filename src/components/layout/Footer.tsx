@@ -25,14 +25,14 @@ const Footer = () => {
   return (
     <footer className="bg-white border-t border-gray-200 py-6">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="mb-4 md:mb-0">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="mb-4 md:mb-0 text-center md:text-left">
             <p className="text-sm text-gray-600">
               © 2025 CityPulse South Africa. All rights reserved.
             </p>
           </div>
 
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-6 order-first md:order-none mb-4 md:mb-0">
             <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-sa-blue transition-colors" aria-label="X (Twitter)">
               <XIcon />
             </a>
@@ -47,8 +47,8 @@ const Footer = () => {
             </a>
           </div>
 
-          <div className="mt-4 md:mt-0">
-            <ul className="flex items-center space-x-6 text-sm">
+          <div className="mt-2 md:mt-0">
+            <ul className="flex flex-wrap justify-center md:justify-end items-center gap-4 md:gap-6 text-sm">
               <li>
                 <Link to="/terms" className="text-gray-600 hover:text-sa-blue transition-colors">
                   Privacy Policy
