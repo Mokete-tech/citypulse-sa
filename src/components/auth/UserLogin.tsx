@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertCircle, Mail, Lock } from 'lucide-react';
+import { AlertCircle, Mail, Lock, CheckCircle, XCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,6 +13,7 @@ import { resetPassword } from '@/lib/auth-helpers';
 import { handleError } from '@/lib/error-handler';
 import { toast } from '@/components/ui/sonner';
 import PhoneLogin from './PhoneLogin';
+import { isValidEmail, isValidPassword, checkPasswordStrength } from '@/lib/validation';
 
 interface UserLoginProps {
   onClose?: () => void;
@@ -44,14 +45,14 @@ const UserLogin = ({ onClose }: UserLoginProps) => {
     }
 
     // Email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!isValidEmail(email)) {
       setFormError("Please enter a valid email address");
       return;
     }
 
     try {
       await signIn(email, password);
+      toast.success("Signed in successfully");
       if (onClose) onClose();
     } catch (error: any) {
       // Set a user-friendly error message
@@ -59,6 +60,17 @@ const UserLogin = ({ onClose }: UserLoginProps) => {
         setFormError("Invalid email or password. Please try again.");
       } else if (error?.message?.includes("Email not confirmed")) {
         setFormError("Please verify your email address before logging in.");
+        toast.info("Email verification required", {
+          description: "Check your inbox for a verification email or request a new one.",
+          action: {
+            label: "Resend",
+            onClick: () => {
+              resetPassword(email)
+                .then(() => toast.success("Verification email sent"))
+                .catch(err => handleError(err));
+            }
+          }
+        });
       } else {
         setFormError("An error occurred during login. Please try again.");
       }
@@ -81,24 +93,16 @@ const UserLogin = ({ onClose }: UserLoginProps) => {
     }
 
     // Email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(registerEmail)) {
+    if (!isValidEmail(registerEmail)) {
       setFormError("Please enter a valid email address");
       return;
     }
 
     // Password strength validation
-    if (registerPassword.length < 6) {
-      setFormError("Password must be at least 6 characters long");
-      return;
-    }
+    const passwordStrength = checkPasswordStrength(registerPassword);
 
-    // Check for at least one number and one letter
-    const hasNumber = /\d/.test(registerPassword);
-    const hasLetter = /[a-zA-Z]/.test(registerPassword);
-
-    if (!hasNumber || !hasLetter) {
-      setFormError("Password must contain at least one letter and one number");
+    if (passwordStrength.score < 3) {
+      setFormError(`Password is too weak. ${passwordStrength.feedback}`);
       return;
     }
 
@@ -119,8 +123,20 @@ const UserLogin = ({ onClose }: UserLoginProps) => {
       // Set a user-friendly error message
       if (error?.message?.includes("already registered")) {
         setFormError("This email is already registered. Please try logging in instead.");
+
+        // Suggest to switch to login tab
+        toast.info("Account exists", {
+          description: "Would you like to sign in instead?",
+          action: {
+            label: "Sign In",
+            onClick: () => {
+              setEmail(registerEmail);
+              document.querySelector('[data-state="inactive"][data-value="login"]')?.click();
+            }
+          }
+        });
       } else if (error?.message?.includes("weak password")) {
-        setFormError("Please use a stronger password.");
+        setFormError("Please use a stronger password with at least 8 characters, including numbers and special characters.");
       } else {
         setFormError("Registration failed. Please try again.");
         handleError(error, {
@@ -332,9 +348,38 @@ const UserLogin = ({ onClose }: UserLoginProps) => {
                     onChange={(e) => setRegisterPassword(e.target.value)}
                     disabled={loading}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Password must be at least 6 characters long
-                  </p>
+                  {registerPassword && (
+                    <div className="mt-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-medium">Password strength:</span>
+                        <span className="text-xs">
+                          {(() => {
+                            const strength = checkPasswordStrength(registerPassword);
+                            if (strength.score < 2) return <span className="text-destructive flex items-center"><XCircle className="h-3 w-3 mr-1" /> Weak</span>;
+                            if (strength.score < 4) return <span className="text-amber-500 flex items-center"><AlertCircle className="h-3 w-3 mr-1" /> Medium</span>;
+                            return <span className="text-green-500 flex items-center"><CheckCircle className="h-3 w-3 mr-1" /> Strong</span>;
+                          })()}
+                        </span>
+                      </div>
+                      <div className="h-1 w-full bg-secondary overflow-hidden rounded-full">
+                        <div
+                          className={`h-full ${
+                            checkPasswordStrength(registerPassword).score < 2
+                              ? 'bg-destructive'
+                              : checkPasswordStrength(registerPassword).score < 4
+                                ? 'bg-amber-500'
+                                : 'bg-green-500'
+                          }`}
+                          style={{ width: `${(checkPasswordStrength(registerPassword).score / 5) * 100}%` }}
+                        />
+                      </div>
+                      {checkPasswordStrength(registerPassword).score < 3 && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {checkPasswordStrength(registerPassword).feedback}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Creating Account..." : "Create Account"}

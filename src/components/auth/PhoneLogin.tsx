@@ -8,6 +8,7 @@ import { toast } from '@/components/ui/sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { isValidPhone, normalizePhoneNumber, formatPhoneNumber, isValidBusinessName, isValidLocation } from '@/lib/validation';
 
 interface PhoneLoginProps {
   onClose?: () => void;
@@ -33,16 +34,34 @@ const PhoneLogin = ({ onClose }: PhoneLoginProps) => {
       return;
     }
 
+    // Normalize and validate phone number
+    const normalizedPhone = normalizePhoneNumber(phone);
+    if (!isValidPhone(normalizedPhone)) {
+      setFormError("Please enter a valid phone number with country code (e.g., +27XXXXXXXXX)");
+      return;
+    }
+
     try {
       if (!showVerification) {
-        await signInWithPhone(phone);
+        await signInWithPhone(normalizedPhone);
         setShowVerification(true);
+        toast.success("Verification code sent", {
+          description: `We've sent a code to ${formatPhoneNumber(normalizedPhone)}`,
+        });
       } else {
         if (!verificationCode) {
           setFormError("Please enter the verification code");
           return;
         }
-        await verifyPhoneOtp(phone, verificationCode);
+
+        // Validate verification code (should be 6 digits)
+        if (!/^\d{6}$/.test(verificationCode)) {
+          setFormError("Please enter a valid 6-digit verification code");
+          return;
+        }
+
+        await verifyPhoneOtp(normalizedPhone, verificationCode);
+        toast.success("Signed in successfully");
         if (onClose) onClose();
       }
     } catch (error) {
@@ -60,6 +79,25 @@ const PhoneLogin = ({ onClose }: PhoneLoginProps) => {
       return;
     }
 
+    // Normalize and validate phone number
+    const normalizedPhone = normalizePhoneNumber(registerPhone);
+    if (!isValidPhone(normalizedPhone)) {
+      setFormError("Please enter a valid phone number with country code (e.g., +27XXXXXXXXX)");
+      return;
+    }
+
+    // Validate business name if provided
+    if (businessName && !isValidBusinessName(businessName)) {
+      setFormError("Business name must be at least 2 characters");
+      return;
+    }
+
+    // Validate location if provided
+    if (location && !isValidLocation(location)) {
+      setFormError("Location must be at least 2 characters");
+      return;
+    }
+
     try {
       // Include metadata for merchant registration if provided
       const metadata = businessName || location ? {
@@ -68,11 +106,12 @@ const PhoneLogin = ({ onClose }: PhoneLoginProps) => {
         role: businessName ? 'merchant' : 'user'
       } : undefined;
 
-      await signUpWithPhone(registerPhone, metadata);
+      await signUpWithPhone(normalizedPhone, metadata);
       setShowVerification(true);
+      setPhone(normalizedPhone); // Set the phone number for verification
 
       toast.success("Verification code sent", {
-        description: "Please check your phone for the verification code."
+        description: `We've sent a code to ${formatPhoneNumber(normalizedPhone)}`
       });
     } catch (error) {
       handleError(error, {
