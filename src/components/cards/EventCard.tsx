@@ -6,6 +6,7 @@ import { ReactionButton } from '@/components/ui/reaction-button';
 import ShareButton from '@/components/ui/share-button';
 import { Calendar, MapPin, Star, Clock } from 'lucide-react';
 import { EnhancedImage } from '@/components/ui/enhanced-image';
+import { PlaceholderImage } from '@/components/ui/placeholder-image';
 
 interface EventCardProps {
   id: number;
@@ -46,18 +47,24 @@ export function EventCard({
         </div>
       )}
 
-      {image_url && (
-        <div className="aspect-video w-full overflow-hidden">
+      <div className="aspect-video w-full overflow-hidden">
+        {image_url ? (
           <EnhancedImage
             src={image_url}
             alt={title}
             aspectRatio="video"
             objectFit="cover"
-            fallbackSrc="/images/placeholder-event.svg"
+            fallbackSrc="/images/placeholders/event-placeholder.svg"
             className="w-full h-full transition-transform duration-500 group-hover:scale-105"
           />
-        </div>
-      )}
+        ) : (
+          <PlaceholderImage
+            type="event"
+            text={title}
+            className="w-full h-full transition-transform duration-500 group-hover:scale-105"
+          />
+        )}
+      </div>
 
       <CardHeader>
         <div className="flex justify-between items-start">

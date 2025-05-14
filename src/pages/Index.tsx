@@ -274,7 +274,7 @@ const Index = () => {
                         category={deal.category}
                         expiration_date={deal.expiration_date}
                         discount={deal.discount || ""}
-                        image_url={deal.image_url || "/placeholder-deal.jpg"}
+                        image_url={deal.image_url || "/images/placeholders/deal-placeholder.svg"}
                         featured={Boolean(deal.featured)}
                         onClick={() => {
                           handleDealClick(deal.id);
@@ -313,7 +313,7 @@ const Index = () => {
                         time={event.time}
                         location={event.location}
                         price={event.price || ""}
-                        image_url={event.image_url || "/placeholder-event.jpg"}
+                        image_url={event.image_url || "/images/placeholders/event-placeholder.svg"}
                         featured={Boolean(event.featured)}
                         onClick={() => {
                           handleEventClick(event.id);

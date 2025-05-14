@@ -1,0 +1,11 @@
+<svg width="800" height="450" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <rect width="800" height="450" fill="#f0f4f8"/>
+  <g fill="none" stroke="#a0aec0" stroke-width="2">
+    <rect x="150" y="100" width="500" height="250" rx="8" stroke-dasharray="8 4"/>
+  </g>
+  <text x="400" y="225" font-family="Arial, sans-serif" font-size="24" fill="#64748b" text-anchor="middle">CityPulse</text>
+  <g transform="translate(350, 260)">
+    <rect x="25" y="25" width="50" height="50" rx="4" fill="#0ea5e9" fill-opacity="0.2" stroke="#0ea5e9" stroke-width="2"/>
+    <text x="50" y="55" font-family="Arial, sans-serif" font-size="16" fill="#0ea5e9" text-anchor="middle" font-weight="bold">CP</text>
+  </g>
+</svg>

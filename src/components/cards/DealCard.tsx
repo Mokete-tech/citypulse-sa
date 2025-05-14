@@ -7,6 +7,7 @@ import { ReactionButton } from '@/components/ui/reaction-button';
 import ShareButton from '@/components/ui/share-button';
 import { Tag } from 'lucide-react';
 import { EnhancedImage } from '@/components/ui/enhanced-image';
+import { PlaceholderImage } from '@/components/ui/placeholder-image';
 
 interface DealCardProps {
   id: number;
@@ -44,18 +45,24 @@ export function DealCard({
   };
   return (
     <Card className="h-full flex flex-col overflow-hidden">
-      {image_url && (
-        <div className="aspect-video w-full overflow-hidden">
+      <div className="aspect-video w-full overflow-hidden">
+        {image_url ? (
           <EnhancedImage
             src={image_url}
             alt={title}
             aspectRatio="video"
             objectFit="cover"
-            fallbackSrc="/images/placeholder-deal.svg"
+            fallbackSrc="/images/placeholders/deal-placeholder.svg"
             className="w-full h-full transition-transform duration-500 hover:scale-105"
           />
-        </div>
-      )}
+        ) : (
+          <PlaceholderImage
+            type="deal"
+            text={title}
+            className="w-full h-full transition-transform duration-500 hover:scale-105"
+          />
+        )}
+      </div>
 
       <CardHeader>
         <div className="flex justify-between items-start">
