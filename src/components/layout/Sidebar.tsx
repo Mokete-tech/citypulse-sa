@@ -1,32 +1,38 @@
-import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  Tag, Calendar, LogIn, ChevronLeft, CreditCard,
-  Home, Info, HelpCircle, Settings, Heart
+  Tag, Calendar, LogIn, ChevronLeft, CreditCard, Heart
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SidebarProps {
   isOpen: boolean;
   toggleSidebar: () => void;
 }
 
-const menuItems = [
-  { name: 'Home', icon: Home, path: '/' },
+// Main navigation items
+const mainNavItems = [
   { name: 'Deals', icon: Tag, path: '/deals' },
   { name: 'Events', icon: Calendar, path: '/events' },
+];
+
+// Merchant items
+const merchantItems = [
   { name: 'Merchant Login', icon: LogIn, path: '/merchant/login' },
   { name: 'Merchant Packages', icon: CreditCard, path: '/merchant/packages' },
+];
+
+// User items (only shown when logged in)
+const userItems = [
   { name: 'Saved Items', icon: Heart, path: '/saved' },
-  { name: 'About', icon: Info, path: '/about' },
-  { name: 'Contact', icon: HelpCircle, path: '/contact' },
-  { name: 'Terms', icon: Settings, path: '/terms' },
 ];
 
 const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   // Get current location for active menu highlighting
   const location = useLocation();
+  // Get authentication context to check if user is logged in
+  const { user } = useAuth();
 
   return (
     <>
@@ -62,7 +68,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                 Main Navigation
               </h3>
               <ul className="space-y-1">
-                {menuItems.slice(0, 3).map((item) => (
+                {mainNavItems.map((item) => (
                   <li key={item.name}>
                     <Link
                       to={item.path}
@@ -85,7 +91,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                 Merchant
               </h3>
               <ul className="space-y-1">
-                {menuItems.slice(3, 5).map((item) => (
+                {merchantItems.map((item) => (
                   <li key={item.name}>
                     <Link
                       to={item.path}
@@ -102,51 +108,30 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
               </ul>
             </div>
 
-            {/* User Section */}
-            <div className="px-3 mb-6">
-              <h3 className="text-xs font-semibold text-white/70 uppercase tracking-wider px-3 mb-2">
-                User
-              </h3>
-              <ul className="space-y-1">
-                {menuItems.slice(5, 6).map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      to={item.path}
-                      className={cn(
-                        "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
-                        location.pathname === item.path && "bg-sky-700/70 font-medium"
-                      )}
-                    >
-                      <item.icon className="h-5 w-5 mr-3" />
-                      <span>{item.name}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Info Section */}
-            <div className="px-3">
-              <h3 className="text-xs font-semibold text-white/70 uppercase tracking-wider px-3 mb-2">
-                Information
-              </h3>
-              <ul className="space-y-1">
-                {menuItems.slice(6).map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      to={item.path}
-                      className={cn(
-                        "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
-                        location.pathname === item.path && "bg-sky-700/70 font-medium"
-                      )}
-                    >
-                      <item.icon className="h-5 w-5 mr-3" />
-                      <span>{item.name}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {/* User Section - Only shown when logged in */}
+            {user && (
+              <div className="px-3 mb-6">
+                <h3 className="text-xs font-semibold text-white/70 uppercase tracking-wider px-3 mb-2">
+                  User
+                </h3>
+                <ul className="space-y-1">
+                  {userItems.map((item) => (
+                    <li key={item.name}>
+                      <Link
+                        to={item.path}
+                        className={cn(
+                          "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
+                          location.pathname === item.path && "bg-sky-700/70 font-medium"
+                        )}
+                      >
+                        <item.icon className="h-5 w-5 mr-3" />
+                        <span>{item.name}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </nav>
 
           <div className="p-4 border-t border-sky-700">
