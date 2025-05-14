@@ -94,6 +94,7 @@ export function DealCard({
             itemType="deal"
             animation="pop"
             prominence="high"
+            buttonSize="lg"
           />
 
           {expiration_date && (

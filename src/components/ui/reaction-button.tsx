@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ThumbsUp } from 'lucide-react';
-import { BoldTickIcon } from './custom-tick-icon';
+import { TeacherTickIcon } from './custom-tick-icon';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -15,8 +15,8 @@ const reactionButtonVariants = cva(
   {
     variants: {
       state: {
-        active: "bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 text-white border-transparent hover:from-blue-700 hover:via-purple-600 hover:to-pink-600 shadow-lg hover:shadow-xl ring-2 ring-purple-300 ring-offset-2 font-extrabold animate-[subtle-pulse_3s_ease-in-out_infinite]",
-        inactive: "bg-white hover:bg-gray-50 border-purple-300 hover:border-purple-400 hover:shadow-md hover:ring-2 hover:ring-purple-200 hover:ring-offset-2 hover:scale-105 transition-transform"
+        active: "bg-gradient-to-r from-blue-700 via-purple-600 to-pink-600 text-white border-transparent hover:from-blue-800 hover:via-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl ring-2 ring-purple-400 ring-offset-2 font-extrabold animate-[subtle-pulse_3s_ease-in-out_infinite]",
+        inactive: "bg-white hover:bg-gray-50 border-purple-300 hover:border-purple-400 hover:shadow-md hover:ring-2 hover:ring-purple-300 hover:ring-offset-2 hover:scale-105 transition-transform"
       },
       animation: {
         pulse: "hover:animate-pulse",
@@ -30,20 +30,20 @@ const reactionButtonVariants = cva(
       },
       size: {
         sm: "text-xs py-1.5 px-3",
-        md: "text-sm py-2 px-4",
-        lg: "text-base py-2.5 px-5"
+        md: "text-sm py-2.5 px-5",
+        lg: "text-base py-3 px-6"
       },
       prominence: {
-        low: "",
-        medium: "shadow-sm",
-        high: "shadow-md"
+        low: "shadow-sm",
+        medium: "shadow-md",
+        high: "shadow-lg"
       }
     },
     defaultVariants: {
       state: "inactive",
       animation: "pop",
       size: "md",
-      prominence: "medium"
+      prominence: "high"
     }
   }
 );
@@ -74,7 +74,7 @@ export function ReactionButton({
   animation = 'pop',
   iconType = 'check',
   buttonSize = 'md',
-  prominence = 'medium',
+  prominence = 'high',
   initialState
 }: ReactionButtonProps) {
   const [count, setCount] = useState(0);
@@ -171,7 +171,7 @@ export function ReactionButton({
           description: `You've given this ${itemType} a tick! It's now saved to your profile.`,
           className: 'bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 text-white font-bold',
           duration: 3000,
-          icon: <BoldTickIcon size="md" isActive={true} className="text-white" />
+          icon: <TeacherTickIcon size="md" isActive={true} className="text-white" />
         });
 
         // Log to console for debugging
@@ -219,12 +219,12 @@ export function ReactionButton({
             {/* Reaction icon with animated effect */}
             <span className="relative flex items-center justify-center">
               {iconType === 'check' ? (
-                <BoldTickIcon
+                <TeacherTickIcon
                   size={buttonSize === 'sm' ? 'sm' : buttonSize === 'lg' ? 'lg' : 'md'}
                   isActive={hasReacted}
                   className={cn(
                     'transition-all duration-300',
-                    hasReacted ? 'scale-125 drop-shadow-md' : 'text-purple-600',
+                    hasReacted ? 'scale-110 drop-shadow-md' : 'text-purple-600',
                     showCount ? 'mr-2' : ''
                   )}
                 />
@@ -292,45 +292,50 @@ if (document.head && !document.getElementById('wiggle-animation')) {
   style.textContent = `
     @keyframes wiggle {
       0% { transform: rotate(0deg); }
-      25% { transform: rotate(-15deg) scale(1.2); }
-      50% { transform: rotate(10deg) scale(1.2); }
-      75% { transform: rotate(-5deg) scale(1.1); }
+      25% { transform: rotate(-15deg) scale(1.3); }
+      50% { transform: rotate(10deg) scale(1.3); }
+      75% { transform: rotate(-5deg) scale(1.2); }
       100% { transform: rotate(0deg); }
     }
 
     @keyframes sparkle {
       0% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.7); }
-      70% { box-shadow: 0 0 0 10px rgba(147, 51, 234, 0); }
+      70% { box-shadow: 0 0 0 15px rgba(147, 51, 234, 0); }
       100% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0); }
     }
 
     @keyframes pop {
       0% { transform: scale(1); }
-      50% { transform: scale(1.15); }
+      50% { transform: scale(1.25); }
       100% { transform: scale(1); }
     }
 
     @keyframes glow {
       0% { box-shadow: 0 0 5px 0 rgba(168, 85, 247, 0.5); }
-      50% { box-shadow: 0 0 20px 5px rgba(168, 85, 247, 0.3); }
+      50% { box-shadow: 0 0 25px 8px rgba(168, 85, 247, 0.4); }
       100% { box-shadow: 0 0 5px 0 rgba(168, 85, 247, 0.5); }
     }
 
     @keyframes subtle-pulse {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+      0% { background-position: 0% 50%; background-size: 200% 200%; }
+      50% { background-position: 100% 50%; background-size: 250% 250%; }
+      100% { background-position: 0% 50%; background-size: 200% 200%; }
     }
 
     @keyframes subtle-glow {
       0% { opacity: 0.1; }
-      50% { opacity: 0.3; }
+      50% { opacity: 0.4; }
       100% { opacity: 0.1; }
     }
 
     @keyframes click-ripple {
-      0% { transform: scale(0.8); opacity: 0.5; }
-      100% { transform: scale(2); opacity: 0; }
+      0% { transform: scale(0.8); opacity: 0.7; }
+      100% { transform: scale(2.5); opacity: 0; }
+    }
+
+    @keyframes teacher-mark {
+      0% { stroke-dashoffset: 100; }
+      100% { stroke-dashoffset: 0; }
     }
 
     .border-3 {
@@ -339,7 +344,7 @@ if (document.head && !document.getElementById('wiggle-animation')) {
 
     /* Ensure consistent styling across all instances */
     .reaction-button-active {
-      background-image: linear-gradient(to right, #2563eb, #9333ea, #ec4899);
+      background-image: linear-gradient(to right, #1e40af, #7e22ce, #be185d);
       background-size: 200% 200%;
       color: white;
       font-weight: 800;
@@ -347,7 +352,7 @@ if (document.head && !document.getElementById('wiggle-animation')) {
 
     .reaction-button-inactive {
       background-color: white;
-      border-color: #d8b4fe;
+      border-color: #c084fc;
       transition: all 0.3s ease;
     }
   `;

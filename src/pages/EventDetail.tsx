@@ -283,11 +283,12 @@ const EventDetail = () => {
 
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                   <div className="flex items-center gap-4">
-                    <ReactionButton 
-                      itemId={typeof event.id === 'string' ? parseInt(event.id, 10) : event.id} 
+                    <ReactionButton
+                      itemId={typeof event.id === 'string' ? parseInt(event.id, 10) : event.id}
                       itemType="event"
                       animation="pop"
                       prominence="high"
+                      buttonSize="lg"
                     />
 
                     {/* Share Button Component */}

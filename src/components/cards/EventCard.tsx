@@ -118,8 +118,8 @@ export function EventCard({
         <ReactionButton
           itemId={id}
           itemType="event"
-          buttonSize="md"
-          className="min-w-[70px]"
+          buttonSize="lg"
+          className="min-w-[80px]"
           animation="pop"
           prominence="high"
         />
