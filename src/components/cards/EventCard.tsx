@@ -53,7 +53,7 @@ export function EventCard({
             alt={title}
             aspectRatio="video"
             objectFit="cover"
-            fallbackSrc="/placeholder-event.jpg"
+            fallbackSrc="/images/placeholder-event.svg"
             className="w-full h-full transition-transform duration-500 group-hover:scale-105"
           />
         </div>

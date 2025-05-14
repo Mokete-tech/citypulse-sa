@@ -51,7 +51,7 @@ export function DealCard({
             alt={title}
             aspectRatio="video"
             objectFit="cover"
-            fallbackSrc="/placeholder-deal.jpg"
+            fallbackSrc="/images/placeholder-deal.svg"
             className="w-full h-full transition-transform duration-500 hover:scale-105"
           />
         </div>
