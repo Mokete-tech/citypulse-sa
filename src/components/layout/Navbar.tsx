@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, Menu, LogIn, User, LogOut, SearchIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import UserLoginDialog from '@/components/auth/UserLoginDialog';
+import { SearchDialog } from '@/components/search/SearchDialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +23,7 @@ interface NavbarProps {
 
 const Navbar = ({ toggleSidebar }: NavbarProps) => {
   const { user, signOut, loading, isMerchant } = useAuth();
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
 
   // Get user initials for avatar fallback
   const getUserInitials = () => {
@@ -50,19 +52,28 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
       </div>
 
       <div className="hidden md:flex items-center flex-1 max-w-md mx-4">
-        <div className="relative w-full">
-          <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Search deals, events or locations..."
-            className="pl-10 w-full bg-gray-50"
-          />
-        </div>
+        <Button
+          variant="outline"
+          className="w-full flex justify-start pl-3 bg-gray-50 text-gray-500 hover:bg-gray-100"
+          onClick={() => setSearchDialogOpen(true)}
+        >
+          <SearchIcon className="h-4 w-4 mr-2" />
+          Search deals, events or locations...
+        </Button>
       </div>
 
       <div className="flex items-center space-x-3">
-        <Button variant="ghost" size="icon" className="text-gray-500">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-gray-500"
+          onClick={() => setSearchDialogOpen(true)}
+        >
           <SearchIcon className="h-5 w-5 md:hidden" />
         </Button>
+
+        {/* Search Dialog */}
+        <SearchDialog open={searchDialogOpen} onOpenChange={setSearchDialogOpen} />
 
         {/* User is not logged in */}
         {!user && (
