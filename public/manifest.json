@@ -1,10 +1,12 @@
 {
-  "name": "CityPulse South Africa Insight",
+  "name": "CityPulse South Africa",
   "short_name": "CityPulse",
+  "description": "Discover the best deals and events in South Africa",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#0EA5E9",
+  "theme_color": "#0EA5E9",
+  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "favicon.svg",
@@ -18,5 +20,58 @@
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/home-screen.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Home Screen of CityPulse"
+    },
+    {
+      "src": "/screenshots/deals-screen.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Deals Screen of CityPulse"
+    },
+    {
+      "src": "/screenshots/events-screen.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Events Screen of CityPulse"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.citypulse.sa",
+      "id": "com.citypulse.sa"
+    },
+    {
+      "platform": "itunes",
+      "url": "https://apps.apple.com/app/citypulse-sa/id123456789"
+    }
+  ],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "View Deals",
+      "short_name": "Deals",
+      "description": "View the latest deals",
+      "url": "/deals"
+    },
+    {
+      "name": "View Events",
+      "short_name": "Events",
+      "description": "View upcoming events",
+      "url": "/events"
+    }
+  ],
+  "categories": ["shopping", "lifestyle", "entertainment"],
+  "dir": "ltr",
+  "lang": "en-ZA",
+  "scope": "/"
 }
