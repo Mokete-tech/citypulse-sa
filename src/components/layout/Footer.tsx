@@ -1,7 +1,25 @@
 
 import React from 'react';
-import { Github, Twitter } from 'lucide-react';
+import { Github } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+// Custom X (formerly Twitter) icon
+const XIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M18 6L6 18" />
+    <path d="M6 6L18 18" />
+  </svg>
+);
 
 const Footer = () => {
   return (
@@ -15,11 +33,8 @@ const Footer = () => {
           </div>
 
           <div className="flex items-center space-x-6">
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-sa-blue transition-colors">
-              <Github className="h-5 w-5" />
-            </a>
             <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-sa-blue transition-colors">
-              <Twitter className="h-5 w-5" />
+              <XIcon />
             </a>
           </div>
 
