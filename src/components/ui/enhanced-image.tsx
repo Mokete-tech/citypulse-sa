@@ -13,6 +13,9 @@ interface EnhancedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   loadingStrategy?: 'eager' | 'lazy';
   onLoadingComplete?: () => void;
   onError?: () => void;
+  retryOnError?: boolean;
+  maxRetries?: number;
+  shimmer?: boolean;
 }
 
 /**
@@ -21,7 +24,7 @@ interface EnhancedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 export function EnhancedImage({
   src,
   alt = '',
-  fallbackSrc = '/images/placeholder.jpg',
+  fallbackSrc = '/images/placeholder.svg',
   aspectRatio = 'auto',
   objectFit = 'cover',
   className,
@@ -32,18 +35,33 @@ export function EnhancedImage({
   loadingStrategy = 'lazy',
   onLoadingComplete,
   onError,
+  retryOnError = true,
+  maxRetries = 2,
+  shimmer = true,
   ...props
 }: EnhancedImageProps) {
   const [imgSrc, setImgSrc] = useState<string | undefined>(src);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [imageType, setImageType] = useState<'deal' | 'event' | 'general'>('general');
 
   // Reset states when src changes
   useEffect(() => {
     setImgSrc(src);
     setIsLoading(true);
     setHasError(false);
-  }, [src]);
+    setRetryCount(0);
+
+    // Determine image type based on src or fallbackSrc
+    if (src?.includes('deal') || fallbackSrc?.includes('deal')) {
+      setImageType('deal');
+    } else if (src?.includes('event') || fallbackSrc?.includes('event')) {
+      setImageType('event');
+    } else {
+      setImageType('general');
+    }
+  }, [src, fallbackSrc]);
 
   // Handle image load success
   const handleLoad = () => {
@@ -55,12 +73,38 @@ export function EnhancedImage({
   const handleError = () => {
     setHasError(true);
     setIsLoading(false);
-    
-    // Try to use fallback if available
-    if (fallbackSrc && imgSrc !== fallbackSrc) {
-      setImgSrc(fallbackSrc);
+
+    // Try to retry loading the image if retries are enabled and we haven't exceeded max retries
+    if (retryOnError && retryCount < maxRetries && imgSrc === src) {
+      setRetryCount(prev => prev + 1);
+
+      // Add a cache-busting parameter to force a fresh request
+      const cacheBuster = `?cb=${Date.now()}-${retryCount + 1}`;
+      const srcWithCacheBuster = src + cacheBuster;
+
+      // Retry after a short delay
+      setTimeout(() => {
+        setIsLoading(true);
+        setHasError(false);
+        setImgSrc(srcWithCacheBuster);
+      }, 1000);
+
+      return;
     }
-    
+
+    // If we've exhausted retries or retries are disabled, use the fallback
+    if (fallbackSrc && imgSrc !== fallbackSrc) {
+      // Use type-specific fallback if available
+      let typedFallback = fallbackSrc;
+      if (imageType === 'deal' && !fallbackSrc.includes('deal')) {
+        typedFallback = '/images/placeholder-deal.svg';
+      } else if (imageType === 'event' && !fallbackSrc.includes('event')) {
+        typedFallback = '/images/placeholder-event.svg';
+      }
+
+      setImgSrc(typedFallback);
+    }
+
     onError?.();
   };
 
@@ -94,9 +138,17 @@ export function EnhancedImage({
       {(isLoading || hasError) && showPlaceholder && (
         <div className={cn(
           'absolute inset-0 flex items-center justify-center bg-muted',
+          shimmer && 'animate-pulse',
           placeholderClassName
         )}>
-          {placeholderIcon || <ImageIcon className="h-12 w-12 text-muted-foreground/50" />}
+          {placeholderIcon || (
+            <div className="flex flex-col items-center justify-center">
+              <ImageIcon className="h-12 w-12 text-muted-foreground/50" />
+              {hasError && retryCount >= maxRetries && (
+                <p className="text-xs text-muted-foreground mt-2">Image could not be loaded</p>
+              )}
+            </div>
+          )}
         </div>
       )}
 

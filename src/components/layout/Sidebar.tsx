@@ -37,7 +37,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   return (
     <>
       <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-72 bg-sa-blue text-white transform transition-all duration-300 ease-in-out",
+        "fixed inset-y-0 left-0 z-50 w-[85vw] sm:w-72 bg-sa-blue text-white transform transition-all duration-300 ease-in-out shadow-xl",
         // Mobile: translate based on isOpen state
         isOpen ? "translate-x-0" : "-translate-x-full",
         // Desktop: translate based on isOpen state (fixed)
@@ -45,7 +45,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
       )}>
         <div className="h-full flex flex-col">
           <div className="flex items-center justify-between h-16 px-4 border-b border-sky-700">
-            <Link to="/" className="text-xl font-bold flex items-center gap-2">
+            <Link to="/" className="text-xl font-bold flex items-center gap-2" onClick={() => window.innerWidth < 768 && toggleSidebar()}>
               <div className="bg-gradient-to-r from-white to-gray-200 p-1.5 rounded-md">
                 <span className="text-sa-blue font-bold">CP</span>
               </div>
@@ -56,6 +56,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
               size="icon"
               className="text-white md:hidden"
               onClick={toggleSidebar}
+              aria-label="Close sidebar"
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
@@ -154,6 +155,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
           onClick={toggleSidebar}
+          aria-label="Close sidebar overlay"
         ></div>
       )}
 
@@ -166,6 +168,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
           size="sm"
           className="rounded-l-none shadow-md"
           onClick={toggleSidebar}
+          aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
         >
           <ChevronLeft className={cn("h-4 w-4 transition-transform", !isOpen && "rotate-180")} />
           <span className="sr-only">{isOpen ? "Close sidebar" : "Open sidebar"}</span>
