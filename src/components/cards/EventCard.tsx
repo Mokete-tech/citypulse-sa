@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ReactionButton } from '@/components/ui/reaction-button';
 import ShareButton from '@/components/ui/share-button';
 import { Calendar, MapPin, Star, Clock } from 'lucide-react';
+import { EnhancedImage } from '@/components/ui/enhanced-image';
 
 interface EventCardProps {
   id: number;
@@ -47,10 +48,13 @@ export function EventCard({
 
       {image_url && (
         <div className="aspect-video w-full overflow-hidden">
-          <img
+          <EnhancedImage
             src={image_url}
             alt={title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            aspectRatio="video"
+            objectFit="cover"
+            fallbackSrc="/placeholder-event.jpg"
+            className="w-full h-full transition-transform duration-500 group-hover:scale-105"
           />
         </div>
       )}

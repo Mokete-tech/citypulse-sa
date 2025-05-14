@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { ReactionButton } from '@/components/ui/reaction-button';
 import ShareButton from '@/components/ui/share-button';
 import { Tag } from 'lucide-react';
+import { EnhancedImage } from '@/components/ui/enhanced-image';
 
 interface DealCardProps {
   id: number;
@@ -45,10 +46,13 @@ export function DealCard({
     <Card className="h-full flex flex-col overflow-hidden">
       {image_url && (
         <div className="aspect-video w-full overflow-hidden">
-          <img
+          <EnhancedImage
             src={image_url}
             alt={title}
-            className="w-full h-full object-cover"
+            aspectRatio="video"
+            objectFit="cover"
+            fallbackSrc="/placeholder-deal.jpg"
+            className="w-full h-full transition-transform duration-500 hover:scale-105"
           />
         </div>
       )}
