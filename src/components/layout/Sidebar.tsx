@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Tag, Calendar, LogIn, ChevronLeft, CreditCard, ChevronDown
@@ -37,54 +37,21 @@ const eventTypes = [
   { name: 'Arts & Culture', color: 'bg-orange-400', path: '/events?category=arts' },
 ];
 
-// Collapsible section component
+// Simplified collapsible section component
 interface CollapsibleSectionProps {
   title: string;
   id: string;
   children: React.ReactNode;
-  defaultExpanded?: boolean;
 }
 
-const CollapsibleSection = ({ title, id, children, defaultExpanded = true }: CollapsibleSectionProps) => {
-  // Initialize state from localStorage or default
-  const [isExpanded, setIsExpanded] = useState(() => {
-    // Check if we have a stored preference
-    const storedState = localStorage.getItem(`sidebar-section-${id}`);
-    // If on mobile, default to collapsed
-    if (window.innerWidth < 768) return false;
-    // Otherwise use stored preference or default
-    return storedState !== null ? storedState === 'true' : defaultExpanded;
-  });
+const CollapsibleSection = ({ title, id, children }: CollapsibleSectionProps) => {
+  // Simple state for expanded/collapsed
+  const [isExpanded, setIsExpanded] = useState(true);
 
   // Toggle section expanded state
   const toggleSection = () => {
-    const newState = !isExpanded;
-    setIsExpanded(newState);
-    localStorage.setItem(`sidebar-section-${id}`, newState.toString());
+    setIsExpanded(!isExpanded);
   };
-
-  // Handle window resize
-  useEffect(() => {
-    const handleResize = () => {
-      const isMobileView = window.innerWidth < 768;
-
-      // Only auto-adjust if user hasn't manually set it
-      const userHasSetPreference = localStorage.getItem(`sidebar-section-${id}`) !== null;
-
-      if (!userHasSetPreference) {
-        // Auto-collapse on mobile, expand on desktop
-        setIsExpanded(!isMobileView);
-      }
-    };
-
-    // Add event listener for window resize
-    window.addEventListener('resize', handleResize);
-
-    // Clean up event listener
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [id]);
 
   return (
     <div className="mt-6 px-4">
@@ -160,7 +127,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
             </ul>
 
             {/* Filter Categories */}
-            <CollapsibleSection title="Filter Categories" id="filter-categories" defaultExpanded={true}>
+            <CollapsibleSection title="Filter Categories" id="filter-categories">
               <ul className="space-y-1">
                 {filterCategories.map((category) => (
                   <li key={category.name}>
@@ -177,7 +144,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
             </CollapsibleSection>
 
             {/* Event Categories */}
-            <CollapsibleSection title="Event Types" id="event-types" defaultExpanded={true}>
+            <CollapsibleSection title="Event Types" id="event-types">
               <ul className="space-y-1">
                 {eventTypes.map((eventType) => (
                   <li key={eventType.name}>
