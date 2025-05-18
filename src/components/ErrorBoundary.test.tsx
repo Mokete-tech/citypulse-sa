@@ -1,6 +1,7 @@
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@/test/utils';
-import ErrorBoundary from './ErrorBoundary';
+import { render, screen } from '@testing-library/react';
+import { ErrorBoundary } from './ErrorBoundary';
 
 // Create a component that throws an error
 const ErrorComponent = () => {
@@ -20,7 +21,7 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     );
     
-    expect(screen.getByTestId('child')).toBeInTheDocument();
+    expect(screen.getByTestId('child')).toBeTruthy();
   });
   
   it('renders fallback UI when there is an error', () => {
@@ -31,11 +32,11 @@ describe('ErrorBoundary', () => {
     );
     
     // Check for error message in the fallback UI
-    expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
-    expect(screen.getByText(/We're sorry, but an error occurred/i)).toBeInTheDocument();
+    expect(screen.getByText(/Something went wrong/i)).toBeTruthy();
+    expect(screen.getByText(/We're sorry, but an error occurred/i)).toBeTruthy();
     
     // Check for refresh button
-    expect(screen.getByRole('button', { name: /Refresh the page/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Refresh the page/i })).toBeTruthy();
   });
   
   it('renders custom fallback when provided', () => {
@@ -45,6 +46,6 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     );
     
-    expect(screen.getByTestId('custom-fallback')).toBeInTheDocument();
+    expect(screen.getByTestId('custom-fallback')).toBeTruthy();
   });
 });

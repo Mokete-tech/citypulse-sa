@@ -1,139 +1,104 @@
-/**
- * Validation utilities for form inputs
- */
 
-/**
- * Validates an email address
- * @param email The email address to validate
- * @returns True if the email is valid, false otherwise
- */
-export function isValidEmail(email: string): boolean {
-  // Basic email validation regex
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   return emailRegex.test(email);
-}
+};
 
-/**
- * Validates a phone number
- * @param phone The phone number to validate
- * @returns True if the phone number is valid, false otherwise
- */
-export function isValidPhone(phone: string): boolean {
-  // Phone number must start with + followed by digits
-  // This is a basic validation, can be made more specific for different countries
-  const phoneRegex = /^\+[0-9]{10,15}$/;
-  return phoneRegex.test(phone);
-}
-
-/**
- * Validates a password
- * @param password The password to validate
- * @returns True if the password is valid, false otherwise
- */
-export function isValidPassword(password: string): boolean {
-  // Password must be at least 8 characters
+export const isValidPassword = (password: string): boolean => {
   return password.length >= 8;
-}
+};
 
-/**
- * Checks password strength
- * @param password The password to check
- * @returns An object with the strength score and feedback
- */
-export function checkPasswordStrength(password: string): { 
-  score: number; 
-  feedback: string;
-} {
-  let score = 0;
-  const feedback = [];
+export const isValidPhone = (phone: string): boolean => {
+  // Basic phone number validation with country code
+  const phoneRegex = /^\+[1-9]\d{1,14}$/;
+  return phoneRegex.test(phone);
+};
 
-  // Length check
-  if (password.length < 8) {
-    feedback.push('Password should be at least 8 characters');
-  } else {
-    score += 1;
-  }
+export const normalizePhoneNumber = (phone: string): string => {
+  // Remove all non-digit characters except '+'
+  return phone.replace(/[^\d+]/g, '');
+};
 
-  // Contains uppercase
-  if (/[A-Z]/.test(password)) {
-    score += 1;
-  } else {
-    feedback.push('Add uppercase letters');
-  }
-
-  // Contains lowercase
-  if (/[a-z]/.test(password)) {
-    score += 1;
-  } else {
-    feedback.push('Add lowercase letters');
-  }
-
-  // Contains numbers
-  if (/[0-9]/.test(password)) {
-    score += 1;
-  } else {
-    feedback.push('Add numbers');
-  }
-
-  // Contains special characters
-  if (/[^A-Za-z0-9]/.test(password)) {
-    score += 1;
-  } else {
-    feedback.push('Add special characters');
-  }
-
-  return {
-    score,
-    feedback: feedback.join(', ')
-  };
-}
-
-/**
- * Formats a phone number for display
- * @param phone The phone number to format
- * @returns The formatted phone number
- */
-export function formatPhoneNumber(phone: string): string {
-  // Remove all non-digit characters except the leading +
-  const cleaned = phone.replace(/[^\d+]/g, '');
+export const formatPhoneNumber = (phone: string): string => {
+  // This is a simple formatter, can be expanded based on regional requirements
+  if (!phone) return '';
   
-  // Check if the number starts with a +
-  if (cleaned.startsWith('+')) {
-    // Format international number: +XX XXX XXX XXXX
-    const match = cleaned.match(/^\+(\d{1,3})(\d{3})(\d{3})(\d{4})$/);
-    if (match) {
-      return `+${match[1]} ${match[2]} ${match[3]} ${match[4]}`;
+  const normalized = normalizePhoneNumber(phone);
+  
+  // For a number like +27123456789, format as +27 12 345 6789
+  if (normalized.startsWith('+')) {
+    const countryCode = normalized.slice(0, 3); // e.g. +27
+    const rest = normalized.slice(3);
+    
+    if (rest.length <= 3) {
+      return `${countryCode} ${rest}`;
+    } else if (rest.length <= 6) {
+      return `${countryCode} ${rest.slice(0, 2)} ${rest.slice(2)}`;
+    } else {
+      return `${countryCode} ${rest.slice(0, 2)} ${rest.slice(2, 5)} ${rest.slice(5)}`;
     }
   }
   
-  // Return the cleaned number if it doesn't match the pattern
-  return cleaned;
-}
+  return normalized;
+};
 
-/**
- * Normalizes a phone number for API calls
- * @param phone The phone number to normalize
- * @returns The normalized phone number
- */
-export function normalizePhoneNumber(phone: string): string {
-  // Remove all non-digit characters except the leading +
-  return phone.replace(/[^\d+]/g, '');
-}
+export const isValidBusinessName = (name: string): boolean => {
+  return name.length >= 2;
+};
 
-/**
- * Validates a business name
- * @param name The business name to validate
- * @returns True if the business name is valid, false otherwise
- */
-export function isValidBusinessName(name: string): boolean {
-  return name.trim().length >= 2;
-}
+export const isValidLocation = (location: string): boolean => {
+  return location.length >= 2;
+};
 
-/**
- * Validates a location
- * @param location The location to validate
- * @returns True if the location is valid, false otherwise
- */
-export function isValidLocation(location: string): boolean {
-  return location.trim().length >= 2;
-}
+export const checkPasswordStrength = (password: string): { score: number, feedback: string } => {
+  if (!password) {
+    return { score: 0, feedback: 'Password is required.' };
+  }
+  
+  let score = 0;
+  let feedback = '';
+  
+  // Length check
+  if (password.length < 8) {
+    feedback = 'Password should be at least 8 characters long.';
+  } else {
+    score += 1;
+  }
+  
+  // Check for numbers
+  if (/\d/.test(password)) {
+    score += 1;
+  } else {
+    feedback += ' Include at least one number.';
+  }
+  
+  // Check for lowercase letters
+  if (/[a-z]/.test(password)) {
+    score += 1;
+  } else {
+    feedback += ' Include at least one lowercase letter.';
+  }
+  
+  // Check for uppercase letters
+  if (/[A-Z]/.test(password)) {
+    score += 1;
+  } else {
+    feedback += ' Include at least one uppercase letter.';
+  }
+  
+  // Check for special characters
+  if (/[^A-Za-z0-9]/.test(password)) {
+    score += 1;
+  } else {
+    feedback += ' Include at least one special character.';
+  }
+  
+  // If score is high but no feedback was given yet, provide positive feedback
+  if (score >= 4 && !feedback) {
+    feedback = 'Strong password!';
+  } else if (score >= 3 && !feedback) {
+    feedback = 'Decent password, consider adding more variety.';
+  }
+  
+  return { score, feedback: feedback.trim() };
+};

@@ -9,8 +9,6 @@ import { AlertCircle, Mail, Lock, CheckCircle, XCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
-import { resetPassword } from '@/lib/auth-helpers';
-import { handleError } from '@/lib/error-handler';
 import { toast } from '@/components/ui/sonner';
 import PhoneLogin from './PhoneLogin';
 import { isValidEmail, isValidPassword, checkPasswordStrength } from '@/lib/validation';
@@ -25,6 +23,7 @@ const UserLogin = ({ onClose }: UserLoginProps) => {
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
   const [formError, setFormError] = useState("");
+  const [activeTab, setActiveTab] = useState("login");
 
   const { signIn, signUp, signInWithGoogle, signInWithFacebook, loading } = useAuth();
   const navigate = useNavigate();
@@ -61,15 +60,7 @@ const UserLogin = ({ onClose }: UserLoginProps) => {
       } else if (error?.message?.includes("Email not confirmed")) {
         setFormError("Please verify your email address before logging in.");
         toast.info("Email verification required", {
-          description: "Check your inbox for a verification email or request a new one.",
-          action: {
-            label: "Resend",
-            onClick: () => {
-              resetPassword(email)
-                .then(() => toast.success("Verification email sent"))
-                .catch(err => handleError(err));
-            }
-          }
+          description: "Check your inbox for a verification email or request a new one."
         });
       } else {
         setFormError("An error occurred during login. Please try again.");
@@ -114,7 +105,7 @@ const UserLogin = ({ onClose }: UserLoginProps) => {
       setRegisterPassword("");
 
       // Switch to login tab
-      document.querySelector('[data-state="inactive"][data-value="login"]')?.click();
+      setActiveTab("login");
 
       toast.success("Registration successful", {
         description: "Please check your email to verify your account before logging in."
@@ -131,7 +122,7 @@ const UserLogin = ({ onClose }: UserLoginProps) => {
             label: "Sign In",
             onClick: () => {
               setEmail(registerEmail);
-              document.querySelector('[data-state="inactive"][data-value="login"]')?.click();
+              setActiveTab("login");
             }
           }
         });
@@ -139,10 +130,6 @@ const UserLogin = ({ onClose }: UserLoginProps) => {
         setFormError("Please use a stronger password with at least 8 characters, including numbers and special characters.");
       } else {
         setFormError("Registration failed. Please try again.");
-        handleError(error, {
-          title: "Registration failed",
-          message: "Could not create your account. Please try again."
-        });
       }
     }
   };
@@ -167,7 +154,7 @@ const UserLogin = ({ onClose }: UserLoginProps) => {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <Tabs defaultValue="login">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-3">
           <TabsTrigger value="login">Email Login</TabsTrigger>
           <TabsTrigger value="phone">Phone Login</TabsTrigger>
