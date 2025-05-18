@@ -7,7 +7,6 @@ import { PaymentsList } from "./components/PaymentsList";
 import { PaymentForm } from "./components/PaymentForm";
 import { PulsePal } from "./components/ai/PulsePal";
 import { SignIn, SignUp, useUser, useClerk } from "@clerk/clerk-react";
-import { SidebarLayout } from "./components/layout/SidebarLayout";
 import { toast } from "sonner";
 import { ResponsiveLayout } from "./components/layout/ResponsiveLayout";
 import { Button } from "./components/ui/button";

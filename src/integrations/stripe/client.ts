@@ -29,7 +29,9 @@ let stripePromiseInstance: Promise<Stripe | null>;
 
 export const getStripe = (): Promise<Stripe | null> => {
   if (!stripePromiseInstance) {
-    stripePromiseInstance = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!);
+    // Use optional chaining and nullish coalescing to handle empty keys gracefully
+    const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ?? '';
+    stripePromiseInstance = key ? loadStripe(key) : Promise.resolve(null);
   }
   return stripePromiseInstance;
 };
