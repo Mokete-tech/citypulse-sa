@@ -3,17 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="CityPulse" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CityPulse South Africa - Local Deals & Events</title>
     <meta name="theme-color" content="#0EA5E9" />
     <meta name="description" content="Discover the best local deals and events in South Africa with CityPulse" />
-
+    
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://citypulse-sa.vercel.app/" />
@@ -27,7 +21,7 @@
     <meta property="twitter:title" content="CityPulse South Africa - Local Deals & Events" />
     <meta property="twitter:description" content="Discover the best local deals and events in South Africa with CityPulse" />
     <meta property="twitter:image" content="https://citypulse-sa.vercel.app/social-preview.jpg" />
-
+    
     <!-- Aggressive error prevention styles -->
     <style>
       /* Hide all error messages immediately */
@@ -66,7 +60,7 @@
         z-index: -9999 !important;
       }
     </style>
-
+    
     <!-- Nuclear approach: Completely override Supabase's error UI -->
     <script>
       // Run this script before anything else loads
@@ -76,11 +70,11 @@
         const originalAppendChild = Node.prototype.appendChild;
         const originalInsertBefore = Node.prototype.insertBefore;
         const originalSetAttribute = Element.prototype.setAttribute;
-
+        
         // Override document.createElement to intercept alert elements
         document.createElement = function(tagName) {
           const element = originalCreateElement.call(document, tagName);
-
+          
           // Add special handling for div elements
           if (tagName.toLowerCase() === 'div') {
             // Override setAttribute to prevent role="alert"
@@ -93,24 +87,24 @@
               return originalSetAttribute.call(this, name, value);
             };
           }
-
+          
           return element;
         };
-
+        
         // Override appendChild to prevent error elements from being added
         Node.prototype.appendChild = function(child) {
           // Check if this is a div with role="alert"
-          if (child && child.nodeType === 1 &&
-              child.tagName === 'DIV' &&
-              child.getAttribute &&
+          if (child && child.nodeType === 1 && 
+              child.tagName === 'DIV' && 
+              child.getAttribute && 
               child.getAttribute('role') === 'alert') {
             console.log('Blocked alert element from being appended');
             return child;
           }
-
+          
           // Check if this is a div containing error text
-          if (child && child.nodeType === 1 &&
-              child.tagName === 'DIV' &&
+          if (child && child.nodeType === 1 && 
+              child.tagName === 'DIV' && 
               child.textContent && (
                 child.textContent.includes('Connection Error') ||
                 child.textContent.includes('Unable to connect') ||
@@ -121,24 +115,24 @@
             console.log('Blocked error element from being appended');
             return child;
           }
-
+          
           return originalAppendChild.call(this, child);
         };
-
+        
         // Override insertBefore to prevent error elements from being added
         Node.prototype.insertBefore = function(newNode, referenceNode) {
           // Check if this is a div with role="alert"
-          if (newNode && newNode.nodeType === 1 &&
-              newNode.tagName === 'DIV' &&
-              newNode.getAttribute &&
+          if (newNode && newNode.nodeType === 1 && 
+              newNode.tagName === 'DIV' && 
+              newNode.getAttribute && 
               newNode.getAttribute('role') === 'alert') {
             console.log('Blocked alert element from being inserted');
             return newNode;
           }
-
+          
           // Check if this is a div containing error text
-          if (newNode && newNode.nodeType === 1 &&
-              newNode.tagName === 'DIV' &&
+          if (newNode && newNode.nodeType === 1 && 
+              newNode.tagName === 'DIV' && 
               newNode.textContent && (
                 newNode.textContent.includes('Connection Error') ||
                 newNode.textContent.includes('Unable to connect') ||
@@ -149,10 +143,10 @@
             console.log('Blocked error element from being inserted');
             return newNode;
           }
-
+          
           return originalInsertBefore.call(this, newNode, referenceNode);
         };
-
+        
         // Override setAttribute to prevent role="alert"
         Element.prototype.setAttribute = function(name, value) {
           if (name === 'role' && value === 'alert') {
@@ -161,7 +155,7 @@
           }
           return originalSetAttribute.call(this, name, value);
         };
-
+        
         // Function to remove any error elements that might have slipped through
         function removeErrorElements() {
           // Remove elements with role="alert"
@@ -172,7 +166,7 @@
               } catch (e) {}
             }
           });
-
+          
           // Remove elements containing error text
           document.querySelectorAll('div').forEach(element => {
             if (element.textContent && (
@@ -190,25 +184,25 @@
             }
           });
         }
-
+        
         // Run removeErrorElements periodically
         setInterval(removeErrorElements, 50);
-
+        
         // Also run when DOM changes
         if (typeof MutationObserver !== 'undefined') {
           const observer = new MutationObserver(removeErrorElements);
-
+          
           // Start observing once the body is available
           if (document.body) {
-            observer.observe(document.body, {
-              childList: true,
+            observer.observe(document.body, { 
+              childList: true, 
               subtree: true,
               attributes: true
             });
           } else {
             document.addEventListener('DOMContentLoaded', function() {
-              observer.observe(document.body, {
-                childList: true,
+              observer.observe(document.body, { 
+                childList: true, 
                 subtree: true,
                 attributes: true
               });
@@ -221,21 +215,5 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      // Register service worker for PWA support
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/service-worker.js')
-            .then(registration => {
-              console.log('ServiceWorker registration successful with scope: ', registration.scope);
-            })
-            .catch(error => {
-              console.log('ServiceWorker registration failed: ', error);
-            });
-        });
-      }
-    </script>
-    <!-- Image fixer script to ensure images always display properly -->
-    <script src="/image-fixer.js"></script>
   </body>
 </html>
