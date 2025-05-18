@@ -39,6 +39,33 @@ export type Database = {
         }
         Relationships: []
       }
+      checkout_logs: {
+        Row: {
+          created_at: string | null
+          id: number
+          metadata: Json | null
+          price_id: string
+          session_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          metadata?: Json | null
+          price_id: string
+          session_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          metadata?: Json | null
+          price_id?: string
+          session_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       contact_submissions: {
         Row: {
           created_at: string | null
@@ -132,6 +159,7 @@ export type Database = {
           merchant_id: string
           merchant_name: string
           purchase_count: number | null
+          shares: number | null
           title: string
           updated_at: string | null
           views: number | null
@@ -151,6 +179,7 @@ export type Database = {
           merchant_id: string
           merchant_name: string
           purchase_count?: number | null
+          shares?: number | null
           title: string
           updated_at?: string | null
           views?: number | null
@@ -170,6 +199,7 @@ export type Database = {
           merchant_id?: string
           merchant_name?: string
           purchase_count?: number | null
+          shares?: number | null
           title?: string
           updated_at?: string | null
           views?: number | null
@@ -183,6 +213,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      email_logs: {
+        Row: {
+          created_at: string | null
+          error: string | null
+          id: number
+          recipient: string
+          service: string
+          status: string
+          subject: string
+          template_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error?: string | null
+          id?: number
+          recipient: string
+          service: string
+          status: string
+          subject: string
+          template_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error?: string | null
+          id?: number
+          recipient?: string
+          service?: string
+          status?: string
+          subject?: string
+          template_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       event_tickets: {
         Row: {
@@ -242,6 +308,7 @@ export type Database = {
           merchant_id: string
           merchant_name: string
           price: string | null
+          shares: number | null
           ticket_count: number | null
           time: string
           title: string
@@ -263,6 +330,7 @@ export type Database = {
           merchant_id: string
           merchant_name: string
           price?: string | null
+          shares?: number | null
           ticket_count?: number | null
           time: string
           title: string
@@ -284,6 +352,7 @@ export type Database = {
           merchant_id?: string
           merchant_name?: string
           price?: string | null
+          shares?: number | null
           ticket_count?: number | null
           time?: string
           title?: string
@@ -353,6 +422,81 @@ export type Database = {
         }
         Relationships: []
       }
+      merchants: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          description: string | null
+          email: string
+          id: number
+          logo_url: string | null
+          name: string
+          phone: string | null
+          status: string | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          description?: string | null
+          email: string
+          id?: number
+          logo_url?: string | null
+          name: string
+          phone?: string | null
+          status?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          description?: string | null
+          email?: string
+          id?: number
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          status?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
+      payment_logs: {
+        Row: {
+          amount: number
+          created_at: string | null
+          currency: string
+          id: number
+          metadata: Json | null
+          payment_intent_id: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          currency: string
+          id?: number
+          metadata?: Json | null
+          payment_intent_id?: string | null
+          status: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          currency?: string
+          id?: number
+          metadata?: Json | null
+          payment_intent_id?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
@@ -392,6 +536,126 @@ export type Database = {
         }
         Relationships: []
       }
+      reactions: {
+        Row: {
+          created_at: string | null
+          id: number
+          item_id: number
+          item_type: string
+          reaction_type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          item_id: number
+          item_type: string
+          reaction_type?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          item_id?: number
+          item_type?: string
+          reaction_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      sms_logs: {
+        Row: {
+          created_at: string | null
+          error: string | null
+          id: number
+          message: string
+          recipient: string
+          service: string
+          status: string
+          template_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error?: string | null
+          id?: number
+          message: string
+          recipient: string
+          service: string
+          status: string
+          template_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error?: string | null
+          id?: number
+          message?: string
+          recipient?: string
+          service?: string
+          status?: string
+          template_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      sms_templates: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: number
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: number
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: number
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      statement_logs: {
+        Row: {
+          created_at: string | null
+          end_date: string
+          filename: string
+          id: number
+          merchant_id: string
+          start_date: string
+          statement_type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_date: string
+          filename: string
+          id?: number
+          merchant_id: string
+          start_date: string
+          statement_type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string
+          filename?: string
+          id?: number
+          merchant_id?: string
+          start_date?: string
+          statement_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           created_at: string | null
@@ -419,6 +683,63 @@ export type Database = {
           merchant_name?: string | null
           updated_at?: string | null
           username?: string
+        }
+        Relationships: []
+      }
+      verification_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          expires_at: string
+          id: number
+          phone_number: string
+          used: boolean | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          expires_at: string
+          id?: number
+          phone_number: string
+          used?: boolean | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: number
+          phone_number?: string
+          used?: boolean | null
+        }
+        Relationships: []
+      }
+      verification_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: number
+          phone_number: string
+          service: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: number
+          phone_number: string
+          service: string
+          status: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: number
+          phone_number?: string
+          service?: string
+          status?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -505,7 +826,47 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      add_column_if_not_exists: {
+        Args: {
+          table_name: string
+          column_name: string
+          column_type: string
+          column_default?: string
+        }
+        Returns: undefined
+      }
+      get_reaction_count: {
+        Args: { p_item_id: number; p_item_type: string }
+        Returns: number
+      }
+      get_users_with_roles: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          email: string
+          role: string
+          created_at: string
+          last_sign_in_at: string
+          merchant_name: string
+          business_type: string
+        }[]
+      }
+      has_user_reacted: {
+        Args: { p_user_id: string; p_item_id: number; p_item_type: string }
+        Returns: boolean
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_merchant: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      set_user_role: {
+        Args: { user_id: string; role: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
