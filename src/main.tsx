@@ -1,17 +1,25 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import { ClerkAuthProvider } from './contexts/ClerkAuthContext';
+import { ClerkProvider } from '@clerk/clerk-react';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import './index.css';
 import './App.css';
-import { ErrorBoundary } from './components/ErrorBoundary';
+
+// Get the publishable key from environment variables
+const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || "pk_test_Y2hvaWNlLWFuZW1vbmUtNjIuY2xlcmsuYWNjb3VudHMuZGV2JA";
+
+if (!CLERK_PUBLISHABLE_KEY) {
+  console.error("Missing Clerk Publishable Key");
+}
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <ClerkAuthProvider>
+      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
         <App />
-      </ClerkAuthProvider>
+      </ClerkProvider>
     </ErrorBoundary>
   </React.StrictMode>
 );

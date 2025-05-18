@@ -6,83 +6,79 @@ import { DealsCrud } from "./components/DealsCrud";
 import { PaymentsList } from "./components/PaymentsList";
 import { PaymentForm } from "./components/PaymentForm";
 import { PulsePal } from "./components/ai/PulsePal";
-import { useUser, useClerk } from "@clerk/clerk-react";
+import { SignIn, SignUp, useUser, useClerk } from "@clerk/clerk-react";
 import { SidebarLayout } from "./components/layout/SidebarLayout";
 import { toast } from "sonner";
+import { ResponsiveLayout } from "./components/layout/ResponsiveLayout";
+import { Button } from "./components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 
 export default function App() {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
-  const [showSignIn, setShowSignIn] = React.useState(false);
-  const [showSignUp, setShowSignUp] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState("signin");
 
-  // Handle Clerk authentication
-  if (!user) {
+  // Show loading state while Clerk is initializing
+  if (!isLoaded) {
     return (
-      <div className="p-6 max-w-lg mx-auto my-10 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold mb-6">CityPulse Starter - Please Sign In</h1>
-        
-        <div className="flex gap-4 mb-8">
-          <button
-            onClick={() => setShowSignIn(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-          >
-            Sign In
-          </button>
-          
-          <button
-            onClick={() => setShowSignUp(true)}
-            className="px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-50 transition-colors"
-          >
-            Sign Up
-          </button>
-        </div>
-        
-        {showSignIn && (
-          <div className="p-4 border rounded-lg">
-            <h2 className="text-xl font-semibold mb-4">Sign In</h2>
-            <p className="mb-4">SignIn component placeholder</p>
-            <button 
-              onClick={() => setShowSignIn(false)}
-              className="px-4 py-2 border rounded hover:bg-gray-100"
-            >
-              Close
-            </button>
-          </div>
-        )}
-        
-        {showSignUp && (
-          <div className="p-4 border rounded-lg">
-            <h2 className="text-xl font-semibold mb-4">Sign Up</h2>
-            <p className="mb-4">SignUp component placeholder</p>
-            <button 
-              onClick={() => setShowSignUp(false)}
-              className="px-4 py-2 border rounded hover:bg-gray-100"
-            >
-              Close
-            </button>
-          </div>
-        )}
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
+  // If user is not authenticated, show sign-in/sign-up form
+  if (!user) {
+    return (
+      <ResponsiveLayout showFooter={false} className="bg-gray-50">
+        <div className="flex items-center justify-center min-h-[80vh]">
+          <div className="p-6 max-w-md w-full bg-white rounded-lg shadow-md">
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-bold text-gray-800">Welcome to CityPulse</h1>
+              <p className="text-sm text-gray-600 mt-2">Discover the best local deals and events across South Africa</p>
+            </div>
+            
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="signin">Sign In</TabsTrigger>
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="signin" className="space-y-4">
+                <SignIn routing="path" path="/" afterSignInUrl="/" />
+              </TabsContent>
+              
+              <TabsContent value="signup" className="space-y-4">
+                <SignUp routing="path" path="/" afterSignUpUrl="/" />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+      </ResponsiveLayout>
+    );
+  }
+
+  // User is authenticated, show the main app
   const handleSignOut = () => {
     signOut();
     toast.success("Signed out successfully");
   };
 
   return (
-    <SidebarLayout sidebar={<PulsePal apiKey={import.meta.env.VITE_GEMINI_API_KEY || ""} />}>
+    <ResponsiveLayout>
       <div className="p-6">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">CityPulse Starter</h1>
-          <button
-            onClick={handleSignOut}
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded transition-colors"
-          >
-            Sign Out
-          </button>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-600">Welcome, {user.firstName || user.emailAddresses[0]?.emailAddress}</span>
+            <Button
+              onClick={handleSignOut}
+              variant="outline"
+              className="px-4 py-2"
+            >
+              Sign Out
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -108,7 +104,15 @@ export default function App() {
             <PaymentsList />
           </div>
         </div>
+
+        {/* AI Assistant */}
+        <div className="mt-8">
+          <div className="border rounded-lg bg-white shadow-sm p-4">
+            <h2 className="text-xl font-semibold mb-4">CityPulse AI Assistant</h2>
+            <PulsePal apiKey={import.meta.env.VITE_GEMINI_API_KEY || ""} />
+          </div>
+        </div>
       </div>
-    </SidebarLayout>
+    </ResponsiveLayout>
   );
 }

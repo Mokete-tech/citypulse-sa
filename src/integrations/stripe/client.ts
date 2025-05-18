@@ -12,13 +12,14 @@ export const isStripeConfigured = (): boolean => {
  * Format an amount in cents to a currency string
  */
 export const formatAmountForDisplay = (amount: number, currency: string = 'ZAR'): string => {
-  const formatter = new Intl.NumberFormatter('en-ZA', {
+  // Use Intl.NumberFormat instead of NumberFormatter
+  const formatter = new Intl.NumberFormat('en-ZA', {
     style: 'currency',
     currency,
     minimumFractionDigits: 2,
   });
   
-  return `R${(amount / 100).toFixed(2)}`;
+  return formatter.format(amount / 100);
 };
 
 /**

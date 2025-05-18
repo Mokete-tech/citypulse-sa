@@ -22,16 +22,24 @@ export function PaymentsList() {
         setLoading(true);
         setError(null);
         
-        const { data, error } = await supabase
+        let { data, error } = await supabase
           .from("payments")
           .select("*")
           .order("created_at", { ascending: false });
 
+        // Handle error from Supabase
         if (error) {
           throw error;
         }
 
-        setPayments(data || []);
+        // Parse response
+        if (Array.isArray(data)) {
+          setPayments(data);
+        } else {
+          // If data is not an array, use fallback
+          console.warn("Invalid payment data format", data);
+          setPayments([]);
+        }
       } catch (err: any) {
         console.error("Failed to fetch payments:", err);
         setError(err.message || "Failed to load payments");
@@ -59,7 +67,10 @@ export function PaymentsList() {
       )}
       
       {loading ? (
-        <div className="py-4">Loading payments...</div>
+        <div className="py-4 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          <span className="ml-2">Loading payments...</span>
+        </div>
       ) : payments.length > 0 ? (
         <ul className="divide-y">
           {payments.map((payment) => (
