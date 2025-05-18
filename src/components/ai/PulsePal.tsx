@@ -4,6 +4,7 @@ import { supabase } from "../../integrations/supabase/client";
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
 
 export function PulsePal({ apiKey }: { apiKey: string }) {
+  console.log("PulsePal apiKey prop:", apiKey);
   const [deals, setDeals] = useState<any[]>([]);
   const [question, setQuestion] = useState("");
   const [response, setResponse] = useState<string | null>(null);
@@ -50,18 +51,35 @@ Always be concise, friendly, and practical.
 
     try {
       const prompt = makePrompt(question);
-      const res = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }]
-        })
-      });
-      const data = await res.json();
-      if (data?.candidates?.[0]?.content?.parts?.[0]?.text) {
-        setResponse(data.candidates[0].content.parts[0].text);
-      } else {
-        setError("No AI response.");
+      if (!apiKey) {
+        setError("Missing Gemini API key.");
+        setLoading(false);
+        return;
+      }
+      try {
+        const res = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+          })
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          setError(`API error: ${text}`);
+          setLoading(false);
+          return;
+        }
+        const data = await res.json();
+        if (data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+          setResponse(data.candidates[0].content.parts[0].text);
+        } else {
+          setError("No AI response.");
+        }
+      } catch (err: any) {
+        setError(err.message || "Unknown error");
+      } finally {
+        setLoading(false);
       }
     } catch (err: any) {
       setError(err.message || "Unknown error");
