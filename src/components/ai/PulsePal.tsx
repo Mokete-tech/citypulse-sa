@@ -21,7 +21,7 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
       ? deals
           .map(
             (d, i) =>
-              `${i + 1}. ${d.title} at ${d.location} on ${d.date} for R${d.price}`
+              `${i + 1}. ${d.title} at ${d.location}${d.date ? " on " + d.date : ""} for R${d.price}`
           )
           .join("\n")
       : "No deals available right now.";
