@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, Menu, LogIn, User, LogOut, SearchIcon } from 'lucide-react';
@@ -24,10 +23,14 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
   const { user, signOut, isMerchant } = useAuth();
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
 
-  // Get user initials for avatar fallback
+  // Add a conditional check for user to prevent TS errors
   const getUserInitials = () => {
-    if (!user || !user.email) return 'U';
-    return user.email.substring(0, 2).toUpperCase();
+    if (!user) return 'U';
+    if (user.email) return user.email.substring(0, 2).toUpperCase();
+    if (user.emailAddresses && user.emailAddresses[0]?.emailAddress) {
+      return user.emailAddresses[0].emailAddress.substring(0, 2).toUpperCase();
+    }
+    return 'U';
   };
 
   return (

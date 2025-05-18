@@ -113,7 +113,7 @@ const UserLogin = ({ onClose }: UserLoginProps) => {
     } catch (error: any) {
       // Set a user-friendly error message
       if (error?.message?.includes("already registered")) {
-        setFormError("This email is already registered. Please try logging in instead.");
+        setFormError("This email is already registered. Please try login instead.");
 
         // Suggest to switch to login tab
         toast.info("Account exists", {
@@ -203,7 +203,7 @@ const UserLogin = ({ onClose }: UserLoginProps) => {
                               toast.error("Please enter your email address first");
                               return;
                             }
-                            // Call the resetPassword function from AuthContext
+                            // Call the resetPassword function from imported auth-helpers
                             resetPassword(email).catch(error => {
                               console.error("Password reset error:", error);
                             });

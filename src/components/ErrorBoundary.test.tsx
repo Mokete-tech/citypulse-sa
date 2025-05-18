@@ -21,7 +21,7 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     );
     
-    expect(screen.getByTestId('child')).toBeTruthy();
+    expect(screen.getByTestId('child')).toBeInTheDocument();
   });
   
   it('renders fallback UI when there is an error', () => {
@@ -32,11 +32,11 @@ describe('ErrorBoundary', () => {
     );
     
     // Check for error message in the fallback UI
-    expect(screen.getByText(/Something went wrong/i)).toBeTruthy();
-    expect(screen.getByText(/We're sorry, but an error occurred/i)).toBeTruthy();
+    expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
+    expect(screen.getByText(/We're sorry, but an error occurred/i)).toBeInTheDocument();
     
     // Check for refresh button
-    expect(screen.getByRole('button', { name: /Refresh the page/i })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Refresh the page/i })).toBeInTheDocument();
   });
   
   it('renders custom fallback when provided', () => {
@@ -46,6 +46,6 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     );
     
-    expect(screen.getByTestId('custom-fallback')).toBeTruthy();
+    expect(screen.getByTestId('custom-fallback')).toBeInTheDocument();
   });
 });

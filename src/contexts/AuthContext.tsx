@@ -1,6 +1,5 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useClerk } from '@clerk/clerk-react';
+import { useClerk, useUser, SignInResource } from '@clerk/clerk-react';
 
 // Define the type for our context
 export interface AuthContextType {
@@ -10,11 +9,12 @@ export interface AuthContextType {
   isAdmin: boolean;
   isMerchant: boolean;
   signIn: (email: string, password: string) => Promise<any>;
-  signUp: (email: string, password: string) => Promise<any>;
+  signUp: (email: string, password: string, metadata?: any) => Promise<any>;
   signOut: () => Promise<void>;
   signInWithGoogle: () => Promise<any>;
   signInWithFacebook: () => Promise<any>;
   signInWithPhone: (phone: string, verificationCode?: string) => Promise<any>;
+  signInWithEmail: (email: string, password: string) => Promise<any>;
   verifyPhoneOtp: (phone: string, code: string) => Promise<any>;
   signUpWithPhone: (phone: string, metadata?: any) => Promise<any>;
   sendPhoneVerification: (phone: string) => Promise<{success: boolean, error?: string}>;
@@ -29,7 +29,8 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   const [loading, setLoading] = useState<boolean>(true);
   const [userRole, setUserRole] = useState<string | null>(null);
   
-  const { isLoaded, isSignedIn, user: clerkUser, signOut: clerkSignOut } = useClerk();
+  const clerk = useClerk();
+  const { user: clerkUser, isLoaded } = useUser();
   
   useEffect(() => {
     if (isLoaded) {
@@ -44,60 +45,142 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
         setUserRole(null);
       }
     }
-  }, [isLoaded, isSignedIn, clerkUser]);
+  }, [isLoaded, clerkUser]);
   
-  // Auth methods (these would be implemented with actual functionality)
+  // Auth methods
   const signIn = async (email: string, password: string) => {
-    // Implement sign in logic
-    console.log("Sign in with:", email, password);
-    return Promise.resolve();
+    try {
+      const response = await clerk.signIn.create({
+        identifier: email,
+        password: password,
+      });
+      return response;
+    } catch (error) {
+      console.error("Sign in error:", error);
+      throw error;
+    }
   };
   
-  const signUp = async (email: string, password: string) => {
-    // Implement sign up logic
-    console.log("Sign up with:", email, password);
-    return Promise.resolve();
+  const signInWithEmail = async (email: string, password: string) => {
+    return signIn(email, password);
+  };
+  
+  const signUp = async (email: string, password: string, metadata?: any) => {
+    try {
+      const response = await clerk.signUp.create({
+        emailAddress: email,
+        password: password,
+        unsafeMetadata: metadata || {},
+      });
+      return response;
+    } catch (error) {
+      console.error("Sign up error:", error);
+      throw error;
+    }
   };
   
   const signInWithGoogle = async () => {
-    // Implement Google sign in
-    console.log("Sign in with Google");
-    return Promise.resolve();
+    try {
+      await clerk.authenticateWithRedirect({
+        strategy: "oauth_google",
+        redirectUrl: "/auth/callback",
+        redirectUrlComplete: "/",
+      });
+    } catch (error) {
+      console.error("Google sign in error:", error);
+      throw error;
+    }
   };
   
   const signInWithFacebook = async () => {
-    // Implement Facebook sign in
-    console.log("Sign in with Facebook");
-    return Promise.resolve();
+    try {
+      await clerk.authenticateWithRedirect({
+        strategy: "oauth_facebook",
+        redirectUrl: "/auth/callback",
+        redirectUrlComplete: "/",
+      });
+    } catch (error) {
+      console.error("Facebook sign in error:", error);
+      throw error;
+    }
   };
   
   const signInWithPhone = async (phone: string, verificationCode?: string) => {
-    // Implement phone sign in
-    console.log("Sign in with phone:", phone, verificationCode);
-    return Promise.resolve();
+    try {
+      // If verification code is provided, complete sign-in
+      if (verificationCode) {
+        // This assumes a previous signIn.create call was made to initiate phone verification
+        const response = await clerk.signIn.attemptFirstFactor({
+          strategy: "phone_code",
+          code: verificationCode,
+        });
+        return response;
+      }
+      
+      // Otherwise start the phone verification process
+      const response = await clerk.signIn.create({
+        identifier: phone,
+      });
+      
+      // Initiate phone code verification
+      await response.prepareFirstFactor({
+        strategy: "phone_code",
+        phoneNumberId: response.supportedFirstFactors.find(
+          (factor: any) => factor.strategy === "phone_code"
+        )?.phoneNumberId,
+      });
+      
+      return response;
+    } catch (error) {
+      console.error("Phone sign in error:", error);
+      throw error;
+    }
   };
   
   const verifyPhoneOtp = async (phone: string, code: string) => {
-    // Implement OTP verification
-    console.log("Verify OTP:", phone, code);
-    return Promise.resolve();
+    try {
+      // This is simplified; in a real implementation you would need to
+      // track the sign-in attempt ID from the initial signInWithPhone call
+      return signInWithPhone(phone, code);
+    } catch (error) {
+      console.error("OTP verification error:", error);
+      throw error;
+    }
   };
   
   const signUpWithPhone = async (phone: string, metadata?: any) => {
-    // Implement phone sign up
-    console.log("Sign up with phone:", phone, metadata);
-    return Promise.resolve();
+    try {
+      const response = await clerk.signUp.create({
+        phoneNumber: phone,
+        unsafeMetadata: metadata || {},
+      });
+      
+      // Prepare phone verification
+      await response.prepareVerification({
+        strategy: "phone_code",
+      });
+      
+      return response;
+    } catch (error) {
+      console.error("Phone sign up error:", error);
+      throw error;
+    }
   };
   
   const sendPhoneVerification = async (phone: string) => {
-    // Implement sending verification code
-    console.log("Send verification to:", phone);
-    return { success: true };
+    try {
+      // Try to create a sign in with phone
+      await signInWithPhone(phone);
+      return { success: true };
+    } catch (error) {
+      console.error("Send verification error:", error);
+      return { success: false, error: String(error) };
+    }
   };
   
   const handleSignOut = async () => {
     try {
-      await clerkSignOut();
+      await clerk.signOut();
       setUser(null);
       setUserRole(null);
     } catch (error) {
@@ -118,6 +201,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
       signInWithGoogle,
       signInWithFacebook,
       signInWithPhone,
+      signInWithEmail,
       verifyPhoneOtp,
       signUpWithPhone,
       sendPhoneVerification

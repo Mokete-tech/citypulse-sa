@@ -15,8 +15,10 @@ import { EventCard } from '@/components/cards/EventCard';
 const Demo = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  // Add this function
   const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
+    // This is just a placeholder function for the required prop
+    console.log("Toggle sidebar");
   };
 
   // Sample data for demo
@@ -55,7 +57,7 @@ const Demo = () => {
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       
       <div className="flex-1">
-        <Navbar />
+        <Navbar toggleSidebar={toggleSidebar} />
         
         <main className="container mx-auto px-4 py-8">
           <h1 className="text-3xl font-bold mb-8">CityPulse Demo Page</h1>

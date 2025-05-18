@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { LogIn, Mail, Phone } from 'lucide-react';
@@ -12,7 +13,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -21,7 +22,7 @@ interface UserLoginDialogProps {
 }
 
 const UserLoginDialog = ({ className }: UserLoginDialogProps) => {
-  const { signInWithEmail, signInWithFacebook, signInWithGoogle, signInWithPhone, sendPhoneVerification, loading } = useAuth();
+  const { signInWithEmail: signInFn, signInWithFacebook, signInWithGoogle, signInWithPhone, sendPhoneVerification, loading } = useAuth();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [phone, setPhone] = React.useState('');
@@ -32,7 +33,7 @@ const UserLoginDialog = ({ className }: UserLoginDialogProps) => {
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await signInWithEmail(email, password);
+      await signInFn(email, password);
       setOpen(false);
     } catch (error) {
       console.error('Email login error:', error);

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
@@ -77,7 +76,9 @@ const MerchantLogin = () => {
       setLocation("");
 
       // Switch to login tab
-      document.querySelector('[data-state="inactive"][data-value="login"]')?.click();
+      document.querySelector('[data-state="inactive"][data-value="login"]')?.dispatchEvent(
+        new Event('click', { bubbles: true })
+      );
 
       toast.success("Registration successful", {
         description: "Please check your email to verify your account before logging in."
