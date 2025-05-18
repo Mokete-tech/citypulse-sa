@@ -1,11 +1,11 @@
 import React, { createContext, useContext } from "react";
-import { ClerkProvider, useUser, useSignIn, useSignOut } from "@clerk/clerk-react";
+import { ClerkProvider, useUser, useSignIn, useSignUp } from "@clerk/clerk-react";
 
 const ClerkAuthContext = createContext<any>(null);
 
 export const ClerkAuthProvider = ({ children }: { children: React.ReactNode }) => {
   return (
-    <ClerkProvider frontendApi={import.meta.env.VITE_CLERK_FRONTEND_API}>
+    <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
       {children}
     </ClerkProvider>
   );
@@ -14,7 +14,7 @@ export const ClerkAuthProvider = ({ children }: { children: React.ReactNode }) =
 export const useClerkAuth = () => {
   const user = useUser();
   const signIn = useSignIn();
-  const signOut = useSignOut();
+  const signUp = useSignUp();
 
-  return { user, signIn, signOut };
+  return { user, signIn, signUp };
 };
