@@ -4,11 +4,14 @@ import App from './App';
 import { ClerkAuthProvider } from './contexts/ClerkAuthContext';
 import './index.css';
 import './App.css';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ClerkAuthProvider>
-      <App />
-    </ClerkAuthProvider>
+    <ErrorBoundary>
+      <ClerkAuthProvider>
+        <App />
+      </ClerkAuthProvider>
+    </ErrorBoundary>
   </React.StrictMode>
 );
