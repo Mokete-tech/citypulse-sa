@@ -1,12 +1,16 @@
+
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import Footer from '@/components/layout/Footer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PaymentPackageCard } from '@/components/merchant/PaymentPackageCard';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { PulsePal } from '@/components/ai/PulsePal';
+import { EnvWarning } from '@/components/ui/env-warning';
+import { CalendarCheck, Building, HandCoins, Trophy, MapPin, Users } from 'lucide-react';
 
 const MerchantPackages = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -106,23 +110,82 @@ const MerchantPackages = () => {
   ];
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
       <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : ''}`}>
         <Navbar toggleSidebar={toggleSidebar} />
 
-        <main className="flex-1 p-4 md:p-6">
+        <main className="flex-1 p-4 md:p-6 overflow-y-auto">
+          {/* Environment Warning */}
+          <EnvWarning />
+          
           <div className="max-w-6xl mx-auto">
-            <h1 className="text-3xl font-bold mb-2">Merchant Packages</h1>
-            <p className="text-muted-foreground mb-6">
-              Choose the right package to promote your deals and events on CityPulse
-            </p>
+            <div className="mb-8 text-center">
+              <h1 className="text-4xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-purple-700">Merchant Packages</h1>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Boost your business visibility with CityPulse premium packages and connect with thousands of potential customers in South Africa
+              </p>
+            </div>
+
+            {/* Stats section */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+              <div className="bg-white p-4 rounded-lg shadow-md border border-gray-200">
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-100 p-2 rounded-full">
+                    <Users className="h-5 w-5 text-blue-700" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Monthly Users</p>
+                    <p className="text-xl font-bold">45,000+</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow-md border border-gray-200">
+                <div className="flex items-center gap-3">
+                  <div className="bg-green-100 p-2 rounded-full">
+                    <Building className="h-5 w-5 text-green-700" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Businesses</p>
+                    <p className="text-xl font-bold">3,200+</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow-md border border-gray-200">
+                <div className="flex items-center gap-3">
+                  <div className="bg-purple-100 p-2 rounded-full">
+                    <CalendarCheck className="h-5 w-5 text-purple-700" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Events Listed</p>
+                    <p className="text-xl font-bold">12,500+</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white p-4 rounded-lg shadow-md border border-gray-200">
+                <div className="flex items-center gap-3">
+                  <div className="bg-amber-100 p-2 rounded-full">
+                    <MapPin className="h-5 w-5 text-amber-700" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Cities Covered</p>
+                    <p className="text-xl font-bold">25+</p>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <Tabs defaultValue="deals" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-8">
-                <TabsTrigger value="deals">Deal Packages</TabsTrigger>
-                <TabsTrigger value="events">Event Packages</TabsTrigger>
+                <TabsTrigger value="deals" className="text-base py-3">
+                  <HandCoins className="h-4 w-4 mr-2" />
+                  Deal Packages
+                </TabsTrigger>
+                <TabsTrigger value="events" className="text-base py-3">
+                  <Trophy className="h-4 w-4 mr-2" />
+                  Event Packages
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="deals" className="space-y-8">
@@ -149,11 +212,28 @@ const MerchantPackages = () => {
                   />
                 </div>
 
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                  <h3 className="font-medium text-blue-800 mb-2">Why list your deal on CityPulse?</h3>
-                  <p className="text-blue-700 text-sm">
-                    Reach thousands of potential customers in your area. Our platform connects local businesses with eager shoppers looking for the best deals in South Africa.
-                  </p>
+                <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg border border-blue-200 shadow-sm">
+                  <h3 className="font-medium text-blue-800 text-xl mb-3">Why list your deal on CityPulse?</h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="flex gap-3">
+                      <div className="flex-shrink-0 bg-white w-12 h-12 rounded-full flex items-center justify-center shadow-sm">
+                        <Users className="h-6 w-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium mb-1">Reach Thousands</h4>
+                        <p className="text-sm text-blue-700">Connect with over 45,000 active monthly users looking for local deals.</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <div className="flex-shrink-0 bg-white w-12 h-12 rounded-full flex items-center justify-center shadow-sm">
+                        <MapPin className="h-6 w-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium mb-1">Local Targeting</h4>
+                        <p className="text-sm text-blue-700">Our geo-location features connect you with nearby customers.</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </TabsContent>
 
@@ -181,14 +261,42 @@ const MerchantPackages = () => {
                   />
                 </div>
 
-                <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
-                  <h3 className="font-medium text-purple-800 mb-2">Why promote your event on CityPulse?</h3>
-                  <p className="text-purple-700 text-sm">
-                    Get your event noticed by thousands of potential attendees. Our platform helps event organizers connect with people looking for exciting events in South Africa.
-                  </p>
+                <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-6 rounded-lg border border-purple-200 shadow-sm">
+                  <h3 className="font-medium text-purple-800 text-xl mb-3">Why promote your event on CityPulse?</h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="flex gap-3">
+                      <div className="flex-shrink-0 bg-white w-12 h-12 rounded-full flex items-center justify-center shadow-sm">
+                        <CalendarCheck className="h-6 w-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium mb-1">Event Spotlight</h4>
+                        <p className="text-sm text-purple-700">Get featured in our weekly event highlights seen by thousands.</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <div className="flex-shrink-0 bg-white w-12 h-12 rounded-full flex items-center justify-center shadow-sm">
+                        <Users className="h-6 w-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium mb-1">Targeted Audience</h4>
+                        <p className="text-sm text-purple-700">Reach people specifically searching for events in your area.</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </TabsContent>
             </Tabs>
+            
+            {/* AI Assistant Section */}
+            <div className="mt-12 bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+              <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-400 p-4">
+                <h2 className="text-white text-xl font-bold">Need Help Choosing?</h2>
+                <p className="text-white text-opacity-90">Ask our AI assistant for personalized recommendations</p>
+              </div>
+              <div className="p-6">
+                <PulsePal apiKey={import.meta.env.VITE_GEMINI_API_KEY || ""} />
+              </div>
+            </div>
           </div>
         </main>
 
