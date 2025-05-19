@@ -1,10 +1,12 @@
 
-import '@testing-library/jest-dom';
 import { expect, vi } from 'vitest';
 import * as matchers from '@testing-library/jest-dom/matchers';
 
+// Custom type extension to work around typing issue
+const customMatchers = matchers as unknown as Record<string, Function>;
+
 // Extend Vitest's expect with testing-library matchers
-expect.extend(matchers);
+expect.extend(customMatchers);
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {

@@ -78,7 +78,10 @@ export function PaymentForm({
     setPaymentError(null);
 
     try {
-      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+      // Use stripe instance to confirm card payment
+      // Adding a type assertion to handle the API mismatch
+      const stripeWithMethods = stripe as any;
+      const { error, paymentIntent } = await stripeWithMethods.confirmCardPayment(clientSecret, {
         payment_method: {
           card: cardElement,
           billing_details: {

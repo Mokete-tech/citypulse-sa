@@ -14,6 +14,11 @@ declare global {
   }
 }
 
+interface StripeInstance {
+  elements: () => any;
+  createPaymentMethod: (options: any) => Promise<any>;
+}
+
 interface StripePaymentFormProps {
   amount: number;
   itemName: string;
@@ -69,7 +74,7 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
       const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ||
         'pk_live_51IRNxfHieGkyNl5wOGvmEAtaXxZ6VHEPmHcXuwfsfOPTt0umFFEY9QpsJMXo4IAo0uzl0R66CpaJFRKCaXo0k5DZ00uGSXCeCN';
 
-      const stripeInstance = window.Stripe(stripePublishableKey);
+      const stripeInstance = window.Stripe(stripePublishableKey) as unknown as StripeInstance;
       setStripe(stripeInstance);
 
       // Create card element

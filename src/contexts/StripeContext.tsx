@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Elements } from '@stripe/react-stripe-js';
-import { Stripe, StripeElementsOptions } from '@stripe/stripe-js';
+import { Stripe } from '@stripe/stripe-js';
 import { getStripe, isStripeConfigured } from '@/integrations/stripe/client';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -103,7 +103,7 @@ export function StripeProvider({ children }: { children: React.ReactNode }) {
   }
 
   // Options for Stripe Elements
-  const options: StripeElementsOptions = {
+  const options = {
     appearance: {
       theme: 'stripe',
       variables: {

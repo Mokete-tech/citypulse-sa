@@ -1,5 +1,5 @@
 
-import { loadStripe, Stripe } from '@stripe/stripe-js';
+import { Stripe } from '@stripe/stripe-js';
 
 /**
  * Check if Stripe is configured with an API key
@@ -29,9 +29,13 @@ let stripePromiseInstance: Promise<Stripe | null>;
 
 export const getStripe = (): Promise<Stripe | null> => {
   if (!stripePromiseInstance) {
-    // Use optional chaining and nullish coalescing to handle empty keys gracefully
-    const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ?? '';
-    stripePromiseInstance = key ? loadStripe(key) : Promise.resolve(null);
+    // Import dynamically to avoid the error
+    return import('@stripe/stripe-js').then(({ loadStripe }) => {
+      // Use optional chaining and nullish coalescing to handle empty keys gracefully
+      const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ?? '';
+      stripePromiseInstance = key ? loadStripe(key) : Promise.resolve(null);
+      return stripePromiseInstance;
+    });
   }
   return stripePromiseInstance;
 };

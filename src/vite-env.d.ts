@@ -40,7 +40,19 @@ declare module '@testing-library/jest-dom/matchers' {
 declare module '@stripe/stripe-js' {
   interface Stripe {
     Stripe?: any;
+    confirmCardPayment?: (clientSecret: string, data?: any) => Promise<any>;
   }
+  
+  // Add the missing StripeElementsOptions interface
+  interface StripeElementsOptions {
+    appearance?: any;
+    clientSecret?: string;
+    fonts?: any[];
+    locale?: string;
+  }
+  
+  // Add loadStripe function declaration
+  export function loadStripe(publishableKey: string, options?: any): Promise<Stripe | null>;
 }
 
 // Add mock for JsPDF

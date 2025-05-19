@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/sonner';
 import PhoneLogin from './PhoneLogin';
 import { isValidEmail, isValidPassword, checkPasswordStrength } from '@/lib/validation';
+import { resetPassword } from '@/lib/auth-helpers';
 
 interface UserLoginProps {
   onClose?: () => void;
