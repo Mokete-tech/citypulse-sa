@@ -65,7 +65,7 @@ declare module 'jspdf' {
         height: number;
       };
     };
-    // Remove the duplicate declaration to fix the error
+    // Fix the autoTable property declaration
     autoTable: (options: any) => jsPDF;
   }
 }

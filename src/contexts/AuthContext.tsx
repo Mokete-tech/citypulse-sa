@@ -1,49 +1,22 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useClerk, useUser } from '@clerk/clerk-react';
 
-// Define the type for our context
-export interface AuthContextType {
-  user: any; // This could be more specific if you know the structure
-  loading: boolean;
-  userRole: string | null;
-  isAdmin: boolean;
-  isMerchant: boolean;
-  signIn: (email: string, password: string) => Promise<any>;
-  signUp: (email: string, password: string, metadata?: any) => Promise<any>;
-  signOut: () => Promise<void>;
-  signInWithGoogle: () => Promise<any>;
-  signInWithFacebook: () => Promise<any>;
-  signInWithPhone: (phone: string, verificationCode?: string) => Promise<any>;
-  signInWithEmail: (email: string, password: string) => Promise<any>;
-  verifyPhoneOtp: (phone: string, code: string) => Promise<any>;
-  signUpWithPhone: (phone: string, metadata?: any) => Promise<any>;
-  sendPhoneVerification: (phone: string) => Promise<{success: boolean, error?: string}>;
-  resetPassword: (email: string) => Promise<{success: boolean, error?: string}>;
-}
+import React, { createContext, useState, useEffect } from 'react';
+import { useClerk, useUser } from '@clerk/clerk-react';
+import { 
+  emailSignIn, 
+  emailSignUp, 
+  googleSignIn, 
+  facebookSignIn, 
+  phoneSignIn, 
+  phoneSignUp, 
+  verifyPhoneOtp as verifyOtp,
+  sendPhoneVerification as sendVerification,
+  resetPassword as resetPwd,
+  signOut as logout
+} from '../lib/auth-methods';
+import { AuthContextType, ExtendedClerk } from './AuthContextTypes';
 
 // Create the context
 const AuthContext = createContext<AuthContextType | null>(null);
-
-// Extend the LoadedClerk type with the methods we need
-interface ExtendedClerk {
-  signOut: () => Promise<void>;
-  // Update to use the correct method name for clerk
-  client: {
-    signIn: {
-      create: (params: any) => Promise<any>;
-      attemptFirstFactor: (params: any) => Promise<any>;
-    };
-    signUp: {
-      create: (params: any) => Promise<any>;
-    };
-  };
-  // Update to use the correct method for OAuth redirect
-  authenticateWithRedirect: (params: {
-    strategy: string;
-    redirectUrl: string;
-    redirectUrlComplete?: string;
-  }) => Promise<any>;
-}
 
 // Create the provider component
 export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
@@ -69,154 +42,50 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     }
   }, [isLoaded, clerkUser]);
   
-  // Auth methods
+  // Auth methods using our utility functions
   const signIn = async (email: string, password: string) => {
-    try {
-      const response = await clerk.client.signIn.create({
-        identifier: email,
-        password: password,
-      });
-      return response;
-    } catch (error) {
-      console.error("Sign in error:", error);
-      throw error;
-    }
+    return await emailSignIn(clerk, email, password);
   };
   
   const signInWithEmail = async (email: string, password: string) => {
-    return signIn(email, password);
+    return await emailSignIn(clerk, email, password);
   };
   
   const signUp = async (email: string, password: string, metadata?: any) => {
-    try {
-      const response = await clerk.client.signUp.create({
-        emailAddress: email,
-        password: password,
-        unsafeMetadata: metadata || {},
-      });
-      return response;
-    } catch (error) {
-      console.error("Sign up error:", error);
-      throw error;
-    }
+    return await emailSignUp(clerk, email, password, metadata);
   };
   
   const signInWithGoogle = async () => {
-    try {
-      // For OAuth, use authenticateWithRedirect instead of openSignIn
-      await clerk.authenticateWithRedirect({
-        strategy: "oauth_google",
-        redirectUrl: '/auth/callback',
-      });
-    } catch (error) {
-      console.error("Google sign in error:", error);
-      throw error;
-    }
+    return await googleSignIn(clerk);
   };
   
   const signInWithFacebook = async () => {
-    try {
-      // For OAuth, use authenticateWithRedirect instead of openSignIn
-      await clerk.authenticateWithRedirect({
-        strategy: "oauth_facebook",
-        redirectUrl: '/auth/callback',
-      });
-    } catch (error) {
-      console.error("Facebook sign in error:", error);
-      throw error;
-    }
+    return await facebookSignIn(clerk);
   };
   
   const signInWithPhone = async (phone: string, verificationCode?: string) => {
-    try {
-      // If verification code is provided, complete sign-in
-      if (verificationCode) {
-        // This assumes a previous signIn.create call was made to initiate phone verification
-        const response = await clerk.client.signIn.attemptFirstFactor({
-          strategy: "phone_code",
-          code: verificationCode,
-        });
-        return response;
-      }
-      
-      // Otherwise start the phone verification process
-      const response = await clerk.client.signIn.create({
-        identifier: phone,
-      });
-      
-      // Initiate phone code verification
-      await response.prepareFirstFactor({
-        strategy: "phone_code",
-        phoneNumberId: response.supportedFirstFactors.find(
-          (factor: any) => factor.strategy === "phone_code"
-        )?.phoneNumberId,
-      });
-      
-      return response;
-    } catch (error) {
-      console.error("Phone sign in error:", error);
-      throw error;
-    }
+    return await phoneSignIn(clerk, phone, verificationCode);
   };
   
   const verifyPhoneOtp = async (phone: string, code: string) => {
-    try {
-      // This is simplified; in a real implementation you would need to
-      // track the sign-in attempt ID from the initial signInWithPhone call
-      return signInWithPhone(phone, code);
-    } catch (error) {
-      console.error("OTP verification error:", error);
-      throw error;
-    }
+    return await verifyOtp(clerk, phone, code);
   };
   
   const signUpWithPhone = async (phone: string, metadata?: any) => {
-    try {
-      const response = await clerk.client.signUp.create({
-        phoneNumber: phone,
-        unsafeMetadata: metadata || {},
-      });
-      
-      // Prepare phone verification
-      await response.prepareVerification({
-        strategy: "phone_code",
-      });
-      
-      return response;
-    } catch (error) {
-      console.error("Phone sign up error:", error);
-      throw error;
-    }
+    return await phoneSignUp(clerk, phone, metadata);
   };
   
   const sendPhoneVerification = async (phone: string) => {
-    try {
-      // Try to create a sign in with phone
-      await signInWithPhone(phone);
-      return { success: true };
-    } catch (error) {
-      console.error("Send verification error:", error);
-      return { success: false, error: String(error) };
-    }
+    return await sendVerification(clerk, phone);
   };
 
   const resetPassword = async (email: string) => {
-    try {
-      // This is a simple implementation - in a real app, you would use Clerk's password reset flow
-      await clerk.client.signIn.create({
-        identifier: email,
-        strategy: 'reset_password_email_code',
-      });
-      return { success: true };
-    } catch (error) {
-      console.error("Password reset error:", error);
-      return { success: false, error: String(error) };
-    }
+    return await resetPwd(clerk, email);
   };
   
   const handleSignOut = async () => {
     try {
-      await clerk.signOut();
+      await logout(clerk);
       setUser(null);
       setUserRole(null);
     } catch (error) {
@@ -248,14 +117,6 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   );
 };
 
-// Create a hook to use the auth context
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
-// Export the default provider
+// Export the context and provider
+export { AuthContext };
 export default AuthProvider;
