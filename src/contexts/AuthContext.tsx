@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect } from 'react';
 import { useClerk, useUser } from '@clerk/clerk-react';
 import { 
@@ -14,6 +13,7 @@ import {
   signOut as logout
 } from '../lib/auth-methods';
 import { AuthContextType, ExtendedClerk } from './AuthContextTypes';
+import useAuth from '../hooks/useAuth'; // Import the useAuth hook
 
 // Create the context
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -118,5 +118,5 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
 };
 
 // Export the context and provider
-export { AuthContext };
+export { AuthContext, useAuth };
 export default AuthProvider;
