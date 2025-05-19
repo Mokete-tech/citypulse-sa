@@ -55,9 +55,18 @@ declare module '@stripe/stripe-js' {
   export function loadStripe(publishableKey: string, options?: any): Promise<Stripe | null>;
 }
 
-// Add mock for JsPDF
+// Add enhanced type for jsPDF
 declare module 'jspdf' {
   interface jsPDF {
     getNumberOfPages?: () => number;
+    internal: {
+      getNumberOfPages: () => number;
+      pageSize: {
+        width: number;
+        height: number;
+      };
+    };
+    autoTable?: (options: any) => jsPDF;
   }
 }
+

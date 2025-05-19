@@ -3,12 +3,6 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '../test/utils';
 import MerchantLogin from './MerchantLogin';
 
-// Mock beforeEach using vitest
-vi.mock('@clerk/clerk-react', () => ({
-  useUser: () => ({ user: null, isLoaded: true }),
-  useClerk: () => ({ signOut: vi.fn() }),
-}));
-
 // Using vi.hoisted instead of beforeEach
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
@@ -19,6 +13,20 @@ vi.mock('react-router-dom', async () => {
     useLocation: () => ({ pathname: '/merchant/login', state: {} }),
   };
 });
+
+// Mock clerk
+vi.mock('@clerk/clerk-react', () => ({
+  useUser: () => ({ user: null, isLoaded: true }),
+  useClerk: () => ({ 
+    signOut: vi.fn(),
+    client: {
+      signIn: {
+        create: vi.fn(),
+        attemptFirstFactor: vi.fn(),
+      }
+    }
+  }),
+}));
 
 describe('MerchantLogin', () => {
   it('renders MerchantLogin component', () => {

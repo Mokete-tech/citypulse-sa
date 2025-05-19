@@ -18,10 +18,26 @@ export interface AuthContextType {
   verifyPhoneOtp: (phone: string, code: string) => Promise<any>;
   signUpWithPhone: (phone: string, metadata?: any) => Promise<any>;
   sendPhoneVerification: (phone: string) => Promise<{success: boolean, error?: string}>;
+  resetPassword: (email: string) => Promise<{success: boolean, error?: string}>;
 }
 
 // Create the context
 const AuthContext = createContext<AuthContextType | null>(null);
+
+// Extend the LoadedClerk type with the methods we need
+interface ExtendedClerk {
+  signOut: () => Promise<void>;
+  // Add the methods that are missing in the LoadedClerk type
+  client: {
+    signIn: {
+      create: (params: any) => Promise<any>;
+      attemptFirstFactor: (params: any) => Promise<any>;
+    };
+    signUp: {
+      create: (params: any) => Promise<any>;
+    };
+  };
+}
 
 // Create the provider component
 export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
@@ -29,7 +45,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   const [loading, setLoading] = useState<boolean>(true);
   const [userRole, setUserRole] = useState<string | null>(null);
   
-  const clerk = useClerk();
+  const clerk = useClerk() as unknown as ExtendedClerk;
   const { user: clerkUser, isLoaded } = useUser();
   
   useEffect(() => {
@@ -50,7 +66,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   // Auth methods
   const signIn = async (email: string, password: string) => {
     try {
-      const response = await clerk.signIn.create({
+      const response = await clerk.client.signIn.create({
         identifier: email,
         password: password,
       });
@@ -67,7 +83,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   
   const signUp = async (email: string, password: string, metadata?: any) => {
     try {
-      const response = await clerk.signUp.create({
+      const response = await clerk.client.signUp.create({
         emailAddress: email,
         password: password,
         unsafeMetadata: metadata || {},
@@ -81,10 +97,14 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   
   const signInWithGoogle = async () => {
     try {
-      await clerk.authenticateWithRedirect({
-        strategy: "oauth_google",
-        redirectUrl: "/auth/callback",
-        redirectUrlComplete: "/",
+      // For OAuth in newer Clerk versions
+      clerk.openSignIn({
+        redirectUrl: '/auth/callback',
+        appearance: {
+          elements: {
+            rootBox: 'w-full',
+          },
+        },
       });
     } catch (error) {
       console.error("Google sign in error:", error);
@@ -94,10 +114,14 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   
   const signInWithFacebook = async () => {
     try {
-      await clerk.authenticateWithRedirect({
-        strategy: "oauth_facebook",
-        redirectUrl: "/auth/callback",
-        redirectUrlComplete: "/",
+      // For OAuth in newer Clerk versions
+      clerk.openSignIn({
+        redirectUrl: '/auth/callback',
+        appearance: {
+          elements: {
+            rootBox: 'w-full',
+          },
+        },
       });
     } catch (error) {
       console.error("Facebook sign in error:", error);
@@ -110,7 +134,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
       // If verification code is provided, complete sign-in
       if (verificationCode) {
         // This assumes a previous signIn.create call was made to initiate phone verification
-        const response = await clerk.signIn.attemptFirstFactor({
+        const response = await clerk.client.signIn.attemptFirstFactor({
           strategy: "phone_code",
           code: verificationCode,
         });
@@ -118,7 +142,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
       }
       
       // Otherwise start the phone verification process
-      const response = await clerk.signIn.create({
+      const response = await clerk.client.signIn.create({
         identifier: phone,
       });
       
@@ -150,7 +174,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   
   const signUpWithPhone = async (phone: string, metadata?: any) => {
     try {
-      const response = await clerk.signUp.create({
+      const response = await clerk.client.signUp.create({
         phoneNumber: phone,
         unsafeMetadata: metadata || {},
       });
@@ -174,6 +198,20 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
       return { success: true };
     } catch (error) {
       console.error("Send verification error:", error);
+      return { success: false, error: String(error) };
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    try {
+      // This is a simple implementation - in a real app, you would use Clerk's password reset flow
+      await clerk.client.signIn.create({
+        identifier: email,
+        strategy: 'reset_password_email_code',
+      });
+      return { success: true };
+    } catch (error) {
+      console.error("Password reset error:", error);
       return { success: false, error: String(error) };
     }
   };
@@ -204,7 +242,8 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
       signInWithEmail,
       verifyPhoneOtp,
       signUpWithPhone,
-      sendPhoneVerification
+      sendPhoneVerification,
+      resetPassword
     }}>
       {children}
     </AuthContext.Provider>

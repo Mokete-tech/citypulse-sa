@@ -44,14 +44,16 @@ vi.mock('@clerk/clerk-react', () => ({
   useUser: () => ({ user: null, isLoaded: true }),
   useClerk: () => ({ 
     signOut: vi.fn(),
-    signIn: {
-      create: vi.fn(),
-      attemptFirstFactor: vi.fn(),
+    client: {
+      signIn: {
+        create: vi.fn(),
+        attemptFirstFactor: vi.fn(),
+      },
+      signUp: {
+        create: vi.fn(),
+      },
     },
-    signUp: {
-      create: vi.fn(),
-    },
-    authenticateWithRedirect: vi.fn(),
+    openSignIn: vi.fn(),
   }),
   SignIn: () => null,
   SignUp: () => null,

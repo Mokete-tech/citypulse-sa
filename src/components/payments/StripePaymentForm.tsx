@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,14 +7,13 @@ import { toast } from '@/components/ui/sonner';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { supabase } from '@/integrations/supabase/client';
 
-// Define Window interface with Stripe property
-interface StripeWindow extends Window {
-  Stripe?: (key: string) => StripeInstance;
+// Define Window interface with Stripe property - corrected version
+interface StripeWindow {
+  Stripe?: (key: string) => any;
 }
 
-interface StripeInstance {
-  elements: () => any;
-  createPaymentMethod: (options: any) => Promise<any>;
+declare global {
+  interface Window extends StripeWindow {}
 }
 
 interface StripePaymentFormProps {
