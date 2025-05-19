@@ -10,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { PulsePal } from '@/components/ai/PulsePal';
 import { EnvWarning } from '@/components/ui/env-warning';
-import { CalendarCheck, Building, HandCoins, Trophy, MapPin, Users } from 'lucide-react';
+import { CalendarCheck, Building, HandCoins, Trophy, MapPin, Users, Store, Calendar, Megaphone, Zap } from 'lucide-react';
 
 const MerchantPackages = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -128,6 +128,21 @@ const MerchantPackages = () => {
               </p>
             </div>
 
+            {/* Hero section with image */}
+            <div className="relative rounded-xl overflow-hidden mb-10 shadow-lg">
+              <img 
+                src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&q=80&w=2400" 
+                alt="Merchant Success" 
+                className="w-full h-64 object-cover object-center"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 to-purple-900/50 flex items-center">
+                <div className="px-8 text-white max-w-xl">
+                  <h2 className="text-3xl font-bold mb-2">Grow Your Business</h2>
+                  <p className="text-lg opacity-90">Join thousands of successful merchants already using CityPulse to reach new customers.</p>
+                </div>
+              </div>
+            </div>
+
             {/* Stats section */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
               <div className="bg-white p-4 rounded-lg shadow-md border border-gray-200">
@@ -197,6 +212,7 @@ const MerchantPackages = () => {
                     features={dealStandardFeatures}
                     type="deal"
                     variant="standard"
+                    imageSrc="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=2400"
                     onPaymentSuccess={handlePaymentSuccess}
                   />
 
@@ -208,13 +224,14 @@ const MerchantPackages = () => {
                     popular={true}
                     type="deal"
                     variant="premium"
+                    imageSrc="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=2400"
                     onPaymentSuccess={handlePaymentSuccess}
                   />
                 </div>
 
                 <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg border border-blue-200 shadow-sm">
                   <h3 className="font-medium text-blue-800 text-xl mb-3">Why list your deal on CityPulse?</h3>
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid md:grid-cols-3 gap-4">
                     <div className="flex gap-3">
                       <div className="flex-shrink-0 bg-white w-12 h-12 rounded-full flex items-center justify-center shadow-sm">
                         <Users className="h-6 w-6 text-blue-600" />
@@ -233,6 +250,15 @@ const MerchantPackages = () => {
                         <p className="text-sm text-blue-700">Our geo-location features connect you with nearby customers.</p>
                       </div>
                     </div>
+                    <div className="flex gap-3">
+                      <div className="flex-shrink-0 bg-white w-12 h-12 rounded-full flex items-center justify-center shadow-sm">
+                        <Store className="h-6 w-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium mb-1">Boost Sales</h4>
+                        <p className="text-sm text-blue-700">Merchants report an average 32% increase in sales after listing deals.</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </TabsContent>
@@ -246,6 +272,7 @@ const MerchantPackages = () => {
                     features={eventStandardFeatures}
                     type="event"
                     variant="standard"
+                    imageSrc="https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=2400"
                     onPaymentSuccess={handlePaymentSuccess}
                   />
 
@@ -257,16 +284,17 @@ const MerchantPackages = () => {
                     popular={true}
                     type="event"
                     variant="premium"
+                    imageSrc="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=2400"
                     onPaymentSuccess={handlePaymentSuccess}
                   />
                 </div>
 
                 <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-6 rounded-lg border border-purple-200 shadow-sm">
                   <h3 className="font-medium text-purple-800 text-xl mb-3">Why promote your event on CityPulse?</h3>
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid md:grid-cols-3 gap-4">
                     <div className="flex gap-3">
                       <div className="flex-shrink-0 bg-white w-12 h-12 rounded-full flex items-center justify-center shadow-sm">
-                        <CalendarCheck className="h-6 w-6 text-purple-600" />
+                        <Calendar className="h-6 w-6 text-purple-600" />
                       </div>
                       <div>
                         <h4 className="font-medium mb-1">Event Spotlight</h4>
@@ -282,16 +310,64 @@ const MerchantPackages = () => {
                         <p className="text-sm text-purple-700">Reach people specifically searching for events in your area.</p>
                       </div>
                     </div>
+                    <div className="flex gap-3">
+                      <div className="flex-shrink-0 bg-white w-12 h-12 rounded-full flex items-center justify-center shadow-sm">
+                        <Megaphone className="h-6 w-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium mb-1">Wider Reach</h4>
+                        <p className="text-sm text-purple-700">Share events across multiple platforms with our integrated tools.</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </TabsContent>
             </Tabs>
             
+            {/* Testimonials Section */}
+            <div className="my-12 bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 p-4">
+                <h2 className="text-white text-xl font-bold">Success Stories</h2>
+                <p className="text-white text-opacity-90">See what our merchants are saying</p>
+              </div>
+              <div className="p-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="border border-gray-100 rounded-lg p-4 shadow-sm">
+                    <div className="flex items-center mb-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold mr-3">JM</div>
+                      <div>
+                        <h4 className="font-medium">James Mokoena</h4>
+                        <p className="text-sm text-gray-600">Restaurant Owner, Johannesburg</p>
+                      </div>
+                    </div>
+                    <p className="italic text-gray-600">"Our weekend specials promotion received 3x more bookings after being featured on CityPulse. The analytics dashboard made it easy to track our ROI."</p>
+                  </div>
+                  <div className="border border-gray-100 rounded-lg p-4 shadow-sm">
+                    <div className="flex items-center mb-4">
+                      <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-700 font-bold mr-3">SN</div>
+                      <div>
+                        <h4 className="font-medium">Sarah Naidoo</h4>
+                        <p className="text-sm text-gray-600">Event Planner, Cape Town</p>
+                      </div>
+                    </div>
+                    <p className="italic text-gray-600">"The Premium Event package was worth every cent. Our festival sold out two weeks before the date thanks to the exposure on CityPulse."</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             {/* AI Assistant Section */}
             <div className="mt-12 bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
               <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-400 p-4">
-                <h2 className="text-white text-xl font-bold">Need Help Choosing?</h2>
-                <p className="text-white text-opacity-90">Ask our AI assistant for personalized recommendations</p>
+                <div className="flex items-center">
+                  <div className="bg-white/20 p-2 rounded-full mr-3">
+                    <Zap className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-white text-xl font-bold">Need Help Choosing?</h2>
+                    <p className="text-white text-opacity-90">Ask our AI assistant for personalized recommendations</p>
+                  </div>
+                </div>
               </div>
               <div className="p-6">
                 <PulsePal apiKey={import.meta.env.VITE_GEMINI_API_KEY || ""} />

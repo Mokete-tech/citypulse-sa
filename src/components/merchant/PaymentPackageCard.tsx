@@ -20,6 +20,7 @@ interface PaymentPackageCardProps {
   popular?: boolean;
   type: 'deal' | 'event';
   variant: 'standard' | 'premium';
+  imageSrc?: string;
   onPaymentSuccess: (paymentId: string, packageType: string) => void;
 }
 
@@ -31,6 +32,7 @@ export function PaymentPackageCard({
   popular = false,
   type,
   variant,
+  imageSrc,
   onPaymentSuccess
 }: PaymentPackageCardProps) {
   const { user } = useAuth();
@@ -58,6 +60,16 @@ export function PaymentPackageCard({
       {popular && (
         <div className="bg-blue-500 py-1 px-3 text-center text-xs font-medium text-white">
           MOST POPULAR
+        </div>
+      )}
+      
+      {imageSrc && (
+        <div className="h-44 overflow-hidden">
+          <img
+            src={imageSrc}
+            alt={`${title} package`}
+            className="w-full h-full object-cover"
+          />
         </div>
       )}
       
