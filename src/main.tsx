@@ -1,12 +1,14 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App';
 import { ClerkProvider } from '@clerk/clerk-react';
 import { AuthProvider } from './contexts/AuthContext';
 import './index.css';
 import './App.css';
+import MerchantPackages from './pages/MerchantPackages';
+import MerchantLogin from './pages/MerchantLogin';
 
 // Get the publishable key from environment variables
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || "pk_test_Y2hvaWNlLWFuZW1vbmUtNjIuY2xlcmsuYWNjb3VudHMuZGV2JA";
@@ -26,7 +28,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
         <BrowserRouter>
           <AuthProvider>
-            <App />
+            <Routes>
+              <Route path="/" element={<App />} />
+              <Route path="/merchant/packages" element={<MerchantPackages />} />
+              <Route path="/merchant/login" element={<MerchantLogin />} />
+              {/* Add more routes as needed */}
+            </Routes>
           </AuthProvider>
         </BrowserRouter>
       </ClerkProvider>
