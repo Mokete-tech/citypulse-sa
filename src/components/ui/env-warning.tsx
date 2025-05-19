@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, Info } from 'lucide-react';
@@ -7,14 +8,21 @@ export function EnvWarning() {
   const missingRequiredVars = [];
   const missingOptionalVars = [];
 
-  // Required variables
-  // Check for Supabase URL (either VITE_ or NEXT_PUBLIC_ prefix)
-  if (!import.meta.env.VITE_SUPABASE_URL && !import.meta.env.NEXT_PUBLIC_SUPABASE_URL) {
+  // Required variables - check Supabase URL and key
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  
+  // Log environment variable status in development
+  if (import.meta.env.DEV) {
+    console.log('Environment check - Supabase URL:', supabaseUrl ? 'Set' : 'Missing');
+    console.log('Environment check - Supabase Key:', supabaseKey ? 'Set' : 'Missing');
+  }
+
+  if (!supabaseUrl) {
     missingRequiredVars.push('VITE_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL');
   }
 
-  // Check for Supabase Anon Key (either VITE_ or NEXT_PUBLIC_ prefix)
-  if (!import.meta.env.VITE_SUPABASE_ANON_KEY && !import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  if (!supabaseKey) {
     missingRequiredVars.push('VITE_SUPABASE_ANON_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY');
   }
 
