@@ -27,7 +27,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 // Extend the LoadedClerk type with the methods we need
 interface ExtendedClerk {
   signOut: () => Promise<void>;
-  // Add the methods that are missing in the LoadedClerk type
+  // Update to use the correct method name for clerk
   client: {
     signIn: {
       create: (params: any) => Promise<any>;
@@ -37,6 +37,12 @@ interface ExtendedClerk {
       create: (params: any) => Promise<any>;
     };
   };
+  // Update to use the correct method for OAuth redirect
+  authenticateWithRedirect: (params: {
+    strategy: string;
+    redirectUrl: string;
+    redirectUrlComplete?: string;
+  }) => Promise<any>;
 }
 
 // Create the provider component
@@ -97,14 +103,10 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   
   const signInWithGoogle = async () => {
     try {
-      // For OAuth in newer Clerk versions
-      clerk.openSignIn({
+      // For OAuth, use authenticateWithRedirect instead of openSignIn
+      await clerk.authenticateWithRedirect({
+        strategy: "oauth_google",
         redirectUrl: '/auth/callback',
-        appearance: {
-          elements: {
-            rootBox: 'w-full',
-          },
-        },
       });
     } catch (error) {
       console.error("Google sign in error:", error);
@@ -114,14 +116,10 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   
   const signInWithFacebook = async () => {
     try {
-      // For OAuth in newer Clerk versions
-      clerk.openSignIn({
+      // For OAuth, use authenticateWithRedirect instead of openSignIn
+      await clerk.authenticateWithRedirect({
+        strategy: "oauth_facebook",
         redirectUrl: '/auth/callback',
-        appearance: {
-          elements: {
-            rootBox: 'w-full',
-          },
-        },
       });
     } catch (error) {
       console.error("Facebook sign in error:", error);

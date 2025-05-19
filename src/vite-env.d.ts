@@ -58,7 +58,6 @@ declare module '@stripe/stripe-js' {
 // Add enhanced type for jsPDF
 declare module 'jspdf' {
   interface jsPDF {
-    getNumberOfPages?: () => number;
     internal: {
       getNumberOfPages: () => number;
       pageSize: {
@@ -66,7 +65,7 @@ declare module 'jspdf' {
         height: number;
       };
     };
-    autoTable?: (options: any) => jsPDF;
+    // Remove the duplicate declaration to fix the error
+    autoTable: (options: any) => jsPDF;
   }
 }
-
