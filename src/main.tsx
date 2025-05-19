@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App';
 import { ClerkProvider } from '@clerk/clerk-react';
 import { AuthProvider } from './contexts/AuthContext';
+import { StripeProvider } from './contexts/StripeContext';
 import './index.css';
 import './App.css';
 import MerchantPackages from './pages/MerchantPackages';
@@ -28,12 +29,14 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
         <BrowserRouter>
           <AuthProvider>
-            <Routes>
-              <Route path="/" element={<App />} />
-              <Route path="/merchant/packages" element={<MerchantPackages />} />
-              <Route path="/merchant/login" element={<MerchantLogin />} />
-              {/* Add more routes as needed */}
-            </Routes>
+            <StripeProvider>
+              <Routes>
+                <Route path="/" element={<App />} />
+                <Route path="/merchant/packages" element={<MerchantPackages />} />
+                <Route path="/merchant/login" element={<MerchantLogin />} />
+                {/* Add more routes as needed */}
+              </Routes>
+            </StripeProvider>
           </AuthProvider>
         </BrowserRouter>
       </ClerkProvider>

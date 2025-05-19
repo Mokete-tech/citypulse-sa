@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Check } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Check, X } from 'lucide-react';
 import { PaymentDialog } from '@/components/payment/PaymentDialog';
-import { formatAmountForDisplay } from '@/integrations/stripe/client';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
 interface Feature {
@@ -19,7 +20,7 @@ interface PaymentPackageCardProps {
   popular?: boolean;
   type: 'deal' | 'event';
   variant: 'standard' | 'premium';
-  onPaymentSuccess?: (paymentId: string, packageType: string) => void;
+  onPaymentSuccess: (paymentId: string, packageType: string) => void;
 }
 
 export function PaymentPackageCard({
@@ -32,63 +33,84 @@ export function PaymentPackageCard({
   variant,
   onPaymentSuccess
 }: PaymentPackageCardProps) {
-  const handlePaymentSuccess = (paymentId: string) => {
-    toast.success(`${title} package purchased successfully!`, {
-      description: 'Your listing will be active shortly.'
-    });
-    
-    if (onPaymentSuccess) {
-      onPaymentSuccess(paymentId, `${type}_${variant}`);
+  const { user } = useAuth();
+
+  const handlePayment = (paymentId: string) => {
+    onPaymentSuccess(paymentId, `${type}_${variant}`);
+  };
+
+  const handlePaymentClick = () => {
+    if (!user) {
+      toast.error('Please login to purchase a package', {
+        description: 'You need to be logged in to purchase a merchant package',
+        action: {
+          label: 'Login',
+          onClick: () => window.location.href = '/merchant/login'
+        }
+      });
     }
   };
 
+  const packageId = `${type}_${variant}`;
+
   return (
-    <Card className={`w-full ${popular ? 'border-primary shadow-lg' : ''}`}>
+    <Card className={`overflow-hidden transition-all ${popular ? 'border-blue-500 shadow-lg' : 'border-gray-200'}`}>
       {popular && (
-        <div className="absolute -top-3 left-0 right-0 flex justify-center">
-          <Badge className="bg-primary hover:bg-primary/90">Most Popular</Badge>
+        <div className="bg-blue-500 py-1 px-3 text-center text-xs font-medium text-white">
+          MOST POPULAR
         </div>
       )}
       
-      <CardHeader>
-        <CardTitle className="flex justify-between items-center">
-          {title}
-          <span className="text-2xl font-bold">
-            {formatAmountForDisplay(price * 100)}
-          </span>
-        </CardTitle>
+      <CardHeader className={`${popular ? 'bg-blue-50' : ''}`}>
+        <CardTitle className="text-xl">{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       
-      <CardContent>
+      <CardContent className="pt-6">
+        <div className="mb-6 text-center">
+          <span className="text-3xl font-bold">R{price}</span>
+          <span className="text-gray-500 ml-1">once-off</span>
+        </div>
+        
         <ul className="space-y-2">
           {features.map((feature, index) => (
-            <li key={index} className="flex items-start">
-              <Check 
-                className={`h-5 w-5 mr-2 ${feature.included ? 'text-primary' : 'text-gray-300'}`} 
-              />
-              <span className={feature.included ? '' : 'text-gray-400 line-through'}>
-                {feature.name}
-              </span>
+            <li key={index} className="flex items-center">
+              {feature.included ? (
+                <Check className="h-4 w-4 text-green-500 mr-2" />
+              ) : (
+                <X className="h-4 w-4 text-gray-300 mr-2" />
+              )}
+              <span className={feature.included ? "" : "text-gray-400"}>{feature.name}</span>
             </li>
           ))}
         </ul>
       </CardContent>
       
-      <CardFooter>
-        <PaymentDialog
-          amount={price}
-          description={`${title} - ${type.charAt(0).toUpperCase() + type.slice(1)} Package`}
-          buttonText={`Purchase ${title}`}
-          buttonVariant="default"
-          onSuccess={handlePaymentSuccess}
-          metadata={{
-            package_type: type,
-            package_variant: variant,
-            package_name: title,
-            package_price: price
-          }}
-        />
+      <CardFooter className="bg-gray-50 px-6 py-4">
+        {user ? (
+          <PaymentDialog
+            amount={price}
+            description={`${title} - ${description}`}
+            buttonText="Purchase Package"
+            onSuccess={handlePayment}
+            metadata={{
+              packageType: packageId,
+              merchantId: user.id
+            }}
+          >
+            <Button className="w-full" variant={popular ? "default" : "outline"}>
+              Purchase Package
+            </Button>
+          </PaymentDialog>
+        ) : (
+          <Button 
+            className="w-full" 
+            variant={popular ? "default" : "outline"}
+            onClick={handlePaymentClick}
+          >
+            Purchase Package
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );
