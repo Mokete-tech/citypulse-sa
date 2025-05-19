@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,11 +8,9 @@ import { toast } from '@/components/ui/sonner';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { supabase } from '@/integrations/supabase/client';
 
-// Define the Stripe global variable
-declare global {
-  interface Window {
-    Stripe?: any;
-  }
+// Define Window interface with Stripe property
+interface StripeWindow extends Window {
+  Stripe?: (key: string) => StripeInstance;
 }
 
 interface StripeInstance {
@@ -69,12 +68,13 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
   }, []);
 
   const initializeStripe = () => {
-    if (window.Stripe) {
+    const windowWithStripe = window as StripeWindow;
+    if (windowWithStripe.Stripe) {
       // Use the publishable key from environment variables
       const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ||
         'pk_live_51IRNxfHieGkyNl5wOGvmEAtaXxZ6VHEPmHcXuwfsfOPTt0umFFEY9QpsJMXo4IAo0uzl0R66CpaJFRKCaXo0k5DZ00uGSXCeCN';
 
-      const stripeInstance = window.Stripe(stripePublishableKey) as unknown as StripeInstance;
+      const stripeInstance = windowWithStripe.Stripe(stripePublishableKey);
       setStripe(stripeInstance);
 
       // Create card element

@@ -272,10 +272,13 @@ const DealDetail = () => {
                     <ReactionButton itemId={typeof deal.id === 'string' ? parseInt(deal.id, 10) : deal.id} itemType="deal" />
 
                     {/* Share Button Component */}
-                    <ShareButton
-                      itemId={typeof deal.id === 'string' ? parseInt(deal.id, 10) : deal.id}
+                    <ShareButton 
+                      title={deal?.title || 'Deal'} 
+                      description="Check out this deal"
+                      url={window.location.href}
+                      size="sm"
+                      itemId={deal?.id}
                       itemType="deal"
-                      title={deal.title}
                     />
                   </div>
 

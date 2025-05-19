@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ReactionButton } from '@/components/ui/reaction-button';
-import ShareButton from '@/components/ui/share-button';
+import { ShareButton } from '@/components/ui/share-button';
 import { Calendar, MapPin, Star, Clock } from 'lucide-react';
 import { EnhancedImage } from '@/components/ui/enhanced-image';
 import { PlaceholderImage } from '@/components/ui/placeholder-image';

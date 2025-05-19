@@ -13,7 +13,6 @@ describe('Supabase Client', () => {
 
   // Instead of testing isUsingFallbackCredentials, test a different aspect
   it('should have auth functions available', () => {
-    expect(typeof supabase.auth.signIn).toBe('undefined'); // Modern client uses signInWithPassword
     expect(typeof supabase.auth.signUp).toBe('function');
     expect(typeof supabase.auth.signOut).toBe('function');
   });

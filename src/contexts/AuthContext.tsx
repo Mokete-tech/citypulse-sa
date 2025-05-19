@@ -50,7 +50,6 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   // Auth methods
   const signIn = async (email: string, password: string) => {
     try {
-      // Using clerk.create instead of clerk.signIn.create
       const response = await clerk.signIn.create({
         identifier: email,
         password: password,
@@ -68,7 +67,6 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   
   const signUp = async (email: string, password: string, metadata?: any) => {
     try {
-      // Using clerk.create instead of clerk.signUp.create
       const response = await clerk.signUp.create({
         emailAddress: email,
         password: password,
@@ -83,7 +81,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   
   const signInWithGoogle = async () => {
     try {
-      await clerk.openOAuth({
+      await clerk.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: "/auth/callback",
         redirectUrlComplete: "/",
@@ -96,7 +94,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   
   const signInWithFacebook = async () => {
     try {
-      await clerk.openOAuth({
+      await clerk.authenticateWithRedirect({
         strategy: "oauth_facebook",
         redirectUrl: "/auth/callback",
         redirectUrlComplete: "/",

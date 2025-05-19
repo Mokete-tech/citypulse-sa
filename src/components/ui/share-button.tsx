@@ -2,11 +2,25 @@ import React from 'react';
 import { Button } from './button';
 import { Share } from 'lucide-react';
 
-// The rest of the component definition
-export function ShareButton() {
-  // ... keep existing code
+interface ShareButtonProps {
+  title?: string;
+  description?: string;
+  url?: string;
+  itemId?: string | number;
+  itemType?: string;
+  size?: "default" | "sm" | "lg" | "icon";
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+}
 
-  // Fix for the link.icon error
+export function ShareButton({
+  title = "Share this content",
+  description = "",
+  url = window.location.href,
+  itemId,
+  itemType,
+  size = "default",
+  variant = "default"
+}: ShareButtonProps) {
   const renderLinkIcon = (link: any) => {
     if (!link.icon) return null;
     
@@ -19,14 +33,13 @@ export function ShareButton() {
     return <img src={link.icon} alt={link.name} className="h-5 w-5" />;
   };
 
-  // Use renderLinkIcon instead of <link.icon />
-
-  // ... keep existing code
-
   return (
-    <Button>
+    <Button size={size} variant={variant}>
       <Share className="mr-2 h-4 w-4" />
       Share
     </Button>
   );
 }
+
+// Add default export for backward compatibility
+export default ShareButton;

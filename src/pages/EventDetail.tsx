@@ -292,10 +292,13 @@ const EventDetail = () => {
                     />
 
                     {/* Share Button Component */}
-                    <ShareButton
-                      itemId={typeof event.id === 'string' ? parseInt(event.id, 10) : event.id}
+                    <ShareButton 
+                      title={event?.title || 'Event'} 
+                      description="Check out this event"
+                      url={window.location.href}
+                      size="sm"
+                      itemId={event?.id}
                       itemType="event"
-                      title={event.title}
                     />
                   </div>
 

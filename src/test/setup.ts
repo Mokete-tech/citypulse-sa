@@ -3,10 +3,12 @@ import { expect, vi } from 'vitest';
 import * as matchers from '@testing-library/jest-dom/matchers';
 
 // Custom type extension to work around typing issue
-const customMatchers = matchers as unknown as Record<string, Function>;
-
-// Extend Vitest's expect with testing-library matchers
-expect.extend(customMatchers);
+// We're assigning the matchers as a simple object of functions
+// to avoid the complex type issues
+expect.extend({
+  toBeInTheDocument: matchers.toBeInTheDocument as unknown as any,
+  // Add other matchers as needed
+});
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
@@ -40,7 +42,17 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
 // Mock Clerk
 vi.mock('@clerk/clerk-react', () => ({
   useUser: () => ({ user: null, isLoaded: true }),
-  useClerk: () => ({ signOut: vi.fn() }),
+  useClerk: () => ({ 
+    signOut: vi.fn(),
+    signIn: {
+      create: vi.fn(),
+      attemptFirstFactor: vi.fn(),
+    },
+    signUp: {
+      create: vi.fn(),
+    },
+    authenticateWithRedirect: vi.fn(),
+  }),
   SignIn: () => null,
   SignUp: () => null,
 }));
