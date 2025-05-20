@@ -79,33 +79,41 @@ export default function App() {
           
           {/* Stats Section */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
-            <div className="bg-white p-4 rounded-lg text-center shadow-md border border-gray-200">
-              <div className="bg-blue-100 p-2 inline-flex rounded-full mb-2">
-                <Package className="h-5 w-5 text-blue-700" />
+            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-blue-100 p-2 rounded-full">
+                  <Package className="h-5 w-5 text-blue-700" />
+                </div>
+                <h3 className="font-bold text-2xl">1000+</h3>
               </div>
-              <h3 className="font-bold text-2xl">1000+</h3>
-              <p className="text-gray-600">Local Deals</p>
+              <p className="text-sm text-gray-600">Local Deals</p>
             </div>
-            <div className="bg-white p-4 rounded-lg text-center shadow-md border border-gray-200">
-              <div className="bg-purple-100 p-2 inline-flex rounded-full mb-2">
-                <Calendar className="h-5 w-5 text-purple-700" />
+            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-purple-100 p-2 rounded-full">
+                  <Calendar className="h-5 w-5 text-purple-700" />
+                </div>
+                <h3 className="font-bold text-2xl">500+</h3>
               </div>
-              <h3 className="font-bold text-2xl">500+</h3>
-              <p className="text-gray-600">Events</p>
+              <p className="text-sm text-gray-600">Events</p>
             </div>
-            <div className="bg-white p-4 rounded-lg text-center shadow-md border border-gray-200">
-              <div className="bg-green-100 p-2 inline-flex rounded-full mb-2">
-                <Building className="h-5 w-5 text-green-700" />
+            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-green-100 p-2 rounded-full">
+                  <Building className="h-5 w-5 text-green-700" />
+                </div>
+                <h3 className="font-bold text-2xl">300+</h3>
               </div>
-              <h3 className="font-bold text-2xl">300+</h3>
-              <p className="text-gray-600">Merchants</p>
+              <p className="text-sm text-gray-600">Merchants</p>
             </div>
-            <div className="bg-white p-4 rounded-lg text-center shadow-md border border-gray-200">
-              <div className="bg-amber-100 p-2 inline-flex rounded-full mb-2">
-                <MapPin className="h-5 w-5 text-amber-700" />
+            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-amber-100 p-2 rounded-full">
+                  <MapPin className="h-5 w-5 text-amber-700" />
+                </div>
+                <h3 className="font-bold text-2xl">25+</h3>
               </div>
-              <h3 className="font-bold text-2xl">25+</h3>
-              <p className="text-gray-600">Cities</p>
+              <p className="text-sm text-gray-600">Cities</p>
             </div>
           </div>
           
@@ -162,76 +170,19 @@ export default function App() {
                 <p className="italic text-gray-700">"I'm looking for family-friendly weekend activities in Johannesburg under R500"</p>
               </div>
               <p className="text-gray-600 mb-6">Sign in to unlock our AI-powered assistant that helps you discover the perfect local experiences tailored to your preferences.</p>
-              <Button onClick={() => setActiveTab("signin")} className="w-full bg-gradient-to-r from-blue-600 to-purple-600">
-                <Sparkles className="mr-2 h-5 w-5" />
-                Try the AI Assistant
-              </Button>
-            </div>
-          </div>
-
-          {/* Sign-In/Sign-Up Section */}
-          <div className="p-6 max-w-6xl mx-auto bg-white rounded-lg shadow-lg">
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <h2 className="text-2xl font-bold mb-4">Join CityPulse Today</h2>
-                <p className="text-gray-600 mb-6">Create a free account to save your favorite deals, get personalized recommendations, and unlock exclusive offers.</p>
-                
-                <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                  <h3 className="font-bold text-lg mb-2">Why sign up?</h3>
-                  <ul className="space-y-2">
-                    <li className="flex items-center">
-                      <div className="bg-green-100 p-1 rounded-full mr-2">
-                        <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <span>Save your favorite deals and events</span>
-                    </li>
-                    <li className="flex items-center">
-                      <div className="bg-green-100 p-1 rounded-full mr-2">
-                        <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <span>Get personalized recommendations</span>
-                    </li>
-                    <li className="flex items-center">
-                      <div className="bg-green-100 p-1 rounded-full mr-2">
-                        <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <span>Unlock exclusive offers</span>
-                    </li>
-                  </ul>
-                </div>
-                
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h4 className="font-medium mb-2 text-sm text-gray-600">Are you a business owner?</h4>
-                  <Button variant="outline" className="w-full" asChild>
-                    <Link to="/merchant/login">
-                      <Building className="h-4 w-4 mr-2" />
-                      Merchant Login
-                    </Link>
+              <div className="flex gap-4 justify-center">
+                <Link to="/auth">
+                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600">
+                    <Sparkles className="mr-2 h-5 w-5" />
+                    Sign in to try
                   </Button>
-                </div>
-              </div>
-              
-              <div>
-                <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="grid w-full grid-cols-2 mb-6">
-                    <TabsTrigger value="signin">Sign In</TabsTrigger>
-                    <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="signin" className="space-y-4">
-                    <SignIn routing="path" path="/" afterSignInUrl="/" />
-                  </TabsContent>
-                  
-                  <TabsContent value="signup" className="space-y-4">
-                    <SignUp routing="path" path="/" afterSignUpUrl="/" />
-                  </TabsContent>
-                </Tabs>
+                </Link>
+                <Link to="/merchant/login">
+                  <Button variant="outline">
+                    <Building className="mr-2 h-5 w-5" />
+                    Business Sign in
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
