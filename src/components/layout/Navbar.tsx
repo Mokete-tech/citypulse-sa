@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, Menu, LogIn, User, LogOut, SearchIcon } from 'lucide-react';
@@ -82,7 +83,7 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
         {/* User is not logged in */}
         {!user && (
           <>
-            <UserLoginDialog className="flex items-center gap-1 sm:gap-2" />
+            <UserLoginDialog triggerClassName="flex items-center gap-1 sm:gap-2" />
           </>
         )}
 

@@ -12,9 +12,10 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
 interface UserLoginDialogProps {
   triggerClassName?: string;
+  className?: string; // Add the className prop to the interface
 }
 
-export const UserLoginDialog: React.FC<UserLoginDialogProps> = ({ triggerClassName }) => {
+export const UserLoginDialog: React.FC<UserLoginDialogProps> = ({ triggerClassName, className }) => {
   const [open, setOpen] = useState(false);
   const { signInWithEmail, signUp, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -84,7 +85,7 @@ export const UserLoginDialog: React.FC<UserLoginDialogProps> = ({ triggerClassNa
           Member Login
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden">
+      <DialogContent className={`sm:max-w-[425px] p-0 overflow-hidden ${className || ''}`}>
         <Card className="border-0 shadow-none">
           <CardHeader>
             <CardTitle className="text-center">Sign in to CityPulse</CardTitle>
