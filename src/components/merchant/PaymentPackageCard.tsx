@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Check, X } from 'lucide-react';
 import { PaymentDialog } from '@/components/payment/PaymentDialog';
 import { useAuth } from '@/hooks/useAuth';
+import ResponsiveImage from '@/components/ui/responsive-image';
 import { toast } from 'sonner';
 
 interface Feature {
@@ -65,10 +66,11 @@ export function PaymentPackageCard({
       
       {imageSrc && (
         <div className="h-44 overflow-hidden">
-          <img
+          <ResponsiveImage
             src={imageSrc}
             alt={`${title} package`}
-            className="w-full h-full object-cover"
+            className="w-full h-full"
+            objectFit="cover"
           />
         </div>
       )}
@@ -88,9 +90,9 @@ export function PaymentPackageCard({
           {features.map((feature, index) => (
             <li key={index} className="flex items-center">
               {feature.included ? (
-                <Check className="h-4 w-4 text-green-500 mr-2" />
+                <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
               ) : (
-                <X className="h-4 w-4 text-gray-300 mr-2" />
+                <X className="h-4 w-4 text-gray-300 mr-2 flex-shrink-0" />
               )}
               <span className={feature.included ? "" : "text-gray-400"}>{feature.name}</span>
             </li>

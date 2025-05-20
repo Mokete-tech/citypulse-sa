@@ -1,3 +1,4 @@
+
 /**
  * Environment variable checker utility
  *
@@ -17,9 +18,9 @@ interface EnvCheckResult {
 // Helper function to check if email configuration is available
 const hasEmailConfig = () => {
   const hasSmtp = Boolean(
-    import.meta.env.SMTP_HOST &&
-    import.meta.env.SMTP_USER &&
-    import.meta.env.SMTP_PASS
+    import.meta.env.VITE_SMTP_HOST &&
+    import.meta.env.VITE_SMTP_USER &&
+    import.meta.env.VITE_SMTP_PASS
   );
 
   const hasSendgrid = Boolean(
@@ -28,6 +29,19 @@ const hasEmailConfig = () => {
   );
 
   return hasSmtp || hasSendgrid;
+};
+
+// Helper function to check if Stripe configuration is available
+const hasStripeConfig = () => {
+  return Boolean(
+    import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ||
+    import.meta.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  );
+};
+
+// Helper function to check if Clerk configuration is available
+const hasClerkConfig = () => {
+  return Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
 };
 
 /**
@@ -46,12 +60,15 @@ export function checkEnvironmentVariables(): EnvCheckResult {
     'VITE_SENDGRID_FROM_NAME',
     'VITE_APP_NAME',
     'VITE_APP_ENV',
-    'SMTP_HOST',
-    'SMTP_PORT',
-    'SMTP_USER',
-    'SMTP_PASS',
-    'SMTP_ADMIN_EMAIL',
-    'SMTP_SENDER_NAME',
+    'VITE_SMTP_HOST',
+    'VITE_SMTP_PORT',
+    'VITE_SMTP_USER',
+    'VITE_SMTP_PASS',
+    'VITE_SMTP_ADMIN_EMAIL',
+    'VITE_SMTP_SENDER_NAME',
+    'VITE_STRIPE_PUBLISHABLE_KEY',
+    'VITE_GEMINI_API_KEY',
+    'VITE_CLERK_PUBLISHABLE_KEY'
   ];
 
   const missingVars = requiredVars.filter(
@@ -72,15 +89,59 @@ export function checkEnvironmentVariables(): EnvCheckResult {
 
   if (missingOptionalVars.length > 0) {
     // Group missing variables by category for better reporting
+    const emailVars = missingOptionalVars.filter(v => 
+      v.includes('SENDGRID') || v.includes('SMTP')
+    );
+    
+    const stripeVars = missingOptionalVars.filter(v => 
+      v.includes('STRIPE')
+    );
+    
+    const aiVars = missingOptionalVars.filter(v => 
+      v.includes('GEMINI') || v.includes('OPENAI')
+    );
+    
+    const authVars = missingOptionalVars.filter(v => 
+      v.includes('CLERK')
+    );
+    
     const appVars = missingOptionalVars.filter(v => v.includes('APP_'));
+    
     const otherVars = missingOptionalVars.filter(v =>
-      !v.includes('SENDGRID') && !v.includes('SMTP') && !v.includes('APP_')
+      !v.includes('SENDGRID') && 
+      !v.includes('SMTP') && 
+      !v.includes('APP_') &&
+      !v.includes('STRIPE') &&
+      !v.includes('GEMINI') &&
+      !v.includes('OPENAI') &&
+      !v.includes('CLERK')
     );
 
     // Only warn about email configuration if both SendGrid and SMTP are missing
-    if (!hasEmailConfig()) {
+    if (!hasEmailConfig() && emailVars.length > 0) {
       warnings.push(
         `Email configuration missing. Email features will not work correctly.`
+      );
+    }
+
+    // Warn about missing Stripe configuration
+    if (!hasStripeConfig() && stripeVars.length > 0) {
+      warnings.push(
+        `Payment configuration missing. Payment features will not work correctly.`
+      );
+    }
+
+    // Warn about missing AI configuration
+    if (aiVars.length > 0) {
+      warnings.push(
+        `AI configuration missing. AI assistant features will not work correctly.`
+      );
+    }
+
+    // Warn about missing auth configuration
+    if (!hasClerkConfig() && authVars.length > 0) {
+      warnings.push(
+        `Authentication configuration incomplete. Some auth features may not work correctly.`
       );
     }
 
@@ -90,9 +151,9 @@ export function checkEnvironmentVariables(): EnvCheckResult {
       );
     }
 
-    if (otherVars.length > 0 && otherVars.some(v => !v.includes('SENDGRID') && !v.includes('SMTP'))) {
+    if (otherVars.length > 0) {
       warnings.push(
-        `Other missing optional variables: ${otherVars.filter(v => !v.includes('SENDGRID') && !v.includes('SMTP')).join(', ')}.`
+        `Other missing optional variables: ${otherVars.join(', ')}.`
       );
     }
   }
