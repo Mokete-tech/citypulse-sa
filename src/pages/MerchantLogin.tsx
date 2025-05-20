@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogIn, Mail, UserPlus, Building, ShieldCheck } from 'lucide-react';
+import { LogIn, Mail, UserPlus, Building, ShieldCheck, Check } from 'lucide-react';
 import ResponsiveImage from '@/components/ui/responsive-image';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';

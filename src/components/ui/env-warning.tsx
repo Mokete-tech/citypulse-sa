@@ -62,8 +62,9 @@ export function EnvWarning() {
   }
 
   // Show warning for using default credentials or other warnings
+  // Changed from "warning" to "default" with warning styling
   return (
-    <Alert variant={usingFallbacks ? "warning" : "default"} className="mb-6">
+    <Alert variant="default" className="mb-6 bg-yellow-50 border-yellow-200 text-yellow-800">
       <Info className="h-4 w-4" />
       <AlertTitle>Environment Configuration {usingFallbacks ? "Warning" : "Notice"}</AlertTitle>
       <AlertDescription>
