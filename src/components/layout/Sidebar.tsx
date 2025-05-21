@@ -1,5 +1,5 @@
 
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   Tag, Calendar, LogIn, ChevronLeft, CreditCard, Heart
 } from 'lucide-react';
@@ -30,10 +30,17 @@ const userItems = [
 ];
 
 const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
-  // Get current location for active menu highlighting
-  const location = useLocation();
   // Get authentication context to check if user is logged in
   const { user } = useAuth();
+  
+  // Create a safe wrapper for checking the current path
+  const isActivePath = (path: string) => {
+    // Check if window is available (we're in the browser)
+    if (typeof window !== 'undefined') {
+      return window.location.pathname === path;
+    }
+    return false;
+  };
 
   return (
     <>
@@ -76,7 +83,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                       to={item.path}
                       className={cn(
                         "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
-                        location.pathname === item.path && "bg-sky-700/70 font-medium"
+                        isActivePath(item.path) && "bg-sky-700/70 font-medium"
                       )}
                     >
                       <item.icon className="h-5 w-5 mr-3" />
@@ -90,23 +97,33 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
             {/* Merchant Section */}
             <div className="px-3 mb-6">
               <h3 className="text-xs font-semibold text-white/70 uppercase tracking-wider px-3 mb-2">
-                Merchant
+                Business
               </h3>
               <ul className="space-y-1">
-                {merchantItems.map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      to={item.path}
-                      className={cn(
-                        "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
-                        location.pathname === item.path && "bg-sky-700/70 font-medium"
-                      )}
-                    >
-                      <item.icon className="h-5 w-5 mr-3" />
-                      <span>{item.name}</span>
-                    </Link>
-                  </li>
-                ))}
+                <li>
+                  <Link
+                    to="/merchant/login"
+                    className={cn(
+                      "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
+                      isActivePath('/merchant/login') && "bg-sky-700/70 font-medium"
+                    )}
+                  >
+                    <LogIn className="h-5 w-5 mr-3" />
+                    <span>Business Sign in</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/merchant/packages"
+                    className={cn(
+                      "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
+                      isActivePath('/merchant/packages') && "bg-sky-700/70 font-medium"
+                    )}
+                  >
+                    <CreditCard className="h-5 w-5 mr-3" />
+                    <span>Merchant Packages</span>
+                  </Link>
+                </li>
               </ul>
             </div>
 
@@ -123,7 +140,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                         to={item.path}
                         className={cn(
                           "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
-                          location.pathname === item.path && "bg-sky-700/70 font-medium"
+                          isActivePath(item.path) && "bg-sky-700/70 font-medium"
                         )}
                       >
                         <item.icon className="h-5 w-5 mr-3" />
