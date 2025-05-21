@@ -1,7 +1,7 @@
 
 import { Link } from 'react-router-dom';
 import {
-  Tag, Calendar, LogIn, ChevronLeft, CreditCard, Heart, Sparkles, User, Settings
+  Tag, Calendar, LogIn, ChevronLeft, CreditCard, Heart, Sparkles, User, Settings, Building
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -111,7 +111,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                       isActivePath('/merchant/login') && "bg-sky-700/70 font-medium"
                     )}
                   >
-                    <LogIn className="h-5 w-5 mr-3" />
+                    <Building className="h-5 w-5 mr-3" />
                     <span>Business Sign in</span>
                   </Link>
                 </li>
@@ -139,7 +139,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
               </ul>
             </div>
 
-            {/* Merchant Packages */}
+            {/* Business Section - Removed separate Merchant Packages section */}
             <div className="px-3 mb-6">
               <h3 className="text-xs font-semibold text-white/70 uppercase tracking-wider px-3 mb-2">
                 Business
@@ -147,14 +147,14 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
               <ul className="space-y-1">
                 <li>
                   <Link
-                    to="/merchant/packages"
+                    to="/merchant/login"
                     className={cn(
                       "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
-                      isActivePath('/merchant/packages') && "bg-sky-700/70 font-medium"
+                      isActivePath('/merchant/login') && "bg-sky-700/70 font-medium"
                     )}
                   >
-                    <CreditCard className="h-5 w-5 mr-3" />
-                    <span>Merchant Packages</span>
+                    <LogIn className="h-5 w-5 mr-3" />
+                    <span>Business Portal</span>
                   </Link>
                 </li>
               </ul>

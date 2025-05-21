@@ -8,7 +8,6 @@ import { AuthProvider } from './contexts/AuthContext';
 import { StripeProvider } from './contexts/StripeContext';
 import './index.css';
 import './App.css';
-import MerchantPackages from './pages/MerchantPackages';
 import MerchantLogin from './pages/MerchantLogin';
 import DealsPage from './pages/DealsPage';
 import EventsPage from './pages/EventsPage';
@@ -54,7 +53,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 <Route path="/" element={<App />} />
                 <Route path="/deals" element={<DealsPage />} />
                 <Route path="/events" element={<EventsPage />} />
-                <Route path="/merchant/packages" element={<MerchantPackages />} />
                 <Route path="/merchant/login" element={<MerchantLogin />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/ai-assistant" element={<AiAssistantPage />} />
