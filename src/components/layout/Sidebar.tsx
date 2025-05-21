@@ -1,7 +1,7 @@
 
 import { Link } from 'react-router-dom';
 import {
-  Tag, Calendar, LogIn, ChevronLeft, CreditCard, Heart, Sparkles
+  Tag, Calendar, LogIn, ChevronLeft, CreditCard, Heart, Sparkles, User, Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -11,6 +11,25 @@ interface SidebarProps {
   isOpen: boolean;
   toggleSidebar: () => void;
 }
+
+// Define userItems array that was missing
+const userItems = [
+  {
+    name: 'Profile',
+    path: '/profile',
+    icon: User
+  },
+  {
+    name: 'Favorites',
+    path: '/favorites',
+    icon: Heart
+  },
+  {
+    name: 'Settings',
+    path: '/settings',
+    icon: Settings
+  }
+];
 
 const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   // Get authentication context to check if user is logged in
