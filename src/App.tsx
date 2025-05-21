@@ -19,7 +19,9 @@ import {
   Calendar, 
   MapPin, 
   HeartHandshake,
-  Sparkles
+  Sparkles,
+  ArrowRight,
+  Play
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -41,17 +43,17 @@ export default function App() {
   if (!user) {
     return (
       <ResponsiveLayout showFooter={false} className="bg-gradient-to-br from-gray-50 to-blue-50">
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="p-4 sm:p-6 max-w-7xl mx-auto">
           <EnvWarning />
           
           {/* Hero Section */}
-          <div className="flex flex-col lg:flex-row gap-8 items-center mb-12 py-8">
+          <div className="flex flex-col lg:flex-row gap-8 items-center mb-12 py-6 sm:py-8">
             <div className="lg:w-1/2">
               <div className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-lg mb-4">
-                <HeartHandshake className="h-8 w-8 text-white" />
+                <HeartHandshake className="h-6 sm:h-8 w-6 sm:w-8 text-white" />
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Discover South Africa's <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">Best Local Experiences</span></h1>
-              <p className="text-xl text-gray-600 mb-8">Find amazing deals, upcoming events, and connect with local businesses across South Africa.</p>
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4">Discover South Africa's <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">Best Local Experiences</span></h1>
+              <p className="text-lg sm:text-xl text-gray-600 mb-6 sm:mb-8">Find amazing deals, upcoming events, and connect with local businesses across South Africa.</p>
               
               <div className="flex flex-wrap gap-4">
                 <Link to="/deals">
@@ -69,67 +71,78 @@ export default function App() {
               </div>
             </div>
             <div className="lg:w-1/2">
-              <img 
-                src="/images/placeholder.svg" 
-                alt="CityPulse App" 
-                className="rounded-lg shadow-xl w-full h-auto"
-              />
+              <div className="relative rounded-lg overflow-hidden shadow-xl">
+                <img 
+                  src="/images/placeholder.svg" 
+                  alt="CityPulse App" 
+                  className="w-full h-auto"
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Button 
+                    size="icon" 
+                    className="h-16 w-16 rounded-full bg-white/80 hover:bg-white shadow-lg"
+                    aria-label="Play video"
+                  >
+                    <Play className="h-8 w-8 text-blue-600 fill-blue-600" />
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
           
           {/* Stats Section */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
-            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-              <div className="flex items-center gap-3 mb-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-12 sm:mb-16">
+            <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-200 shadow-sm">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2">
                 <div className="bg-blue-100 p-2 rounded-full">
-                  <Package className="h-5 w-5 text-blue-700" />
+                  <Package className="h-4 sm:h-5 w-4 sm:w-5 text-blue-700" />
                 </div>
-                <h3 className="font-bold text-2xl">1000+</h3>
+                <h3 className="font-bold text-xl sm:text-2xl">1000+</h3>
               </div>
-              <p className="text-sm text-gray-600">Local Deals</p>
+              <p className="text-xs sm:text-sm text-gray-600">Local Deals</p>
             </div>
-            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-              <div className="flex items-center gap-3 mb-2">
+            <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-200 shadow-sm">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2">
                 <div className="bg-purple-100 p-2 rounded-full">
-                  <Calendar className="h-5 w-5 text-purple-700" />
+                  <Calendar className="h-4 sm:h-5 w-4 sm:w-5 text-purple-700" />
                 </div>
-                <h3 className="font-bold text-2xl">500+</h3>
+                <h3 className="font-bold text-xl sm:text-2xl">500+</h3>
               </div>
-              <p className="text-sm text-gray-600">Events</p>
+              <p className="text-xs sm:text-sm text-gray-600">Events</p>
             </div>
-            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-              <div className="flex items-center gap-3 mb-2">
+            <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-200 shadow-sm">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2">
                 <div className="bg-green-100 p-2 rounded-full">
-                  <Building className="h-5 w-5 text-green-700" />
+                  <Building className="h-4 sm:h-5 w-4 sm:w-5 text-green-700" />
                 </div>
-                <h3 className="font-bold text-2xl">300+</h3>
+                <h3 className="font-bold text-xl sm:text-2xl">300+</h3>
               </div>
-              <p className="text-sm text-gray-600">Merchants</p>
+              <p className="text-xs sm:text-sm text-gray-600">Merchants</p>
             </div>
-            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-              <div className="flex items-center gap-3 mb-2">
+            <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-200 shadow-sm">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2">
                 <div className="bg-amber-100 p-2 rounded-full">
-                  <MapPin className="h-5 w-5 text-amber-700" />
+                  <MapPin className="h-4 sm:h-5 w-4 sm:w-5 text-amber-700" />
                 </div>
-                <h3 className="font-bold text-2xl">25+</h3>
+                <h3 className="font-bold text-xl sm:text-2xl">25+</h3>
               </div>
-              <p className="text-sm text-gray-600">Cities</p>
+              <p className="text-xs sm:text-sm text-gray-600">Cities</p>
             </div>
           </div>
           
           {/* Featured Deals Preview */}
-          <div className="mb-16">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">Featured Deals</h2>
-              <Link to="/deals" className="text-blue-600 hover:text-blue-800 flex items-center">
-                View all <span className="ml-1">→</span>
+          <div className="mb-12 sm:mb-16">
+            <div className="flex justify-between items-center mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold">Featured Deals</h2>
+              <Link to="/deals" className="text-blue-600 hover:text-blue-800 flex items-center text-sm sm:text-base">
+                View all <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
               {[1, 2, 3].map((item) => (
-                <div key={item} className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-                  <div className="h-48 bg-gray-200 relative">
+                <div key={item} className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">
+                  <div className="h-36 sm:h-48 bg-gray-200 relative">
                     <img 
                       src={`/images/placeholder-deal.svg`} 
                       alt={`Deal ${item}`}
@@ -139,12 +152,12 @@ export default function App() {
                       25% OFF
                     </div>
                   </div>
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg mb-1">Weekend Special Deal {item}</h3>
-                    <p className="text-gray-600 text-sm mb-3">Cape Town, South Africa</p>
+                  <div className="p-3 sm:p-4">
+                    <h3 className="font-bold text-base sm:text-lg mb-1">Weekend Special Deal {item}</h3>
+                    <p className="text-gray-600 text-xs sm:text-sm mb-2 sm:mb-3">Cape Town, South Africa</p>
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-blue-600">R199</span>
-                      <span className="text-gray-500 text-sm line-through">R265</span>
+                      <span className="text-gray-500 text-xs sm:text-sm line-through">R265</span>
                     </div>
                   </div>
                 </div>
@@ -153,33 +166,33 @@ export default function App() {
           </div>
           
           {/* AI Assistant Preview */}
-          <div className="mb-16 bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
-            <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-400 p-6">
-              <div className="flex items-center gap-4">
-                <div className="bg-white/20 p-3 rounded-full">
-                  <Sparkles className="h-8 w-8 text-white" />
+          <div className="mb-12 sm:mb-16 bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+            <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-400 p-4 sm:p-6">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="bg-white/20 p-2 sm:p-3 rounded-full">
+                  <Sparkles className="h-6 sm:h-8 w-6 sm:w-8 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-white">CityPulse AI Assistant</h2>
-                  <p className="text-white/80">Get personalized recommendations and discover hidden gems</p>
+                  <h2 className="text-xl sm:text-2xl font-bold text-white">CityPulse AI Assistant</h2>
+                  <p className="text-white/80 text-sm sm:text-base">Get personalized recommendations and discover hidden gems</p>
                 </div>
               </div>
             </div>
-            <div className="p-6">
-              <div className="bg-gray-100 p-4 rounded-lg mb-4">
-                <p className="italic text-gray-700">"I'm looking for family-friendly weekend activities in Johannesburg under R500"</p>
+            <div className="p-4 sm:p-6">
+              <div className="bg-gray-100 p-3 sm:p-4 rounded-lg mb-4">
+                <p className="italic text-gray-700 text-sm sm:text-base">"I'm looking for family-friendly weekend activities in Johannesburg under R500"</p>
               </div>
-              <p className="text-gray-600 mb-6">Sign in to unlock our AI-powered assistant that helps you discover the perfect local experiences tailored to your preferences.</p>
-              <div className="flex gap-4 justify-center">
+              <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">Sign in to unlock our AI-powered assistant that helps you discover the perfect local experiences tailored to your preferences.</p>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                 <Link to="/auth">
-                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600">
-                    <Sparkles className="mr-2 h-5 w-5" />
+                  <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600">
+                    <Sparkles className="mr-2 h-4 sm:h-5 w-4 sm:w-5" />
                     Sign in to try
                   </Button>
                 </Link>
                 <Link to="/merchant/login">
-                  <Button variant="outline">
-                    <Building className="mr-2 h-5 w-5" />
+                  <Button variant="outline" className="w-full sm:w-auto">
+                    <Building className="mr-2 h-4 sm:h-5 w-4 sm:w-5" />
                     Business Sign in
                   </Button>
                 </Link>

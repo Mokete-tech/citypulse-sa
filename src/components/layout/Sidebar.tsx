@@ -1,3 +1,4 @@
+
 import { Link, useLocation } from 'react-router-dom';
 import {
   Tag, Calendar, LogIn, ChevronLeft, CreditCard, Heart
@@ -19,7 +20,7 @@ const mainNavItems = [
 
 // Merchant items
 const merchantItems = [
-  { name: 'Merchant Login', icon: LogIn, path: '/merchant/login' },
+  { name: 'Business Sign in', icon: LogIn, path: '/merchant/login' },
   { name: 'Merchant Packages', icon: CreditCard, path: '/merchant/packages' },
 ];
 

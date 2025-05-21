@@ -132,15 +132,7 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
           </DropdownMenu>
         )}
 
-        {/* Always show Merchant Login in sidebar for mobile */}
-        {!isMerchant && (
-          <Link to="/merchant/login" className="hidden sm:block md:hidden">
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
-              <LogIn className="h-4 w-4" />
-              <span>Merchant</span>
-            </Button>
-          </Link>
-        )}
+        {/* Removed Merchant Login button here */}
       </div>
     </nav>
   );

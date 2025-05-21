@@ -66,7 +66,7 @@ const MerchantLogin = () => {
         contactName
       });
       toast.success('Account created successfully', {
-        description: 'Welcome to CityPulse Merchant Platform!'
+        description: 'Welcome to CityPulse Business Platform!'
       });
       navigate('/merchant/dashboard');
     } catch (error: any) {
@@ -81,7 +81,7 @@ const MerchantLogin = () => {
 
   return (
     <ResponsiveLayout
-      title="Merchant Portal"
+      title="Business Portal"
       description="Login or register your business on CityPulse"
       className="min-h-screen"
     >
@@ -90,8 +90,8 @@ const MerchantLogin = () => {
       <div className="grid gap-6 lg:grid-cols-2 items-start mb-10">
         <Card className="lg:order-2">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl">Merchant Access</CardTitle>
-            <CardDescription>Login to your merchant account or register your business</CardDescription>
+            <CardTitle className="text-2xl">Business Access</CardTitle>
+            <CardDescription>Login to your business account or register your business</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" className="w-full">
@@ -232,7 +232,7 @@ const MerchantLogin = () => {
         <div className="space-y-8 lg:order-1">
           <div>
             <h2 className="text-2xl font-bold mb-4">Grow Your Business with CityPulse</h2>
-            <p className="text-gray-600 mb-6">Join thousands of merchants across South Africa who are growing their businesses through the CityPulse platform.</p>
+            <p className="text-gray-600 mb-6">Join thousands of businesses across South Africa who are growing through the CityPulse platform.</p>
             
             <div className="grid grid-cols-2 gap-4 mb-8">
               <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
@@ -257,7 +257,7 @@ const MerchantLogin = () => {
           </div>
           
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-100">
-            <h3 className="font-medium text-blue-800 text-lg mb-3">Merchant Benefits</h3>
+            <h3 className="font-medium text-blue-800 text-lg mb-3">Business Benefits</h3>
             <ul className="space-y-3">
               <li className="flex gap-2">
                 <Check className="h-5 w-5 text-green-600 flex-shrink-0" />
