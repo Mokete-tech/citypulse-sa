@@ -53,8 +53,8 @@ const DealsPage = () => {
   
   // Filter states
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
-  const [selectedCity, setSelectedCity] = useState(searchParams.get('city') || '');
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
+  const [selectedCity, setSelectedCity] = useState(searchParams.get('city') || 'all-cities');
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all-categories');
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'newest');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [featuredOnly, setFeaturedOnly] = useState(searchParams.get('featured') === 'true');
@@ -75,11 +75,11 @@ const DealsPage = () => {
         query = query.ilike('title', `%${searchParams.get('q')}%`);
       }
       
-      if (searchParams.get('city')) {
+      if (searchParams.get('city') && searchParams.get('city') !== 'all-cities') {
         query = query.eq('city', searchParams.get('city'));
       }
       
-      if (searchParams.get('category')) {
+      if (searchParams.get('category') && searchParams.get('category') !== 'all-categories') {
         query = query.eq('category', searchParams.get('category'));
       }
       
@@ -130,8 +130,8 @@ const DealsPage = () => {
     // Update search params
     const params = new URLSearchParams();
     if (searchTerm) params.set('q', searchTerm);
-    if (selectedCity) params.set('city', selectedCity);
-    if (selectedCategory) params.set('category', selectedCategory);
+    if (selectedCity && selectedCity !== 'all-cities') params.set('city', selectedCity);
+    if (selectedCategory && selectedCategory !== 'all-categories') params.set('category', selectedCategory);
     if (sortBy) params.set('sort', sortBy);
     if (featuredOnly) params.set('featured', 'true');
     
@@ -141,8 +141,8 @@ const DealsPage = () => {
 
   const handleClearFilters = () => {
     setSearchTerm('');
-    setSelectedCity('');
-    setSelectedCategory('');
+    setSelectedCity('all-cities');
+    setSelectedCategory('all-categories');
     setSortBy('newest');
     setPriceRange([0, 1000]);
     setFeaturedOnly(false);
@@ -204,7 +204,7 @@ const DealsPage = () => {
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>Cities</SelectLabel>
-                      <SelectItem value="">All Cities</SelectItem>
+                      <SelectItem value="all-cities">All Cities</SelectItem>
                       {CITIES.map(city => (
                         <SelectItem key={city} value={city}>{city}</SelectItem>
                       ))}
@@ -222,7 +222,7 @@ const DealsPage = () => {
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>Categories</SelectLabel>
-                      <SelectItem value="">All Categories</SelectItem>
+                      <SelectItem value="all-categories">All Categories</SelectItem>
                       {CATEGORIES.map(category => (
                         <SelectItem key={category} value={category}>{category}</SelectItem>
                       ))}
@@ -330,7 +330,7 @@ const DealsPage = () => {
                         <SelectValue placeholder="Select city" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Cities</SelectItem>
+                        <SelectItem value="all-cities">All Cities</SelectItem>
                         {CITIES.map(city => (
                           <SelectItem key={city} value={city}>{city}</SelectItem>
                         ))}
@@ -345,7 +345,7 @@ const DealsPage = () => {
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Categories</SelectItem>
+                        <SelectItem value="all-categories">All Categories</SelectItem>
                         {CATEGORIES.map(category => (
                           <SelectItem key={category} value={category}>{category}</SelectItem>
                         ))}
