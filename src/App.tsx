@@ -12,6 +12,7 @@ import { ResponsiveLayout } from "./components/layout/ResponsiveLayout";
 import { Button } from "./components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { EnvWarning } from "./components/ui/env-warning";
+import { ResponsiveImage } from "./components/ui/responsive-image";
 import { 
   Package, 
   Building, 
@@ -72,9 +73,10 @@ export default function App() {
             </div>
             <div className="lg:w-1/2">
               <div className="relative rounded-lg overflow-hidden shadow-xl">
-                <img 
-                  src="/images/placeholder.svg" 
-                  alt="CityPulse App" 
+                <ResponsiveImage 
+                  src="https://images.unsplash.com/photo-1649972904349-6e44c42644a7" 
+                  alt="CityPulse App Showcase" 
+                  aspectRatio="16/9"
                   className="w-full h-auto"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -142,11 +144,13 @@ export default function App() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
               {[1, 2, 3].map((item) => (
                 <div key={item} className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">
-                  <div className="h-36 sm:h-48 bg-gray-200 relative">
-                    <img 
-                      src={`/images/placeholder-deal.svg`} 
+                  <div className="h-36 sm:h-48 relative">
+                    <ResponsiveImage
+                      src={`https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&h=400&ixid=MnwxfDB8MXxyYW5kb218MHx8fHx8fHx8MTY4MTY1MDUyMQ&ixlib=rb-4.0.3&q=80&w=600&${item}`} 
                       alt={`Deal ${item}`}
+                      aspectRatio="16/9"
                       className="w-full h-full object-cover"
+                      fallbackSrc="/images/placeholders/deal-placeholder.svg"
                     />
                     <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
                       25% OFF

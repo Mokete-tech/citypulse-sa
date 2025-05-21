@@ -12,18 +12,6 @@ interface SidebarProps {
   toggleSidebar: () => void;
 }
 
-// Main navigation items
-const mainNavItems = [
-  { name: 'Deals', icon: Tag, path: '/deals' },
-  { name: 'Events', icon: Calendar, path: '/events' },
-  { name: 'Business Sign in', icon: LogIn, path: '/merchant/login' },
-];
-
-// User items (only shown when logged in)
-const userItems = [
-  { name: 'Saved Items', icon: Heart, path: '/saved' },
-];
-
 const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   // Get authentication context to check if user is logged in
   const { user } = useAuth();
@@ -72,20 +60,42 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                 Main Navigation
               </h3>
               <ul className="space-y-1">
-                {mainNavItems.map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      to={item.path}
-                      className={cn(
-                        "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
-                        isActivePath(item.path) && "bg-sky-700/70 font-medium"
-                      )}
-                    >
-                      <item.icon className="h-5 w-5 mr-3" />
-                      <span>{item.name}</span>
-                    </Link>
-                  </li>
-                ))}
+                <li>
+                  <Link
+                    to="/deals"
+                    className={cn(
+                      "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
+                      isActivePath('/deals') && "bg-sky-700/70 font-medium"
+                    )}
+                  >
+                    <Tag className="h-5 w-5 mr-3" />
+                    <span>Deals</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/events"
+                    className={cn(
+                      "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
+                      isActivePath('/events') && "bg-sky-700/70 font-medium"
+                    )}
+                  >
+                    <Calendar className="h-5 w-5 mr-3" />
+                    <span>Events</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/merchant/login"
+                    className={cn(
+                      "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
+                      isActivePath('/merchant/login') && "bg-sky-700/70 font-medium"
+                    )}
+                  >
+                    <LogIn className="h-5 w-5 mr-3" />
+                    <span>Business Sign in</span>
+                  </Link>
+                </li>
               </ul>
             </div>
 
