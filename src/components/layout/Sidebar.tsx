@@ -1,7 +1,7 @@
 
 import { Link } from 'react-router-dom';
 import {
-  Tag, Calendar, LogIn, ChevronLeft, CreditCard, Heart
+  Tag, Calendar, LogIn, ChevronLeft, CreditCard, Heart, Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -16,12 +16,7 @@ interface SidebarProps {
 const mainNavItems = [
   { name: 'Deals', icon: Tag, path: '/deals' },
   { name: 'Events', icon: Calendar, path: '/events' },
-];
-
-// Merchant items
-const merchantItems = [
   { name: 'Business Sign in', icon: LogIn, path: '/merchant/login' },
-  { name: 'Merchant Packages', icon: CreditCard, path: '/merchant/packages' },
 ];
 
 // User items (only shown when logged in)
@@ -94,24 +89,33 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
               </ul>
             </div>
 
-            {/* Merchant Section */}
+            {/* AI Assistant Section */}
+            <div className="px-3 mb-6">
+              <h3 className="text-xs font-semibold text-white/70 uppercase tracking-wider px-3 mb-2">
+                AI Assistant
+              </h3>
+              <ul className="space-y-1">
+                <li>
+                  <Link
+                    to="/ai-assistant"
+                    className={cn(
+                      "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
+                      isActivePath('/ai-assistant') && "bg-sky-700/70 font-medium"
+                    )}
+                  >
+                    <Sparkles className="h-5 w-5 mr-3" />
+                    <span>PulsePal AI</span>
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Merchant Packages */}
             <div className="px-3 mb-6">
               <h3 className="text-xs font-semibold text-white/70 uppercase tracking-wider px-3 mb-2">
                 Business
               </h3>
               <ul className="space-y-1">
-                <li>
-                  <Link
-                    to="/merchant/login"
-                    className={cn(
-                      "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
-                      isActivePath('/merchant/login') && "bg-sky-700/70 font-medium"
-                    )}
-                  >
-                    <LogIn className="h-5 w-5 mr-3" />
-                    <span>Business Sign in</span>
-                  </Link>
-                </li>
                 <li>
                   <Link
                     to="/merchant/packages"
