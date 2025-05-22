@@ -1,11 +1,12 @@
-
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../integrations/supabase/client";
-import { Coins, MapPin, Search, Brain, Sparkles, Calculator } from "lucide-react";
+import { Coins, MapPin, Search, Brain, Sparkles, Calculator, List } from "lucide-react";
 import { toast } from "sonner";
 
-// The correct Gemini API URL with the supported model
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
+// Updated to use the list models endpoint first, then we'll use an available model
+const GEMINI_LIST_MODELS_URL = "https://generativelanguage.googleapis.com/v1beta/models";
+// We'll set the content generation URL after we get the available models
+let GEMINI_API_URL = "";
 
 export function PulsePal({ apiKey }: { apiKey: string }) {
   const [deals, setDeals] = useState<any[]>([]);
@@ -15,8 +16,10 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [selectedModel, setSelectedModel] = useState<string>("");
 
-  // Load deals from Supabase
+  // Load deals from Supabase and get available models
   useEffect(() => {
     const fetchData = async () => {
       const { data: dealsData } = await supabase.from("deals").select("*");
@@ -24,6 +27,40 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
       
       const { data: eventsData } = await supabase.from("events").select("*");
       setEvents(eventsData || []);
+      
+      // Try to get available models if we have an API key
+      if (apiKey) {
+        try {
+          const modelsRes = await fetch(`${GEMINI_LIST_MODELS_URL}?key=${apiKey}`);
+          if (modelsRes.ok) {
+            const modelsData = await modelsRes.json();
+            console.log("Available models:", modelsData);
+            
+            // Filter models that support generateContent
+            const supportedModels = modelsData.models?.filter((model: any) => 
+              model.supportedGenerationMethods?.includes("generateContent")
+            ) || [];
+            
+            const modelIds = supportedModels.map((model: any) => model.name);
+            setAvailableModels(modelIds);
+            
+            // Select gemini-1.0-pro if available, otherwise use the first supported model
+            const preferredModel = modelIds.find((id: string) => id.includes("gemini-pro")) || modelIds[0];
+            if (preferredModel) {
+              setSelectedModel(preferredModel);
+              // Extract the model name from the full path (e.g., "models/gemini-pro")
+              const modelName = preferredModel.split("/").pop();
+              GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
+              console.log("Selected model:", preferredModel);
+              console.log("Content generation URL:", GEMINI_API_URL);
+            }
+          } else {
+            console.error("Failed to fetch models:", await modelsRes.json());
+          }
+        } catch (err) {
+          console.error("Error fetching available models:", err);
+        }
+      }
     };
     
     fetchData();
@@ -42,7 +79,7 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
         }
       );
     }
-  }, []);
+  }, [apiKey]);
 
   // Calculate distance between two coordinates in km
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -126,7 +163,7 @@ Format your response in a clear, easy to read way.
     `.trim();
   };
 
-  // Ask Gemini AI with the correct API implementation
+  // Ask Gemini AI with dynamic model selection
   const askPulsePal = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -141,6 +178,16 @@ Format your response in a clear, easy to read way.
         setError("Missing Gemini API key.");
         toast.error("API key missing", {
           description: "Please provide a valid Gemini API key."
+        });
+        setLoading(false);
+        return;
+      }
+      
+      // Check if we have a valid model and API URL
+      if (!GEMINI_API_URL) {
+        setError("No supported Gemini model found.");
+        toast.error("Model selection failed", {
+          description: "Could not find a suitable Gemini model for content generation."
         });
         setLoading(false);
         return;
@@ -234,10 +281,24 @@ Format your response in a clear, easy to read way.
         </div>
       )}
 
+      {apiKey && !selectedModel && (
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-blue-700 text-sm mb-3">
+          <strong>Finding available models...</strong> Please wait while we connect to the Gemini API.
+        </div>
+      )}
+
+      {availableModels.length > 0 && (
+        <div className="bg-green-50 border border-green-200 rounded-md p-3 text-green-700 text-sm mb-3 flex items-center gap-2">
+          <List className="h-4 w-4" />
+          <span>Using model: <strong>{selectedModel.split('/').pop()}</strong></span>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">
         <button 
           onClick={() => quickAsk("What deals are available under R100?")}
           className="flex items-center gap-1.5 px-3 py-2 bg-purple-100 hover:bg-purple-200 rounded-md text-purple-700 text-sm font-medium transition-colors"
+          disabled={!selectedModel || loading}
         >
           <Coins className="h-4 w-4" />
           <span>Budget Deals</span>
@@ -246,6 +307,7 @@ Format your response in a clear, easy to read way.
         <button 
           onClick={() => quickAsk("What events are happening near me this weekend?")}
           className="flex items-center gap-1.5 px-3 py-2 bg-purple-100 hover:bg-purple-200 rounded-md text-purple-700 text-sm font-medium transition-colors"
+          disabled={!selectedModel || loading}
         >
           <MapPin className="h-4 w-4" />
           <span>Nearby Events</span>
@@ -254,6 +316,7 @@ Format your response in a clear, easy to read way.
         <button 
           onClick={() => quickAsk("I have R200 for entertainment this weekend, what do you recommend?")}
           className="flex items-center gap-1.5 px-3 py-2 bg-purple-100 hover:bg-purple-200 rounded-md text-purple-700 text-sm font-medium transition-colors"
+          disabled={!selectedModel || loading}
         >
           <Calculator className="h-4 w-4" />
           <span>Plan My Weekend</span>
@@ -269,13 +332,14 @@ Format your response in a clear, easy to read way.
             onChange={e => setQuestion(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent pl-10"
             required
+            disabled={!selectedModel || loading}
           />
           <Brain className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
         </div>
         
         <button 
           type="submit" 
-          disabled={loading || !apiKey}
+          disabled={loading || !apiKey || !selectedModel}
           className="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {loading ? (
