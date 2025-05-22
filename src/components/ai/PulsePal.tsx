@@ -4,8 +4,8 @@ import { supabase } from "../../integrations/supabase/client";
 import { Coins, MapPin, Search, Brain, Sparkles, Calculator } from "lucide-react";
 import { toast } from "sonner";
 
-// API URL for Gemini
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
+// Updated Gemini API URL for the correct endpoint
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro:generateContent";
 
 export function PulsePal({ apiKey }: { apiKey: string }) {
   const [deals, setDeals] = useState<any[]>([]);
@@ -126,7 +126,7 @@ Format your response in a clear, easy to read way.
     `.trim();
   };
 
-  // Ask Gemini AI
+  // Ask Gemini AI - Updated to use the correct API format
   const askPulsePal = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -145,19 +145,29 @@ Format your response in a clear, easy to read way.
       }
 
       try {
+        // Updated request format for the Gemini 1.0 Pro API
         const res = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
+            contents: [{
+              parts: [{ text: prompt }]
+            }],
+            generationConfig: {
+              temperature: 0.7,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 1024,
+            }
           })
         });
         
         if (!res.ok) {
-          const text = await res.text();
-          setError(`API error: ${text}`);
+          const errorData = await res.json();
+          console.error("Gemini API error:", errorData);
+          setError(`API error: ${JSON.stringify(errorData)}`);
           toast.error("Gemini API error", {
-            description: "Failed to get a response from Gemini."
+            description: "Failed to get a response from Gemini. Check the console for details."
           });
           setLoading(false);
           return;
@@ -301,3 +311,4 @@ Format your response in a clear, easy to read way.
     </div>
   );
 }
+
