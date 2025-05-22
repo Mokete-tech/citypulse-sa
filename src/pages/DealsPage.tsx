@@ -204,7 +204,7 @@ const DealsPage = () => {
               <AccordionItem value="location" className="border-b-0">
                 <AccordionTrigger className="py-2 text-sm">Location</AccordionTrigger>
                 <AccordionContent>
-                  <Select value={selectedCity} onValueChange={setSelectedCity} className="mb-2">
+                  <Select value={selectedCity} onValueChange={setSelectedCity}>
                     <SelectTrigger className="h-8">
                       <SelectValue placeholder="Select a city" />
                     </SelectTrigger>
@@ -337,7 +337,7 @@ const DealsPage = () => {
                   <AccordionTrigger className="py-2 text-sm font-medium">Quick Filters</AccordionTrigger>
                   <AccordionContent>
                     <div className="grid grid-cols-2 gap-2 mb-2">
-                      <Select value={selectedCity} onValueChange={setSelectedCity} className="mb-1">
+                      <Select value={selectedCity} onValueChange={setSelectedCity}>
                         <SelectTrigger className="h-8 text-xs">
                           <SelectValue placeholder="City" />
                         </SelectTrigger>
@@ -349,7 +349,7 @@ const DealsPage = () => {
                         </SelectContent>
                       </Select>
                       
-                      <Select value={selectedCategory} onValueChange={setSelectedCategory} className="mb-1">
+                      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                         <SelectTrigger className="h-8 text-xs">
                           <SelectValue placeholder="Category" />
                         </SelectTrigger>
