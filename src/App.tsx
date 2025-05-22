@@ -281,7 +281,7 @@ export default function App() {
                     <ResponsiveImage
                       src={city.image}
                       alt={city.name}
-                      aspectRatio="1/1"
+                      aspectRatio="square"
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-4 text-white">
@@ -328,7 +328,7 @@ export default function App() {
                   <ResponsiveImage
                     src="https://images.unsplash.com/photo-1501769752-a59efa2298ce"
                     alt="AI Assistant"
-                    aspectRatio="1/1"
+                    aspectRatio="square"
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-black/30"></div>

@@ -1,7 +1,7 @@
 
 import { Link } from 'react-router-dom';
 import {
-  Tag, Calendar, LogIn, ChevronLeft, CreditCard, Heart, Sparkles, User, Settings, Building
+  Tag, Calendar, LogIn, ChevronLeft, CreditCard, Heart, Sparkles, User, Settings, Building, Package
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -139,7 +139,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
               </ul>
             </div>
 
-            {/* Business Section - Removed separate Merchant Packages section */}
+            {/* Business Section with Business Packages added */}
             <div className="px-3 mb-6">
               <h3 className="text-xs font-semibold text-white/70 uppercase tracking-wider px-3 mb-2">
                 Business
@@ -155,6 +155,18 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                   >
                     <LogIn className="h-5 w-5 mr-3" />
                     <span>Business Portal</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/merchant/packages"
+                    className={cn(
+                      "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
+                      isActivePath('/merchant/packages') && "bg-sky-700/70 font-medium"
+                    )}
+                  >
+                    <Package className="h-5 w-5 mr-3" />
+                    <span>Business Packages</span>
                   </Link>
                 </li>
               </ul>

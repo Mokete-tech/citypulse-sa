@@ -1,14 +1,12 @@
+
 import React, { createContext, useContext } from "react";
-import { ClerkProvider, useUser, useSignIn, useSignUp } from "@clerk/clerk-react";
+import { useUser, useSignIn, useSignUp } from "@clerk/clerk-react";
 
 const ClerkAuthContext = createContext<any>(null);
 
 export const ClerkAuthProvider = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
-      {children}
-    </ClerkProvider>
-  );
+  // We're not wrapping with ClerkProvider here anymore since it's in main.tsx
+  return children;
 };
 
 export const useClerkAuth = () => {
