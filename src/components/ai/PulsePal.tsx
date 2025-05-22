@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../integrations/supabase/client";
 import { Coins, MapPin, Search, Brain, Sparkles, Calculator } from "lucide-react";
 import { toast } from "sonner";
 
-// Updated Gemini API URL with correct model name - fixing the 404 error
+// The correct Gemini API URL with the supported model
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
 
 export function PulsePal({ apiKey }: { apiKey: string }) {
@@ -125,7 +126,7 @@ Format your response in a clear, easy to read way.
     `.trim();
   };
 
-  // Ask Gemini AI - Updated API format for the current Gemini API
+  // Ask Gemini AI with the correct API implementation
   const askPulsePal = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -134,17 +135,21 @@ Format your response in a clear, easy to read way.
 
     try {
       const prompt = makePrompt(question);
-      if (!apiKey) {
+      
+      // Check if the API key is available and valid
+      if (!apiKey || apiKey.trim() === "") {
         setError("Missing Gemini API key.");
         toast.error("API key missing", {
-          description: "Please provide a Gemini API key in the environment variables."
+          description: "Please provide a valid Gemini API key."
         });
         setLoading(false);
         return;
       }
 
+      console.log("Using Gemini API URL:", GEMINI_API_URL);
+      
       try {
-        // Updated request format for the current Gemini API
+        // Make request to Gemini API
         const res = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -191,6 +196,7 @@ Format your response in a clear, easy to read way.
           });
         }
       } catch (err: any) {
+        console.error("Gemini API request failed:", err);
         setError(err.message || "Unknown error");
         toast.error("Request failed", {
           description: err.message || "An unknown error occurred"
