@@ -4,7 +4,6 @@ import { useLocation, useSearchParams } from 'react-router-dom';
 import { ResponsiveLayout } from '@/components/layout/ResponsiveLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DealCard } from '@/components/cards/DealCard';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -16,8 +15,9 @@ import { toast } from 'sonner';
 import { EnvWarning } from '@/components/ui/env-warning';
 import { LoadingState } from '@/components/ui/loading-state';
 import { fallbackDeals } from '@/data/fallback-data';
-import { Search, MapPin, Tag, ArrowDown, Sliders } from 'lucide-react';
+import { Search, MapPin, Tag, Filter, Sliders, ChevronDown } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const CITIES = [
   'Johannesburg',
@@ -188,131 +188,142 @@ const DealsPage = () => {
     <ResponsiveLayout title="Explore Deals" description="Discover the best deals across South Africa">
       <EnvWarning />
       
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-        {/* Filters sidebar - desktop */}
-        <div className={`lg:col-span-1 space-y-6 ${isMobile ? 'hidden' : 'block'}`}>
-          <div className="bg-white shadow rounded-lg p-5 border border-gray-200">
-            <h3 className="font-medium text-lg mb-4">Filters</h3>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+        {/* Desktop filters sidebar - collapsed by default on desktop */}
+        <div className={`lg:col-span-1 ${isMobile ? 'hidden' : 'block'}`}>
+          <div className="bg-white shadow rounded-lg p-4 border border-gray-200">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-medium">Filters</h3>
+              <Button variant="ghost" size="sm" onClick={handleClearFilters} className="text-xs h-7">
+                Clear all
+              </Button>
+            </div>
             
-            <form onSubmit={handleSearch} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="city">Location</Label>
-                <Select value={selectedCity} onValueChange={setSelectedCity}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a city" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Cities</SelectLabel>
+            <Accordion type="single" collapsible className="w-full space-y-2">
+              {/* Location Filter */}
+              <AccordionItem value="location" className="border-b-0">
+                <AccordionTrigger className="py-2 text-sm">Location</AccordionTrigger>
+                <AccordionContent>
+                  <Select value={selectedCity} onValueChange={setSelectedCity} className="mb-2">
+                    <SelectTrigger className="h-8">
+                      <SelectValue placeholder="Select a city" />
+                    </SelectTrigger>
+                    <SelectContent>
                       <SelectItem value="all-cities">All Cities</SelectItem>
                       {CITIES.map(city => (
                         <SelectItem key={city} value={city}>{city}</SelectItem>
                       ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
+                    </SelectContent>
+                  </Select>
+                </AccordionContent>
+              </AccordionItem>
               
-              <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Categories</SelectLabel>
+              {/* Category Filter */}
+              <AccordionItem value="category" className="border-b-0">
+                <AccordionTrigger className="py-2 text-sm">Category</AccordionTrigger>
+                <AccordionContent>
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="h-8">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
                       <SelectItem value="all-categories">All Categories</SelectItem>
                       {CATEGORIES.map(category => (
                         <SelectItem key={category} value={category}>{category}</SelectItem>
                       ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
+                    </SelectContent>
+                  </Select>
+                </AccordionContent>
+              </AccordionItem>
               
-              <div className="space-y-2">
-                <Label htmlFor="sort">Sort By</Label>
-                <RadioGroup value={sortBy} onValueChange={setSortBy} className="space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="newest" id="newest" />
-                    <Label htmlFor="newest">Newest First</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="price_low" id="price_low" />
-                    <Label htmlFor="price_low">Price: Low to High</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="price_high" id="price_high" />
-                    <Label htmlFor="price_high">Price: High to Low</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="popularity" id="popularity" />
-                    <Label htmlFor="popularity">Popularity</Label>
-                  </div>
-                </RadioGroup>
-              </div>
+              {/* Sort By Filter */}
+              <AccordionItem value="sort" className="border-b-0">
+                <AccordionTrigger className="py-2 text-sm">Sort By</AccordionTrigger>
+                <AccordionContent>
+                  <RadioGroup value={sortBy} onValueChange={setSortBy} className="space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="newest" id="newest" className="h-3 w-3" />
+                      <Label htmlFor="newest" className="text-sm">Newest First</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="price_low" id="price_low" className="h-3 w-3" />
+                      <Label htmlFor="price_low" className="text-sm">Price: Low to High</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="price_high" id="price_high" className="h-3 w-3" />
+                      <Label htmlFor="price_high" className="text-sm">Price: High to Low</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="popularity" id="popularity" className="h-3 w-3" />
+                      <Label htmlFor="popularity" className="text-sm">Popularity</Label>
+                    </div>
+                  </RadioGroup>
+                </AccordionContent>
+              </AccordionItem>
               
-              <div className="space-y-4">
-                <div>
-                  <Label className="mb-2">Price Range</Label>
+              {/* Price Range Filter */}
+              <AccordionItem value="price" className="border-b-0">
+                <AccordionTrigger className="py-2 text-sm">Price Range</AccordionTrigger>
+                <AccordionContent>
                   <div className="pt-2 pb-6">
                     <Slider 
                       defaultValue={[priceRange[0], priceRange[1]]} 
                       max={1000} 
                       step={1}
                       onValueChange={(value) => setPriceRange([value[0], value[1]])}
+                      className="mb-2"
                     />
                   </div>
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between text-xs">
                     <span>R{priceRange[0]}</span>
                     <span>R{priceRange[1]}</span>
                   </div>
-                </div>
-                
-                <div className="flex items-start space-x-2">
-                  <Checkbox 
-                    id="featuredOnly" 
-                    checked={featuredOnly}
-                    onCheckedChange={(checked) => setFeaturedOnly(checked as boolean)}
-                  />
-                  <div className="grid gap-1.5 leading-none">
-                    <Label htmlFor="featuredOnly">Featured Deals Only</Label>
-                    <p className="text-sm text-muted-foreground">Show only featured deals</p>
-                  </div>
-                </div>
+                </AccordionContent>
+              </AccordionItem>
+              
+              {/* Featured Only Filter */}
+              <div className="flex items-center space-x-2 py-2">
+                <Checkbox 
+                  id="featuredOnly" 
+                  checked={featuredOnly}
+                  onCheckedChange={(checked) => setFeaturedOnly(checked as boolean)}
+                  className="h-3.5 w-3.5"
+                />
+                <Label htmlFor="featuredOnly" className="text-sm">Featured Deals Only</Label>
               </div>
               
-              <div className="pt-2 space-y-2">
-                <Button type="submit" className="w-full">Apply Filters</Button>
-                <Button type="button" variant="outline" className="w-full" onClick={handleClearFilters}>Clear Filters</Button>
-              </div>
-            </form>
+              <Button type="button" className="w-full h-8 text-sm mt-2" onClick={handleSearch}>
+                Apply Filters
+              </Button>
+            </Accordion>
           </div>
         </div>
         
         {/* Main content */}
-        <div className="lg:col-span-3 space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center gap-4 justify-between">
-            <form onSubmit={handleSearch} className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+        <div className="lg:col-span-3 space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-3 justify-between">
+            <form onSubmit={handleSearch} className="flex-1 flex">
+              <div className="relative flex-1">
+                <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
                 <Input
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Search deals..."
-                  className="pl-10 w-full"
+                  className="pl-8 w-full h-9"
                 />
               </div>
+              <Button size="sm" type="submit" className="ml-2 h-9">Search</Button>
             </form>
             
+            {/* Mobile filters button */}
             {isMobile && (
               <Button 
                 variant="outline" 
-                className="flex items-center gap-2"
+                size="sm"
+                className="flex items-center gap-1 h-9"
                 onClick={() => setFiltersVisible(!filtersVisible)}
               >
-                <Sliders className="h-4 w-4" />
+                <Sliders className="h-3.5 w-3.5" />
                 Filters
               </Button>
             )}
@@ -320,60 +331,90 @@ const DealsPage = () => {
           
           {/* Mobile filters (collapsible) */}
           {isMobile && filtersVisible && (
-            <div className="bg-white shadow rounded-lg p-5 border border-gray-200 mb-4">
-              <form onSubmit={handleSearch} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="mobileCity">City</Label>
-                    <Select value={selectedCity} onValueChange={setSelectedCity}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select city" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all-cities">All Cities</SelectItem>
-                        {CITIES.map(city => (
-                          <SelectItem key={city} value={city}>{city}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="mobileCategory">Category</Label>
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all-categories">All Categories</SelectItem>
-                        {CATEGORIES.map(category => (
-                          <SelectItem key={category} value={category}>{category}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between gap-4">
-                  <Button type="submit" className="flex-1">Apply</Button>
-                  <Button type="button" variant="outline" className="flex-1" onClick={handleClearFilters}>Clear</Button>
-                </div>
-              </form>
+            <div className="bg-white shadow rounded-lg p-3 border border-gray-200 mb-3">
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="mobileFilters" className="border-b-0">
+                  <AccordionTrigger className="py-2 text-sm font-medium">Quick Filters</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="grid grid-cols-2 gap-2 mb-2">
+                      <Select value={selectedCity} onValueChange={setSelectedCity} className="mb-1">
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue placeholder="City" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all-cities">All Cities</SelectItem>
+                          {CITIES.map(city => (
+                            <SelectItem key={city} value={city}>{city}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      
+                      <Select value={selectedCategory} onValueChange={setSelectedCategory} className="mb-1">
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue placeholder="Category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all-categories">All Categories</SelectItem>
+                          {CATEGORIES.map(category => (
+                            <SelectItem key={category} value={category}>{category}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                      <Select value={sortBy} onValueChange={setSortBy}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue placeholder="Sort by" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="newest">Newest</SelectItem>
+                          <SelectItem value="price_low">Price: Low to High</SelectItem>
+                          <SelectItem value="price_high">Price: High to Low</SelectItem>
+                          <SelectItem value="popularity">Popularity</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      
+                      <div className="flex items-center space-x-2 h-8 pl-2">
+                        <Checkbox 
+                          id="mobileFeaturedOnly" 
+                          checked={featuredOnly}
+                          onCheckedChange={(checked) => setFeaturedOnly(checked as boolean)}
+                          className="h-3.5 w-3.5"
+                        />
+                        <Label htmlFor="mobileFeaturedOnly" className="text-xs">Featured Only</Label>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between gap-2 mt-3">
+                      <Button size="sm" type="button" className="flex-1 h-8 text-xs" onClick={handleSearch}>
+                        Apply
+                      </Button>
+                      <Button size="sm" type="button" variant="outline" className="flex-1 h-8 text-xs" onClick={handleClearFilters}>
+                        Clear
+                      </Button>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </div>
           )}
 
           {/* Results section */}
           <div>
             {loading ? (
-              <LoadingState isLoading={true} type="card" count={6} />
+              <LoadingState isLoading={true} type="card" count={4} />
             ) : deals.length > 0 ? (
               <>
-                <div className="flex justify-between items-center mb-4">
-                  <p className="text-sm text-gray-500">{deals.length} deals found</p>
+                <div className="flex justify-between items-center mb-3">
+                  <p className="text-xs text-gray-500">{deals.length} deals found</p>
                   <div className="flex items-center">
-                    <p className="text-sm text-gray-500 mr-2">Sort:</p>
-                    <Select value={sortBy} onValueChange={setSortBy}>
-                      <SelectTrigger className="h-8 w-[180px]">
+                    <p className="text-xs text-gray-500 mr-1">Sort:</p>
+                    <Select value={sortBy} onValueChange={(value) => {
+                      setSortBy(value);
+                      handleSearch(new Event('submit') as any);
+                    }}>
+                      <SelectTrigger className="h-7 w-[140px] text-xs">
                         <SelectValue placeholder="Sort by" />
                       </SelectTrigger>
                       <SelectContent>
@@ -386,7 +427,7 @@ const DealsPage = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
                   {deals.map(deal => (
                     <DealCard
                       key={deal.id}
@@ -405,13 +446,13 @@ const DealsPage = () => {
                 </div>
               </>
             ) : (
-              <div className="text-center py-12">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
-                  <Tag className="h-8 w-8 text-gray-400" />
+              <div className="text-center py-8">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-3">
+                  <Tag className="h-5 w-5 text-gray-400" />
                 </div>
-                <h3 className="text-lg font-medium mb-2">No deals found</h3>
-                <p className="text-gray-500 mb-6">Try changing your filters or search term</p>
-                <Button onClick={handleClearFilters}>Clear filters</Button>
+                <h3 className="text-base font-medium mb-1">No deals found</h3>
+                <p className="text-sm text-gray-500 mb-4">Try changing your filters or search term</p>
+                <Button size="sm" onClick={handleClearFilters}>Clear filters</Button>
               </div>
             )}
           </div>
