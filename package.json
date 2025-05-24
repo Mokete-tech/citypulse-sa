@@ -2,7 +2,7 @@
   "name": "vite_react_shadcn_ts",
   "private": true,
   "version": "0.0.0",
-  "type": "commonjs",
+  "type": "module",
   "scripts": {
     "dev": "node scripts/replace-index.js && vite",
     "build": "node scripts/replace-index.js && vite build",
@@ -19,6 +19,7 @@
     "clean-index": "node scripts/replace-index.js"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.31.6",
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",

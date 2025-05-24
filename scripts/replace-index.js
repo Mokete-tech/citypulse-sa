@@ -1,15 +1,19 @@
 // This script replaces the default index.html with our clean version
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Paths
-const cleanIndexPath = path.join(__dirname, '../public/clean-index.html');
-const indexPath = path.join(__dirname, '../index.html');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// Read the clean index.html
-const cleanIndex = fs.readFileSync(cleanIndexPath, 'utf8');
+const indexPath = path.join(__dirname, '..', 'index.html');
+const templatePath = path.join(__dirname, '..', 'index.template.html');
 
-// Write it to the main index.html
-fs.writeFileSync(indexPath, cleanIndex);
-
-console.log('Successfully replaced index.html with clean version');
+try {
+  const template = fs.readFileSync(templatePath, 'utf8');
+  fs.writeFileSync(indexPath, template);
+  console.log('Successfully replaced index.html with template');
+} catch (error) {
+  console.error('Error replacing index.html:', error);
+  process.exit(1);
+}

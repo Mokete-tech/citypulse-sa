@@ -4,7 +4,7 @@ import { ClerkProvider, ClerkLoading, ClerkErrorComponent } from '@clerk/clerk-r
 import { AuthProvider as ClerkAuthProvider } from './components/auth/AuthProvider';
 import { useClerk } from "@clerk/clerk-react";
 import { Navigate } from 'react-router-dom';
-import { Dashboard } from './pages/Dashboard';
+import { Index } from './pages/Index';
 import { Deals } from './pages/Deals';
 import { Events } from './pages/Events';
 import { Contact } from './pages/Contact';
@@ -52,7 +52,7 @@ function App() {
                 path="/"
                 element={
                   <PublicRoute>
-                    <Dashboard />
+                    <Index />
                   </PublicRoute>
                 }
               />

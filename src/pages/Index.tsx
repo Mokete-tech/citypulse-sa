@@ -1,3 +1,4 @@
+import React from 'react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +20,7 @@ import NearbyEvents from '@/components/location/NearbyEvents';
 // Use the interfaces from fallback-data.ts
 import type { Deal, Event } from '@/data/fallback-data';
 
-const Index = () => {
+export const Index = () => {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
