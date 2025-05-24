@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +25,7 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   // We're not showing errors anymore, but keeping the state for future use
   const [, setError] = useState<string | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async (retryCount = 0) => {

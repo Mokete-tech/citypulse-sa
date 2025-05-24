@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
@@ -18,10 +17,11 @@ import SharingAnalytics from '@/components/dashboard/SharingAnalytics';
 import { StripePaymentForm } from '@/components/payments/StripePaymentForm';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { BusinessAnalytics } from "@/components/business/BusinessAnalytics";
 
 const MerchantDashboard = () => {
   const { user } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAddingDeal, setIsAddingDeal] = useState(false);
   const [activeTab, setActiveTab] = useState('deals');
   const [mediaType, setMediaType] = useState('image');
@@ -280,7 +280,7 @@ const MerchantDashboard = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50">
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
       {/* Payment Modal */}
@@ -301,7 +301,7 @@ const MerchantDashboard = () => {
         </DialogContent>
       </Dialog>
 
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : ''}`}>
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-72' : 'ml-0'}`}>
         <Navbar toggleSidebar={toggleSidebar} />
 
         <main className="flex-1 overflow-y-auto px-4 py-6 md:px-6">
@@ -629,6 +629,8 @@ const MerchantDashboard = () => {
                     </div>
                   </CardContent>
                 </Card>
+
+                <BusinessAnalytics />
               </div>
             </TabsContent>
 

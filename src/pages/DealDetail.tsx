@@ -14,6 +14,8 @@ import { fallbackDeals } from '@/data/fallback-data';
 import { ShareButton } from '@/components/ui/share-button';
 import { ReactionButton } from '@/components/ui/reaction-button';
 import { toast } from 'sonner';
+import { ReactionShare } from "@/components/ui/reaction-share";
+import { format } from 'date-fns';
 
 const DealDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -204,86 +206,87 @@ const DealDetail = () => {
               Back to Deals
             </Button>
 
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-              {deal.image_url && (
-                <div className="w-full h-64 md:h-80 overflow-hidden">
-                  <img
-                    src={deal.image_url}
-                    alt={deal.title}
-                    className="w-full h-full object-cover"
-                  />
+            <div className="bg-card rounded-lg shadow-lg overflow-hidden">
+              <div className="relative h-64 md:h-96">
+                <img
+                  src={deal?.image_url || '/placeholder-deal.jpg'}
+                  alt={deal?.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                  <h1 className="text-3xl md:text-4xl font-bold mb-2">{deal?.title}</h1>
+                  <div className="flex items-center gap-4 text-sm">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      <span>Valid until {format(new Date(deal?.end_date || ''), 'PPP')}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <MapPin className="h-4 w-4" />
+                      <span>{deal?.location}</span>
+                    </div>
+                  </div>
                 </div>
-              )}
+              </div>
 
               <div className="p-6">
-                <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-                  <div>
-                    {deal.category && (
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
-                        <Tag className="h-3 w-3" />
-                        {deal.category}
-                      </div>
-                    )}
-                    <h1 className="text-2xl md:text-3xl font-bold">{deal.title}</h1>
-
-                    {deal.merchant_name && (
-                      <div className="flex items-center gap-1 mt-2 text-muted-foreground">
-                        <Store className="h-4 w-4" />
-                        {deal.merchant_name}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col items-end gap-2">
-                    {deal.featured && (
-                      <Badge variant="outline" className="mb-2">Featured</Badge>
-                    )}
-
-                    {deal.discount && (
-                      <Badge variant="secondary" className="text-lg px-3 py-1">
-                        {deal.discount}
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center gap-4">
+                    <Badge variant="secondary" className="text-sm">
+                      {deal?.category}
+                    </Badge>
+                    <Badge variant="outline" className="text-sm">
+                      {deal?.status}
+                    </Badge>
+                    {deal?.discount_percentage && (
+                      <Badge variant="destructive" className="text-sm">
+                        {deal?.discount_percentage}% OFF
                       </Badge>
                     )}
                   </div>
+                  <ReactionShare
+                    itemId={deal?.id || 0}
+                    itemType="deal"
+                    initialReactions={{
+                      likes: deal?.likes_count || 0,
+                      hearts: deal?.hearts_count || 0,
+                      comments: deal?.comments_count || 0
+                    }}
+                  />
                 </div>
 
-                <div className="prose max-w-none mb-6">
-                  <p className="text-gray-700">{deal.description}</p>
-                </div>
-
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-t border-b py-4 mb-6">
-                  {deal.location && (
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span>{deal.location}</span>
+                <div className="prose max-w-none">
+                  <p className="text-muted-foreground mb-6">{deal?.description}</p>
+                  
+                  {deal?.terms && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold mb-2">Terms & Conditions</h3>
+                      <ul className="list-disc list-inside space-y-1">
+                        {deal?.terms.map((term, index) => (
+                          <li key={index}>{term}</li>
+                        ))}
+                      </ul>
                     </div>
                   )}
 
-                  {deal.expiration_date && (
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>Expires: {deal.expiration_date}</span>
+                  {deal?.highlights && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold mb-2">Highlights</h3>
+                      <ul className="list-disc list-inside space-y-1">
+                        {deal?.highlights.map((highlight, index) => (
+                          <li key={index}>{highlight}</li>
+                        ))}
+                      </ul>
                     </div>
                   )}
                 </div>
 
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div className="flex items-center gap-4">
-                    <ReactionButton itemId={typeof deal.id === 'string' ? parseInt(deal.id, 10) : deal.id} itemType="deal" />
-
-                    {/* Share Button Component */}
-                    <ShareButton 
-                      title={deal?.title || 'Deal'} 
-                      description="Check out this deal"
-                      url={window.location.href}
-                      size="sm"
-                      itemId={deal?.id}
-                      itemType="deal"
-                    />
-                  </div>
-
-                  <Button onClick={handleRedeemDeal} size="lg">
-                    Redeem Deal
+                <div className="mt-8 flex flex-col sm:flex-row gap-4">
+                  <Button className="flex-1" size="lg">
+                    Get Deal
+                  </Button>
+                  <Button variant="outline" className="flex-1" size="lg">
+                    Save for Later
                   </Button>
                 </div>
               </div>

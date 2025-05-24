@@ -15,6 +15,8 @@ import { ShareButton } from '@/components/ui/share-button';
 import { ReactionButton } from '@/components/ui/reaction-button';
 import { toast } from 'sonner';
 import { EnhancedImage } from '@/components/ui/enhanced-image';
+import { ReactionShare } from "@/components/ui/reaction-share";
+import { format } from 'date-fns';
 
 const EventDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -206,104 +208,86 @@ const EventDetail = () => {
               Back to Events
             </Button>
 
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-              {event.image_url && (
-                <div className="w-full h-64 md:h-80 overflow-hidden">
-                  <EnhancedImage
-                    src={event.image_url}
-                    alt={event.title}
-                    aspectRatio="video"
-                    objectFit="cover"
-                    className="w-full h-full"
-                    fallbackSrc="/images/placeholder-event.svg"
-                  />
+            <div className="bg-card rounded-lg shadow-lg overflow-hidden">
+              <div className="relative h-64 md:h-96">
+                <img
+                  src={event?.image_url || '/placeholder-event.jpg'}
+                  alt={event?.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                  <h1 className="text-3xl md:text-4xl font-bold mb-2">{event?.title}</h1>
+                  <div className="flex items-center gap-4 text-sm">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      <span>{format(new Date(event?.start_date || ''), 'PPP')}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      <span>{format(new Date(event?.start_date || ''), 'p')}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <MapPin className="h-4 w-4" />
+                      <span>{event?.location}</span>
+                    </div>
+                  </div>
                 </div>
-              )}
+              </div>
 
               <div className="p-6">
-                <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-                  <div>
-                    {event.category && (
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
-                        <Tag className="h-3 w-3" />
-                        {event.category}
-                      </div>
-                    )}
-                    <h1 className="text-2xl md:text-3xl font-bold">{event.title}</h1>
-
-                    {event.merchant_name && (
-                      <div className="flex items-center gap-1 mt-2 text-muted-foreground">
-                        <Users className="h-4 w-4" />
-                        {event.merchant_name}
-                      </div>
-                    )}
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center gap-4">
+                    <Badge variant="secondary" className="text-sm">
+                      {event?.category}
+                    </Badge>
+                    <Badge variant="outline" className="text-sm">
+                      {event?.status}
+                    </Badge>
                   </div>
-
-                  <div className="flex flex-col items-end gap-2">
-                    {event.featured && (
-                      <Badge variant="outline" className="mb-2">Featured</Badge>
-                    )}
-
-                    {event.price && (
-                      <Badge variant="secondary" className="text-lg px-3 py-1">
-                        {event.price}
-                      </Badge>
-                    )}
-                  </div>
+                  <ReactionShare
+                    itemId={event?.id || 0}
+                    itemType="event"
+                    initialReactions={{
+                      likes: event?.likes_count || 0,
+                      hearts: event?.hearts_count || 0,
+                      comments: event?.comments_count || 0
+                    }}
+                  />
                 </div>
 
-                <div className="prose max-w-none mb-6">
-                  <p className="text-gray-700">{event.description}</p>
-                </div>
-
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-t border-b py-4 mb-6">
-                  {event.location && (
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span>{event.location}</span>
+                <div className="prose max-w-none">
+                  <p className="text-muted-foreground mb-6">{event?.description}</p>
+                  
+                  {event?.highlights && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold mb-2">Highlights</h3>
+                      <ul className="list-disc list-inside space-y-1">
+                        {event?.highlights.map((highlight, index) => (
+                          <li key={index}>{highlight}</li>
+                        ))}
+                      </ul>
                     </div>
                   )}
 
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    {event.date && (
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span>{event.date}</span>
-                      </div>
-                    )}
-
-                    {event.time && (
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span>{event.time}</span>
-                      </div>
-                    )}
-                  </div>
+                  {event?.requirements && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold mb-2">Requirements</h3>
+                      <ul className="list-disc list-inside space-y-1">
+                        {event?.requirements.map((requirement, index) => (
+                          <li key={index}>{requirement}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div className="flex items-center gap-4">
-                    <ReactionButton
-                      itemId={typeof event.id === 'string' ? parseInt(event.id, 10) : event.id}
-                      itemType="event"
-                      animation="pop"
-                      prominence="high"
-                      buttonSize="lg"
-                    />
-
-                    {/* Share Button Component */}
-                    <ShareButton 
-                      title={event?.title || 'Event'} 
-                      description="Check out this event"
-                      url={window.location.href}
-                      size="sm"
-                      itemId={event?.id}
-                      itemType="event"
-                    />
-                  </div>
-
-                  <Button onClick={handleRegisterEvent} size="lg" className="bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 hover:from-blue-700 hover:via-purple-600 hover:to-pink-600">
-                    Register for Event
+                <div className="mt-8 flex flex-col sm:flex-row gap-4">
+                  <Button className="flex-1" size="lg">
+                    Register Now
+                  </Button>
+                  <Button variant="outline" className="flex-1" size="lg">
+                    Add to Calendar
                   </Button>
                 </div>
               </div>

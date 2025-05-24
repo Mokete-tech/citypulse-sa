@@ -65,7 +65,7 @@ interface ContactSubmission {
 }
 
 const AdminDashboard = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
@@ -80,7 +80,7 @@ const AdminDashboard = () => {
     totalContacts: 0,
   });
 
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -224,10 +224,10 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50">
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-72' : 'ml-0'}`}>
         <Navbar toggleSidebar={toggleSidebar} />
 
         <main className="flex-1 overflow-y-auto p-4">

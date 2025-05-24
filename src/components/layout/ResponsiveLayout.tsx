@@ -82,12 +82,12 @@ export function ResponsiveLayout({
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-background">
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
       <div
         className={cn(
-          "flex-1 flex flex-col transition-all duration-300",
+          "flex-1 flex flex-col transition-all duration-300 ease-in-out",
           sidebarOpen ? 'md:ml-72' : 'ml-0',
           className
         )}
@@ -99,13 +99,23 @@ export function ResponsiveLayout({
           fullWidth ? 'w-full' : 'max-w-7xl mx-auto'
         )}>
           {(title || description) && (
-            <div className="mb-8">
-              {title && <h1 className="text-3xl font-bold mb-2">{title}</h1>}
-              {description && <p className="text-muted-foreground">{description}</p>}
+            <div className="mb-8 space-y-2">
+              {title && (
+                <h1 className="text-3xl font-bold tracking-tight">
+                  {title}
+                </h1>
+              )}
+              {description && (
+                <p className="text-muted-foreground">
+                  {description}
+                </p>
+              )}
             </div>
           )}
 
-          {children}
+          <div className="relative">
+            {children}
+          </div>
         </main>
 
         {showFooter && <Footer />}

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
@@ -13,7 +12,7 @@ import { EnvWarning } from '@/components/ui/env-warning';
 import { CalendarCheck, Building, HandCoins, Trophy, MapPin, Users, Store, Calendar, Megaphone, Zap } from 'lucide-react';
 
 const MerchantPackages = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
 
   const toggleSidebar = () => {
@@ -110,10 +109,10 @@ const MerchantPackages = () => {
   ];
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="flex min-h-screen bg-gray-50">
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
 
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : ''}`}>
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'md:ml-72' : 'ml-0'}`}>
         <Navbar toggleSidebar={toggleSidebar} />
 
         <main className="flex-1 p-4 md:p-6 overflow-y-auto">
