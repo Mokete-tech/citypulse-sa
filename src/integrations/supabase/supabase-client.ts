@@ -134,19 +134,10 @@ const supabaseProxy = new Proxy(supabaseClient, {
           if (result instanceof Promise) {
             return result.catch((error) => {
               console.error('Supabase error:', error);
-
-              // Show a toast notification in development
-              if (IS_DEV) {
-                toast.error('Supabase Error', {
-                  description: error.message || 'An error occurred with the database connection',
-                });
-              }
-
-              // Show a toast notification for all users
+              // Show a toast notification for all users (remove duplicate for dev)
               toast.error('Database Error', {
                 description: error.message || 'An error occurred with the database connection',
               });
-
               // Rethrow the error to be handled by the application
               throw error;
             });
@@ -155,19 +146,10 @@ const supabaseProxy = new Proxy(supabaseClient, {
           return result;
         } catch (error: any) {
           console.error('Supabase synchronous error:', error);
-
-          // Show a toast notification in development
-          if (IS_DEV) {
-            toast.error('Supabase Error', {
-              description: error.message || 'An error occurred with the database connection',
-            });
-          }
-
-          // Show a toast notification for all users
+          // Show a toast notification for all users (remove duplicate for dev)
           toast.error('Database Error', {
             description: error.message || 'An error occurred with the database connection',
           });
-
           // Rethrow the error to be handled by the application
           throw error;
         }

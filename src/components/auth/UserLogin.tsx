@@ -12,7 +12,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/sonner';
 import PhoneLogin from './PhoneLogin';
 import { isValidEmail, isValidPassword, checkPasswordStrength } from '@/lib/validation';
-import { resetPassword } from '@/lib/auth-helpers';
 
 interface UserLoginProps {
   onClose?: () => void;
@@ -26,7 +25,7 @@ const UserLogin = ({ onClose }: UserLoginProps) => {
   const [formError, setFormError] = useState("");
   const [activeTab, setActiveTab] = useState("login");
 
-  const { signIn, signUp, signInWithGoogle, signInWithFacebook, loading } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithFacebook, loading, resetPassword } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -204,7 +203,7 @@ const UserLogin = ({ onClose }: UserLoginProps) => {
                               toast.error("Please enter your email address first");
                               return;
                             }
-                            // Call the resetPassword function from imported auth-helpers
+                            // Call the resetPassword function from AuthContext
                             resetPassword(email).catch(error => {
                               console.error("Password reset error:", error);
                             });

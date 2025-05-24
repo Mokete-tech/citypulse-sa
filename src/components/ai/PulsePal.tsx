@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../integrations/supabase/client";
 import { Coins, MapPin, Search, Brain, Sparkles, Calculator } from "lucide-react";
@@ -15,15 +14,35 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [isApiKeyValid, setIsApiKeyValid] = useState<boolean>(false);
+
+  // Validate API key on mount
+  useEffect(() => {
+    if (apiKey) {
+      // Simple validation - check if key is in correct format
+      setIsApiKeyValid(/^[A-Za-z0-9-_]{39}$/.test(apiKey));
+    } else {
+      setIsApiKeyValid(false);
+    }
+  }, [apiKey]);
 
   // Load deals from Supabase
   useEffect(() => {
     const fetchData = async () => {
-      const { data: dealsData } = await supabase.from("deals").select("*");
-      setDeals(dealsData || []);
-      
-      const { data: eventsData } = await supabase.from("events").select("*");
-      setEvents(eventsData || []);
+      try {
+        const { data: dealsData, error: dealsError } = await supabase.from("deals").select("*");
+        if (dealsError) throw dealsError;
+        setDeals(dealsData || []);
+        
+        const { data: eventsData, error: eventsError } = await supabase.from("events").select("*");
+        if (eventsError) throw eventsError;
+        setEvents(eventsData || []);
+      } catch (err: any) {
+        console.error("Error fetching data:", err);
+        toast.error("Failed to load data", {
+          description: "Could not load deals and events. Please try again later."
+        });
+      }
     };
     
     fetchData();
@@ -39,6 +58,9 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
         },
         (err) => {
           console.log("Location access denied:", err);
+          toast.info("Location access denied", {
+            description: "Some features may be limited without location access."
+          });
         }
       );
     }
@@ -133,66 +155,101 @@ Format your response in a clear, easy to read way.
     setError(null);
     setResponse(null);
 
+    if (!isApiKeyValid) {
+      setError("Invalid or missing Gemini API key.");
+      toast.error("API key error", {
+        description: "Please provide a valid Gemini API key in the environment variables."
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
       const prompt = makePrompt(question);
-      if (!apiKey) {
-        setError("Missing Gemini API key.");
-        toast.error("API key missing", {
-          description: "Please provide a Gemini API key in the environment variables."
-        });
-        setLoading(false);
-        return;
+      
+      const res = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.7,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 1024,
+          },
+          safetySettings: [
+            {
+              category: "HARM_CATEGORY_HARASSMENT",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+              category: "HARM_CATEGORY_HATE_SPEECH",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+              category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            },
+            {
+              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
+            }
+          ]
+        })
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error?.message || `API error: ${res.status}`);
       }
-
-      try {
-        const res = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
-        });
-        
-        if (!res.ok) {
-          const text = await res.text();
-          setError(`API error: ${text}`);
-          toast.error("Gemini API error", {
-            description: "Failed to get a response from Gemini."
+      
+      const data = await res.json();
+      if (data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+        setResponse(data.candidates[0].content.parts[0].text);
+        // Log the successful interaction
+        try {
+          await supabase.from("analytics").insert({
+            event_type: 'ai_interaction',
+            event_source: 'pulsepal',
+            source_id: 0,
+            metadata: { 
+              query: question, 
+              success: true,
+              response_length: data.candidates[0].content.parts[0].text.length
+            }
           });
-          setLoading(false);
-          return;
+        } catch (err) {
+          console.error("Failed to log AI interaction:", err);
         }
-        
-        const data = await res.json();
-        if (data?.candidates?.[0]?.content?.parts?.[0]?.text) {
-          setResponse(data.candidates[0].content.parts[0].text);
-          // Log the successful interaction
-          try {
-            await supabase.from("analytics").insert({
-              event_type: 'ai_interaction',
-              event_source: 'pulsepal',
-              source_id: 0,
-              metadata: { query: question, success: true }
-            });
-          } catch (err) {
-            console.error("Failed to log AI interaction:", err);
-          }
-        } else {
-          setError("No AI response.");
-          toast.error("No response received", {
-            description: "Gemini didn't provide a response."
-          });
-        }
-      } catch (err: any) {
-        setError(err.message || "Unknown error");
-        toast.error("Request failed", {
-          description: err.message || "An unknown error occurred"
-        });
-      } finally {
-        setLoading(false);
+      } else {
+        throw new Error("No response from AI model");
       }
     } catch (err: any) {
       setError(err.message || "Unknown error");
+      toast.error("AI request failed", {
+        description: err.message || "An error occurred while processing your request"
+      });
+      
+      // Log the failed interaction
+      try {
+        await supabase.from("analytics").insert({
+          event_type: 'ai_interaction',
+          event_source: 'pulsepal',
+          source_id: 0,
+          metadata: { 
+            query: question, 
+            success: false,
+            error: err.message
+          }
+        });
+      } catch (logErr) {
+        console.error("Failed to log AI interaction error:", logErr);
+      }
+    } finally {
       setLoading(false);
     }
   };
