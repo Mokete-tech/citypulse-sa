@@ -226,7 +226,7 @@ export function StatementGenerator({ merchantId, merchantName, merchantEmail }: 
             <DatePicker
               id="start-date"
               date={startDate}
-              onSelect={setStartDate}
+              setDate={setStartDate}
               disabled={(date) => date > new Date() || date > endDate}
             />
           </div>
@@ -235,7 +235,7 @@ export function StatementGenerator({ merchantId, merchantName, merchantEmail }: 
             <DatePicker
               id="end-date"
               date={endDate}
-              onSelect={setEndDate}
+              setDate={setEndDate}
               disabled={(date) => date > new Date() || date < startDate}
             />
           </div>

@@ -1,86 +1,66 @@
 
 import React from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertTriangle, Info } from 'lucide-react';
+import { AlertTriangle, Info, Shield } from 'lucide-react';
+import { checkEnvironmentVariables } from '@/lib/env-checker';
 
 export function EnvWarning() {
-  // Check if required environment variables are set
-  const missingRequiredVars = [];
-  const missingOptionalVars = [];
-
-  // Required variables - check Supabase URL and key
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // Only show warnings in development mode when explicitly enabled
+  const showWarnings = import.meta.env.VITE_SHOW_ENV_WARNINGS === 'true';
   
-  // Log environment variable status in development
-  if (import.meta.env.DEV) {
-    console.log('Environment check - Supabase URL:', supabaseUrl ? 'Set' : 'Missing');
-    console.log('Environment check - Supabase Key:', supabaseKey ? 'Set' : 'Missing');
+  // If warnings are disabled, don't show any warnings
+  if (!showWarnings) {
+    return null;
+  }
+  
+  const { isValid, missingVars, warnings, usingFallbacks } = checkEnvironmentVariables();
+  const isDev = import.meta.env.DEV || import.meta.env.MODE === 'development';
+  
+  // In production, only show critical errors
+  if (!isDev && isValid) {
+    return null;
   }
 
-  if (!supabaseUrl) {
-    missingRequiredVars.push('VITE_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL');
+  // Don't show any warnings in production for non-critical issues
+  if (!isDev && missingVars.length === 0) {
+    return null;
   }
 
-  if (!supabaseKey) {
-    missingRequiredVars.push('VITE_SUPABASE_ANON_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY');
-  }
-
-  // Optional variables
-  // Check for Stripe publishable key (either VITE_ or NEXT_PUBLIC_ prefix)
-  if (!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY && !import.meta.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
-    missingOptionalVars.push('VITE_STRIPE_PUBLISHABLE_KEY');
-  }
-
-  // If all required vars are set, only show info for optional vars
-  if (missingRequiredVars.length === 0) {
-    // If no optional vars are missing either, don't show anything
-    if (missingOptionalVars.length === 0) {
-      return null;
-    }
-
-    // Show info alert for missing optional vars
+  // If everything is configured properly, don't show any warning
+  if (isValid && warnings.length === 0 && !usingFallbacks) {
     return (
-      <Alert variant="default" className="mb-6">
-        <Info className="h-4 w-4" />
-        <AlertTitle>Environment Configuration Warning</AlertTitle>
+      <Alert variant="default" className="mb-6 bg-green-50 border-green-200 text-green-800">
+        <Shield className="h-4 w-4" />
+        <AlertTitle>Environment Configured</AlertTitle>
         <AlertDescription>
-          ⚠️ Some optional environment variables are missing. Check console for details.
+          All required environment variables are properly set.
         </AlertDescription>
       </Alert>
     );
   }
 
-  // Show warning for missing required vars
-  return (
-    <Alert variant="destructive" className="mb-6">
-      <AlertTriangle className="h-4 w-4" />
-      <AlertTitle>Critical Environment Warning</AlertTitle>
-      <AlertDescription>
-        <p>
-          The following <strong>required</strong> environment variables are missing:
-        </p>
-        <ul className="list-disc pl-5 mt-2">
-          {missingRequiredVars.map(variable => (
-            <li key={variable}>{variable}</li>
-          ))}
-        </ul>
-        {missingOptionalVars.length > 0 && (
-          <>
-            <p className="mt-3">
-              The following <strong>optional</strong> environment variables are also missing:
-            </p>
-            <ul className="list-disc pl-5 mt-2">
-              {missingOptionalVars.map(variable => (
-                <li key={variable}>{variable}</li>
-              ))}
-            </ul>
-          </>
-        )}
-        <p className="mt-2">
-          Please check your <code>.env</code> file or environment configuration.
-        </p>
-      </AlertDescription>
-    </Alert>
-  );
+  // Show critical warning for missing required variables
+  if (!isValid) {
+    return (
+      <Alert variant="destructive" className="mb-6">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle>Critical Environment Warning</AlertTitle>
+        <AlertDescription>
+          <p>
+            The following <strong>required</strong> environment variables are missing:
+          </p>
+          <ul className="list-disc pl-5 mt-2">
+            {missingVars.map(variable => (
+              <li key={variable}>{variable}</li>
+            ))}
+          </ul>
+          <p className="mt-2">
+            Please check your <code>.env</code> file or environment configuration.
+          </p>
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  return null; // Don't show optional warnings at all
 }

@@ -1,6 +1,7 @@
-import { Link, useLocation } from 'react-router-dom';
+
+import { Link } from 'react-router-dom';
 import {
-  Tag, Calendar, LogIn, ChevronLeft, CreditCard, Heart
+  Tag, Calendar, LogIn, ChevronLeft, CreditCard, Heart, Sparkles, User, Settings, Building, Package
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -11,28 +12,37 @@ interface SidebarProps {
   toggleSidebar: () => void;
 }
 
-// Main navigation items
-const mainNavItems = [
-  { name: 'Deals', icon: Tag, path: '/deals' },
-  { name: 'Events', icon: Calendar, path: '/events' },
-];
-
-// Merchant items
-const merchantItems = [
-  { name: 'Merchant Login', icon: LogIn, path: '/merchant/login' },
-  { name: 'Merchant Packages', icon: CreditCard, path: '/merchant/packages' },
-];
-
-// User items (only shown when logged in)
+// Define userItems array that was missing
 const userItems = [
-  { name: 'Saved Items', icon: Heart, path: '/saved' },
+  {
+    name: 'Profile',
+    path: '/profile',
+    icon: User
+  },
+  {
+    name: 'Favorites',
+    path: '/favorites',
+    icon: Heart
+  },
+  {
+    name: 'Settings',
+    path: '/settings',
+    icon: Settings
+  }
 ];
 
 const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
-  // Get current location for active menu highlighting
-  const location = useLocation();
   // Get authentication context to check if user is logged in
   const { user } = useAuth();
+  
+  // Create a safe wrapper for checking the current path
+  const isActivePath = (path: string) => {
+    // Check if window is available (we're in the browser)
+    if (typeof window !== 'undefined') {
+      return window.location.pathname === path;
+    }
+    return false;
+  };
 
   return (
     <>
@@ -69,43 +79,96 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                 Main Navigation
               </h3>
               <ul className="space-y-1">
-                {mainNavItems.map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      to={item.path}
-                      className={cn(
-                        "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
-                        location.pathname === item.path && "bg-sky-700/70 font-medium"
-                      )}
-                    >
-                      <item.icon className="h-5 w-5 mr-3" />
-                      <span>{item.name}</span>
-                    </Link>
-                  </li>
-                ))}
+                <li>
+                  <Link
+                    to="/deals"
+                    className={cn(
+                      "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
+                      isActivePath('/deals') && "bg-sky-700/70 font-medium"
+                    )}
+                  >
+                    <Tag className="h-5 w-5 mr-3" />
+                    <span>Deals</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/events"
+                    className={cn(
+                      "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
+                      isActivePath('/events') && "bg-sky-700/70 font-medium"
+                    )}
+                  >
+                    <Calendar className="h-5 w-5 mr-3" />
+                    <span>Events</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/merchant/login"
+                    className={cn(
+                      "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
+                      isActivePath('/merchant/login') && "bg-sky-700/70 font-medium"
+                    )}
+                  >
+                    <Building className="h-5 w-5 mr-3" />
+                    <span>Business Sign in</span>
+                  </Link>
+                </li>
               </ul>
             </div>
 
-            {/* Merchant Section */}
+            {/* AI Assistant Section */}
             <div className="px-3 mb-6">
               <h3 className="text-xs font-semibold text-white/70 uppercase tracking-wider px-3 mb-2">
-                Merchant
+                AI Assistant
               </h3>
               <ul className="space-y-1">
-                {merchantItems.map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      to={item.path}
-                      className={cn(
-                        "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
-                        location.pathname === item.path && "bg-sky-700/70 font-medium"
-                      )}
-                    >
-                      <item.icon className="h-5 w-5 mr-3" />
-                      <span>{item.name}</span>
-                    </Link>
-                  </li>
-                ))}
+                <li>
+                  <Link
+                    to="/ai-assistant"
+                    className={cn(
+                      "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
+                      isActivePath('/ai-assistant') && "bg-sky-700/70 font-medium"
+                    )}
+                  >
+                    <Sparkles className="h-5 w-5 mr-3" />
+                    <span>PulsePal AI</span>
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Business Section with Business Packages added */}
+            <div className="px-3 mb-6">
+              <h3 className="text-xs font-semibold text-white/70 uppercase tracking-wider px-3 mb-2">
+                Business
+              </h3>
+              <ul className="space-y-1">
+                <li>
+                  <Link
+                    to="/merchant/login"
+                    className={cn(
+                      "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
+                      isActivePath('/merchant/login') && "bg-sky-700/70 font-medium"
+                    )}
+                  >
+                    <LogIn className="h-5 w-5 mr-3" />
+                    <span>Business Portal</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/merchant/packages"
+                    className={cn(
+                      "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
+                      isActivePath('/merchant/packages') && "bg-sky-700/70 font-medium"
+                    )}
+                  >
+                    <Package className="h-5 w-5 mr-3" />
+                    <span>Business Packages</span>
+                  </Link>
+                </li>
               </ul>
             </div>
 
@@ -122,7 +185,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                         to={item.path}
                         className={cn(
                           "flex items-center px-4 py-3 text-sm rounded-md hover:bg-sky-700 transition-colors",
-                          location.pathname === item.path && "bg-sky-700/70 font-medium"
+                          isActivePath(item.path) && "bg-sky-700/70 font-medium"
                         )}
                       >
                         <item.icon className="h-5 w-5 mr-3" />

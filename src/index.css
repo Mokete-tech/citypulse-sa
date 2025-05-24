@@ -1,89 +1,60 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
+    --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 210 79% 46%;
+    --primary: 221.2 83.2% 53.3%;
     --primary-foreground: 210 40% 98%;
-
-    --secondary: 142 76% 36%;
-    --secondary-foreground: 210 40% 98%;
-
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 45 100% 51%;
+    --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
-
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 210 79% 46%;
-
+    --ring: 221.2 83.2% 53.3%;
     --radius: 0.5rem;
-
-    --sidebar-background: 210 79% 46%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 210 40% 98%;
-    --sidebar-primary-foreground: 210 79% 46%;
-    --sidebar-accent: 210 70% 40%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 210 70% 40%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* South Africa theme colors */
+    --sa-blue: 210 100% 35%;
+    --sa-green: 130 70% 35%;
+    --sa-red: 0 84% 50%;
+    --sa-yellow: 40 100% 50%;
+    --sa-black: 0 0% 15%;
+    --sa-white: 0 0% 97%;
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-
-    --primary: 210 79% 46%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 142 76% 36%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 45 100% 51%;
+    --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-
-    --sidebar-background: 210 79% 46%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 210 40% 98%;
-    --sidebar-primary-foreground: 210 79% 46%;
-    --sidebar-accent: 210 70% 40%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 210 70% 40%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --ring: 224.3 76.5% 48%;
   }
 }
 
@@ -91,72 +62,147 @@
   * {
     @apply border-border;
   }
-
+  
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
-
+  
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading font-medium;
+    @apply font-medium tracking-tight;
   }
-
-  /* Hide connection error messages */
-  [role="alert"],
-  div[role="alert"],
-  *[role="alert"],
-  div:has(> div > div > span:contains("Connection Error")),
-  div:has(> div > div > span:contains("Unable to connect")),
-  div:has(> div > div > span:contains("Error: Invalid API key")),
-  div:has(> div > div > span:contains("Try Again")),
-  div:has(> div > div > span:contains("Open Supabase Dashboard")),
-  div:has(> div > span:contains("Connection Error")),
-  div:has(> div > span:contains("Unable to connect")),
-  div:has(> div > span:contains("Error: Invalid API key")),
-  div:has(> div > span:contains("Try Again")),
-  div:has(> div > span:contains("Open Supabase Dashboard")),
-  div:has(span:contains("Connection Error")),
-  div:has(span:contains("Unable to connect")),
-  div:has(span:contains("Error: Invalid API key")),
-  div:has(span:contains("Try Again")),
-  div:has(span:contains("Open Supabase Dashboard")),
-  div:has(button:contains("Try Again")),
-  div:has(a:contains("Open Supabase Dashboard")) {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    height: 0 !important;
-    width: 0 !important;
-    position: absolute !important;
-    pointer-events: none !important;
-    overflow: hidden !important;
-    clip: rect(0, 0, 0, 0) !important;
-    z-index: -9999 !important;
+  
+  /* Responsive text sizes */
+  h1 {
+    @apply text-3xl md:text-4xl lg:text-5xl;
+  }
+  
+  h2 {
+    @apply text-2xl md:text-3xl lg:text-4xl;
+  }
+  
+  h3 {
+    @apply text-xl md:text-2xl;
+  }
+  
+  /* Improve readability on mobile */
+  p, li {
+    @apply leading-relaxed;
   }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out;
+/* South Africa themed utilities */
+.bg-sa-blue {
+  @apply bg-[#0070c0];
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+.bg-sa-green {
+  @apply bg-[#4c9f38];
+}
+
+.bg-sa-red {
+  @apply bg-[#e63d3d];
+}
+
+.bg-sa-yellow {
+  @apply bg-[#fec20f];
+}
+
+.bg-sa-black {
+  @apply bg-[#222222];
+}
+
+.bg-sa-white {
+  @apply bg-[#f7f7f7];
+}
+
+.text-sa-blue {
+  @apply text-[#0070c0];
+}
+
+.text-sa-green {
+  @apply text-[#4c9f38];
+}
+
+.text-sa-red {
+  @apply text-[#e63d3d];
+}
+
+.text-sa-yellow {
+  @apply text-[#fec20f];
+}
+
+/* Gradient backgrounds */
+.bg-gradient-sa-primary {
+  @apply bg-gradient-to-r from-[#0070c0] to-[#4c9f38];
+}
+
+.bg-gradient-sa-secondary {
+  @apply bg-gradient-to-r from-[#e63d3d] to-[#fec20f];
+}
+
+/* Responsive image aspect ratios */
+.aspect-4\/3 {
+  aspect-ratio: 4/3;
+}
+
+.aspect-\[21\/9\] {
+  aspect-ratio: 21/9;
+}
+
+/* Custom animations */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
   }
 }
 
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
 
-@media (min-width: 1024px) {
-  .dashboard-grid {
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+/* Fix for mobile overflow issues */
+html, body {
+  @apply overflow-x-hidden;
+}
+
+/* Improved focus styles for accessibility */
+:focus-visible {
+  @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+}
+
+/* Mobile menu improvements */
+.mobile-menu-overlay {
+  @apply fixed inset-0 bg-black/50 z-40;
+}
+
+/* Better responsive padding for small devices */
+@media (max-width: 640px) {
+  .container {
+    @apply px-4;
   }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-secondary;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/30 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
 }
