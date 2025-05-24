@@ -64,6 +64,9 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
               <Link to="/automation" className="text-foreground/60 hover:text-foreground transition-colors">
                 Automation
               </Link>
+              <Link to="/ai-assistant" className="text-foreground/60 hover:text-foreground transition-colors">
+                AI Assistant
+              </Link>
               <Link to="/contact" className="text-foreground/60 hover:text-foreground transition-colors">
                 Contact
               </Link>
@@ -173,6 +176,13 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
             onClick={() => setIsMobileMenuOpen(false)}
           >
             Automation
+          </Link>
+          <Link
+            to="/ai-assistant"
+            className="block px-3 py-2 text-foreground/60 hover:text-foreground transition-colors"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            AI Assistant
           </Link>
           <Link
             to="/contact"

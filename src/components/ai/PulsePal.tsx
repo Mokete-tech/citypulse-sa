@@ -1,12 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../integrations/supabase/client";
-import { Coins, MapPin, Search, Brain, Sparkles, Calculator, List } from "lucide-react";
+import { Coins, MapPin, Search, Brain, Sparkles, Calculator, List, Wand2, PartyPopper, Star, Zap, Sparkles as SparklesIcon, Mic, MicOff, Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Updated to use the list models endpoint first, then we'll use an available model
 const GEMINI_LIST_MODELS_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 // We'll set the content generation URL after we get the available models
 let GEMINI_API_URL = "";
+
+// Cool loading messages
+const LOADING_MESSAGES = [
+  "✨ Scanning the city for the best deals...",
+  "🎯 Finding perfect matches for you...",
+  "🌟 Discovering hidden gems...",
+  "🎨 Painting a picture of possibilities...",
+  "🚀 Launching into the best recommendations...",
+  "🎪 Exploring the city's entertainment...",
+  "🎭 Curating your perfect weekend...",
+  "🎪 Finding the coolest spots...",
+  "🎯 Zeroing in on the best deals...",
+  "✨ Adding a touch of magic..."
+];
 
 export function PulsePal({ apiKey }: { apiKey: string }) {
   const [deals, setDeals] = useState<any[]>([]);
@@ -19,6 +34,21 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
   const [isApiKeyValid, setIsApiKeyValid] = useState<boolean>(false);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>("");
+  const [loadingMessage, setLoadingMessage] = useState(LOADING_MESSAGES[0]);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [recognition, setRecognition] = useState<any>(null);
+
+  // Rotate through loading messages
+  useEffect(() => {
+    if (loading) {
+      const interval = setInterval(() => {
+        setLoadingMessage(LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)]);
+      }, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [loading]);
 
   // Validate API key on mount
   useEffect(() => {
@@ -121,7 +151,7 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
     return deg * (Math.PI/180);
   };
 
-  // Compose prompt for Gemini with enhanced context
+  // Enhanced prompt with personality
   const makePrompt = (q: string) => {
     // Get deals with their distances if location is available
     let dealsWithContext = deals;
@@ -166,7 +196,17 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
       : "No events available right now.";
 
     return `
-You are PulsePal, a helpful assistant for CityPulse users in South Africa.
+You are PulsePal, a vibrant and enthusiastic AI assistant for CityPulse users in South Africa. You have a cool, friendly personality and love helping people discover amazing local experiences.
+
+Your communication style:
+- Use emojis naturally to express excitement 🎉
+- Be enthusiastic but not overwhelming
+- Use casual, friendly language
+- Add personality to your responses
+- Include fun facts about locations when relevant
+- Suggest creative combinations of deals and events
+- Use South African slang occasionally (like "lekker" for cool)
+
 You have access to the following list of event deals:
 ${dealsText}
 
@@ -177,21 +217,26 @@ User location context: ${userLocation ? `The user is currently located at coordi
 
 User request: "${q}"
 
-If the user asks about their budget, recommend deals and events within that budget.
-If the user mentions a location or distance, prioritize nearby deals and events.
-If the user asks for a summary, summarize the deals in simple language.
-If the user wants recommendations, pick events that sound fun, unique, or affordable.
-Always be friendly, concise and practical. Use South African Rands (R) for all prices.
-Format your response in a clear, easy to read way.
+Guidelines:
+- If the user asks about their budget, recommend deals and events within that budget
+- If the user mentions a location or distance, prioritize nearby deals and events
+- If the user asks for a summary, summarize the deals in an engaging way
+- If the user wants recommendations, pick events that sound fun, unique, or affordable
+- Always be friendly, concise and practical
+- Use South African Rands (R) for all prices
+- Format your response in a clear, easy to read way
+- Add relevant emojis to make the response more engaging
+- Include a fun fact or tip at the end of your response when appropriate
     `.trim();
   };
 
-  // Ask Gemini AI with dynamic model selection
+  // Enhanced ask function with animations
   const askPulsePal = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setResponse(null);
+    setShowConfetti(false);
 
     if (!isApiKeyValid) {
       setError("Invalid or missing Gemini API key.");
@@ -205,7 +250,6 @@ Format your response in a clear, easy to read way.
     try {
       const prompt = makePrompt(question);
       
-      // Check if we have a valid model and API URL
       if (!GEMINI_API_URL) {
         setError("No supported Gemini model found.");
         toast.error("Model selection failed", {
@@ -215,8 +259,6 @@ Format your response in a clear, easy to read way.
         return;
       }
 
-      console.log("Using Gemini API URL:", GEMINI_API_URL);
-      
       const res = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
         method: "POST",
         headers: { 
@@ -226,7 +268,7 @@ Format your response in a clear, easy to read way.
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
-            temperature: 0.7,
+            temperature: 0.9, // Increased for more creative responses
             topK: 40,
             topP: 0.95,
             maxOutputTokens: 1024,
@@ -253,18 +295,13 @@ Format your response in a clear, easy to read way.
       });
       
       if (!res.ok) {
-        const errorData = await res.json();
-        console.error("Gemini API error:", errorData);
-        setError(`API error: ${JSON.stringify(errorData)}`);
-        toast.error("Gemini API error", {
-          description: "Failed to get a response from Gemini. Check the console for details."
-        });
-        return;
+        throw new Error(`API error: ${res.status}`);
       }
       
       const data = await res.json();
       if (data?.candidates?.[0]?.content?.parts?.[0]?.text) {
         setResponse(data.candidates[0].content.parts[0].text);
+        setShowConfetti(true);
         // Log the successful interaction
         try {
           await supabase.from("analytics").insert({
@@ -292,22 +329,6 @@ Format your response in a clear, easy to read way.
       toast.error("Request failed", {
         description: err.message || "An unknown error occurred"
       });
-      
-      // Log the failed interaction
-      try {
-        await supabase.from("analytics").insert({
-          event_type: 'ai_interaction',
-          event_source: 'pulsepal',
-          source_id: 0,
-          metadata: { 
-            query: question, 
-            success: false,
-            error: err.message
-          }
-        });
-      } catch (logErr) {
-        console.error("Failed to log AI interaction error:", logErr);
-      }
     } finally {
       setLoading(false);
     }
@@ -322,13 +343,61 @@ Format your response in a clear, easy to read way.
     }, 100);
   };
 
+  // Initialize speech recognition
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window) {
+      const recognition = new (window as any).webkitSpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setQuestion(transcript);
+        setIsListening(false);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+        toast.error('Voice input failed', {
+          description: 'Could not recognize speech. Please try typing instead.'
+        });
+      };
+
+      setRecognition(recognition);
+    }
+  }, []);
+
+  // Toggle dark mode
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2 mb-2">
-        <div className="h-8 w-8 rounded-full bg-purple-600 flex items-center justify-center">
-          <Sparkles className="h-5 w-5 text-white" />
-        </div>
-        <h2 className="text-xl font-bold">PulsePal AI Assistant</h2>
+    <div className={`space-y-6 ${isDarkMode ? 'dark' : ''}`}>
+      <div className="flex items-center justify-between">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-2 text-lg font-medium text-purple-600 dark:text-purple-400"
+        >
+          <SparklesIcon className="h-5 w-5" />
+          <span>PulsePal AI Assistant</span>
+        </motion.div>
+
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        >
+          {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </motion.button>
       </div>
       
       {!apiKey && (
@@ -351,57 +420,95 @@ Format your response in a clear, easy to read way.
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">
-        <button 
+        <motion.button 
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => quickAsk("What deals are available under R100?")}
           className="flex items-center gap-1.5 px-3 py-2 bg-purple-100 hover:bg-purple-200 rounded-md text-purple-700 text-sm font-medium transition-colors"
           disabled={!selectedModel || loading}
         >
           <Coins className="h-4 w-4" />
           <span>Budget Deals</span>
-        </button>
+        </motion.button>
         
-        <button 
+        <motion.button 
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => quickAsk("What events are happening near me this weekend?")}
           className="flex items-center gap-1.5 px-3 py-2 bg-purple-100 hover:bg-purple-200 rounded-md text-purple-700 text-sm font-medium transition-colors"
           disabled={!selectedModel || loading}
         >
           <MapPin className="h-4 w-4" />
           <span>Nearby Events</span>
-        </button>
+        </motion.button>
         
-        <button 
+        <motion.button 
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => quickAsk("I have R200 for entertainment this weekend, what do you recommend?")}
           className="flex items-center gap-1.5 px-3 py-2 bg-purple-100 hover:bg-purple-200 rounded-md text-purple-700 text-sm font-medium transition-colors"
           disabled={!selectedModel || loading}
         >
           <Calculator className="h-4 w-4" />
           <span>Plan My Weekend</span>
-        </button>
+        </motion.button>
       </div>
 
-      <form id="pulsepal-form" onSubmit={askPulsePal} className="flex flex-col gap-2">
+      <form onSubmit={askPulsePal} className="space-y-4">
         <div className="relative">
-          <input
+          <motion.input
+            whileFocus={{ scale: 1.02 }}
             type="text"
             placeholder="Ask about deals, events, budgets, locations..."
             value={question}
             onChange={e => setQuestion(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent pl-10"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent pl-10 dark:bg-gray-800 dark:text-white"
             required
             disabled={!selectedModel || loading}
           />
           <Brain className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+          
+          {recognition && (
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              type="button"
+              onClick={() => {
+                if (isListening) {
+                  recognition.stop();
+                  setIsListening(false);
+                } else {
+                  recognition.start();
+                  setIsListening(true);
+                }
+              }}
+              className="absolute right-3 top-2.5 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              disabled={!selectedModel || loading}
+            >
+              {isListening ? (
+                <MicOff className="h-4 w-4 text-red-500" />
+              ) : (
+                <Mic className="h-4 w-4 text-purple-500" />
+              )}
+            </motion.button>
+          )}
         </div>
         
-        <button 
+        <motion.button 
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           type="submit" 
           disabled={loading || !apiKey || !selectedModel}
           className="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {loading ? (
             <>
-              <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Processing...</span>
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="h-4 w-4 border-2 border-white border-t-transparent rounded-full"
+              />
+              <span>{loadingMessage}</span>
             </>
           ) : (
             <>
@@ -409,28 +516,73 @@ Format your response in a clear, easy to read way.
               <span>Ask PulsePal</span>
             </>
           )}
-        </button>
+        </motion.button>
       </form>
       
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-3 text-red-700 text-sm">
-          {error}
-        </div>
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 text-red-700 dark:text-red-400 text-sm"
+          >
+            {error}
+          </motion.div>
+        )}
+        
+        {response && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-4 shadow-sm overflow-auto max-h-[400px]"
+          >
+            <div className="prose prose-sm dark:prose-invert max-w-none">
+              {response.split('\n').map((line, i) => (
+                <motion.p
+                  key={i}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                >
+                  {line}
+                </motion.p>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {showConfetti && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 pointer-events-none"
+        >
+          {[...Array(50)].map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{ 
+                x: Math.random() * window.innerWidth,
+                y: -20,
+                scale: Math.random() * 0.5 + 0.5
+              }}
+              animate={{ 
+                y: window.innerHeight + 20,
+                rotate: Math.random() * 360
+              }}
+              transition={{ 
+                duration: Math.random() * 2 + 2,
+                repeat: 0,
+                ease: "linear"
+              }}
+              className="absolute"
+            >
+              {['🎉', '✨', '🎊', '🌟', '🎈'][Math.floor(Math.random() * 5)]}
+            </motion.div>
+          ))}
+        </motion.div>
       )}
-      
-      {response && (
-        <div className="bg-white border border-gray-200 rounded-md p-4 shadow-sm overflow-auto max-h-[400px]">
-          <div className="prose prose-sm max-w-none">
-            {response.split('\n').map((line, i) => (
-              line ? <p key={i}>{line}</p> : <br key={i} />
-            ))}
-          </div>
-        </div>
-      )}
-      
-      <div className="text-xs text-gray-500 mt-2">
-        <p>PulsePal uses Google's Gemini AI to provide personalized recommendations based on available deals and events.</p>
-      </div>
     </div>
   );
 }
