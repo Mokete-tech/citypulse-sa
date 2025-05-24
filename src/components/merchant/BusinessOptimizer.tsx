@@ -118,6 +118,12 @@ interface StoreMockup {
   features: string[];
   rating: number;
   reviews: number;
+  category: 'grocery' | 'convenience' | 'specialty' | 'organic';
+  size: 'small' | 'medium' | 'large';
+  layout: string;
+  bestFor: string[];
+  estimatedSetup: string;
+  monthlyRevenue: string;
 }
 
 const MotionCard = motion(Card);
@@ -480,7 +486,13 @@ const BusinessOptimizer = () => {
       description: 'A modern grocery store with fresh produce and local products',
       features: ['Fresh Produce', 'Local Products', 'Organic Options', 'Fast Delivery'],
       rating: 4.8,
-      reviews: 124
+      reviews: 124,
+      category: 'grocery',
+      size: 'large',
+      layout: 'Open Floor Plan',
+      bestFor: ['Urban Areas', 'Health-Conscious Customers', 'Local Communities'],
+      estimatedSetup: '$150,000 - $200,000',
+      monthlyRevenue: '$50,000 - $75,000'
     },
     {
       id: '2',
@@ -489,7 +501,13 @@ const BusinessOptimizer = () => {
       description: 'Urban convenience store with premium groceries and ready meals',
       features: ['Premium Products', 'Ready Meals', '24/7 Service', 'Express Delivery'],
       rating: 4.6,
-      reviews: 89
+      reviews: 89,
+      category: 'convenience',
+      size: 'medium',
+      layout: 'Compact Design',
+      bestFor: ['City Centers', 'Office Districts', 'High-Traffic Areas'],
+      estimatedSetup: '$80,000 - $120,000',
+      monthlyRevenue: '$30,000 - $45,000'
     },
     {
       id: '3',
@@ -498,7 +516,58 @@ const BusinessOptimizer = () => {
       description: 'Eco-friendly grocery store focusing on sustainable products',
       features: ['Eco-Friendly', 'Zero Waste', 'Sustainable', 'Local Delivery'],
       rating: 4.9,
-      reviews: 156
+      reviews: 156,
+      category: 'organic',
+      size: 'medium',
+      layout: 'Natural Flow',
+      bestFor: ['Eco-Conscious Areas', 'Suburban Locations', 'Health-Focused Communities'],
+      estimatedSetup: '$100,000 - $150,000',
+      monthlyRevenue: '$40,000 - $60,000'
+    },
+    {
+      id: '4',
+      title: 'Gourmet Corner',
+      image: '/mockups/gourmet-corner.jpg',
+      description: 'Specialty food store with premium international products',
+      features: ['International Products', 'Gourmet Selection', 'Wine & Cheese', 'Cooking Classes'],
+      rating: 4.7,
+      reviews: 92,
+      category: 'specialty',
+      size: 'small',
+      layout: 'Boutique Style',
+      bestFor: ['Upscale Neighborhoods', 'Food Enthusiasts', 'Tourist Areas'],
+      estimatedSetup: '$120,000 - $180,000',
+      monthlyRevenue: '$45,000 - $70,000'
+    },
+    {
+      id: '5',
+      title: 'Quick Mart',
+      image: '/mockups/quick-mart.jpg',
+      description: 'Efficient convenience store with essential groceries and services',
+      features: ['Essential Items', 'Quick Service', 'ATM Services', 'Bill Payments'],
+      rating: 4.5,
+      reviews: 78,
+      category: 'convenience',
+      size: 'small',
+      layout: 'Efficient Grid',
+      bestFor: ['Residential Areas', 'Gas Stations', 'High-Traffic Corners'],
+      estimatedSetup: '$50,000 - $80,000',
+      monthlyRevenue: '$20,000 - $35,000'
+    },
+    {
+      id: '6',
+      title: 'Farm Fresh',
+      image: '/mockups/farm-fresh.jpg',
+      description: 'Farm-to-table grocery store with seasonal produce and local goods',
+      features: ['Seasonal Produce', 'Local Farmers', 'Artisanal Products', 'Farm Tours'],
+      rating: 4.9,
+      reviews: 143,
+      category: 'grocery',
+      size: 'medium',
+      layout: 'Market Style',
+      bestFor: ['Suburban Areas', 'Farm Communities', 'Tourist Destinations'],
+      estimatedSetup: '$130,000 - $180,000',
+      monthlyRevenue: '$55,000 - $80,000'
     }
   ];
 
@@ -629,7 +698,7 @@ const BusinessOptimizer = () => {
           <p className="text-muted-foreground">Get inspired by successful store layouts and designs</p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {storeMockups.map((mockup) => (
             <MotionCard
               key={mockup.id}
@@ -652,12 +721,43 @@ const BusinessOptimizer = () => {
                     <span className="text-sm">({mockup.reviews} reviews)</span>
                   </div>
                 </div>
+                <Badge className="absolute top-4 right-4">
+                  {mockup.category}
+                </Badge>
               </div>
               <CardContent className="p-4">
                 <p className="text-sm text-muted-foreground mb-4">{mockup.description}</p>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <div className="text-sm font-medium">Size</div>
+                    <div className="text-sm text-muted-foreground">{mockup.size}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium">Layout</div>
+                    <div className="text-sm text-muted-foreground">{mockup.layout}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium">Setup Cost</div>
+                    <div className="text-sm text-muted-foreground">{mockup.estimatedSetup}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium">Monthly Revenue</div>
+                    <div className="text-sm text-muted-foreground">{mockup.monthlyRevenue}</div>
+                  </div>
+                </div>
+                <div className="space-y-2 mb-4">
+                  <div className="text-sm font-medium">Best For</div>
+                  <div className="flex flex-wrap gap-2">
+                    {mockup.bestFor.map((item) => (
+                      <Badge key={item} variant="secondary">
+                        {item}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
                 <div className="flex flex-wrap gap-2 mb-4">
                   {mockup.features.map((feature) => (
-                    <Badge key={feature} variant="secondary">
+                    <Badge key={feature} variant="outline">
                       {feature}
                     </Badge>
                   ))}
