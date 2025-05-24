@@ -1,8 +1,8 @@
-
 export interface AuthContextType {
-  user: any; // This could be more specific if you know the structure
+  user: any;
   loading: boolean;
   userRole: string | null;
+  session: any;
   isAdmin: boolean;
   isMerchant: boolean;
   signIn: (email: string, password: string) => Promise<any>;
@@ -10,12 +10,7 @@ export interface AuthContextType {
   signOut: () => Promise<void>;
   signInWithGoogle: () => Promise<any>;
   signInWithFacebook: () => Promise<any>;
-  signInWithPhone: (phone: string, verificationCode?: string) => Promise<any>;
-  signInWithEmail: (email: string, password: string) => Promise<any>;
-  verifyPhoneOtp: (phone: string, code: string) => Promise<any>;
-  signUpWithPhone: (phone: string, metadata?: any) => Promise<any>;
-  sendPhoneVerification: (phone: string) => Promise<{success: boolean, error?: string}>;
-  resetPassword: (email: string) => Promise<{success: boolean, error?: string}>;
+  resetPassword: (email: string) => Promise<any>;
 }
 
 // Extend the LoadedClerk type with the methods we need

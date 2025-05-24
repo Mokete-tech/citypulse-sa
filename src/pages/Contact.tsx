@@ -58,7 +58,7 @@ const formSchema = z.object({
   }),
 });
 
-const Contact = () => {
+export const Contact = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -344,5 +344,3 @@ const Contact = () => {
     </div>
   );
 };
-
-export default Contact;

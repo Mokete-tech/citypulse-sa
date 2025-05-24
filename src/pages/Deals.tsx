@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/layout/Navbar';
@@ -14,7 +13,7 @@ import { fallbackDeals } from '@/data/fallback-data';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-const Deals = () => {
+export const Deals = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -201,5 +200,3 @@ const Deals = () => {
     </div>
   );
 };
-
-export default Deals;
