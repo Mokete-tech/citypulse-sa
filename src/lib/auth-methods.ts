@@ -39,7 +39,7 @@ interface ClerkInstance {
 interface AuthResponse {
   success: boolean;
   data?: SignInResponse | SignUpResponse;
-  error?: string;
+  error?: AuthError;
 }
 
 interface PhoneFactor {
@@ -250,15 +250,55 @@ export const signOut = async (clerk: ClerkInstance): Promise<AuthResponse> => {
 };
 
 export const handleAuthError = (error: unknown): AuthError => {
-  if (error instanceof Error) {
-    return {
-      code: 'AUTH_ERROR',
-      message: error.message,
-    };
+  // Try to parse known error types
+  if (error && typeof error === 'object') {
+    // Clerk error
+    if ('errors' in error && Array.isArray((error as any).errors)) {
+      const firstError = (error as any).errors[0];
+      return {
+        code: 'INVALID_CREDENTIALS',
+        message: firstError?.message || 'Invalid credentials',
+        details: error as Record<string, unknown>
+      };
+    }
+    // Network error
+    if ('message' in error && (error as any).message === 'Network Error') {
+      return {
+        code: 'NETWORK_ERROR',
+        message: 'A network error occurred. Please check your connection.',
+        details: error as Record<string, unknown>
+      };
+    }
+    // Email in use
+    if ('code' in error && (error as any).code === 'EMAIL_IN_USE') {
+      return {
+        code: 'EMAIL_IN_USE',
+        message: (error as any).message || 'Email is already in use.',
+        details: error as Record<string, unknown>
+      };
+    }
+    // Invalid token
+    if ('code' in error && (error as any).code === 'INVALID_TOKEN') {
+      return {
+        code: 'INVALID_TOKEN',
+        message: (error as any).message || 'Invalid or expired token.',
+        details: error as Record<string, unknown>
+      };
+    }
+    // Fallback for unknown error
+    if ('message' in error) {
+      return {
+        code: 'UNKNOWN_ERROR',
+        message: (error as any).message || 'An unknown error occurred',
+        details: error as Record<string, unknown>
+      };
+    }
   }
+  // Fallback for non-object errors
   return {
     code: 'UNKNOWN_ERROR',
-    message: 'An unknown error occurred',
+    message: typeof error === 'string' ? error : 'An unknown error occurred',
+    details: {}
   };
 };
 
@@ -316,3 +356,26 @@ export const signup = async (
     throw handleAuthError(error);
   }
 };
+
+// Fallback for unknown error
+const errorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  return 'An unknown error occurred';
+};
+
+// Update error handling to use errorMessage
+if (error) {
+  console.error('Auth error:', error);
+  return {
+    success: false,
+    error: {
+      code: 'auth_error',
+      message: errorMessage(error)
+    }
+  };
+}
