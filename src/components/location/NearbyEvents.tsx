@@ -23,13 +23,18 @@ interface Event {
   id: number;
   title: string;
   description?: string;
-  price: number;
+  price: string;
   location?: string;
   city?: string;
   date?: string;
-  latitude?: string;
-  longitude?: string;
+  time?: string;
+  latitude?: number;
+  longitude?: number;
   distance?: number;
+  merchant_name?: string;
+  category?: string;
+  image_url?: string;
+  featured?: boolean;
 }
 
 interface NearbyEventsProps {
@@ -127,31 +132,55 @@ const NearbyEvents = ({
       setError(null);
 
       try {
-        // In a real implementation, you would use a geospatial query
-        // For now, we'll simulate by fetching all events and filtering client-side
+        console.log('Fetching events from Supabase...');
+        // Query the events table with all necessary fields
         const { data, error } = await supabase
           .from('events')
-          .select('*')
+          .select(`
+            id,
+            title,
+            description,
+            price,
+            location,
+            city,
+            date,
+            time,
+            latitude,
+            longitude,
+            merchant_name,
+            category,
+            image_url,
+            featured
+          `)
           .order('date', { ascending: true });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase error:', error);
+          throw error;
+        }
 
-        // Simulate filtering by distance
-        // In a real app, this would be done on the server with a geospatial query
-        const nearbyEvents = data
-          ? filterEventsByDistance(data, coordinates, radius)
-          : [];
+        console.log('Supabase response:', data);
 
-        setEvents(nearbyEvents.slice(0, maxEvents));
+        // If we have data from Supabase, use it
+        if (data && data.length > 0) {
+          console.log('Using real data from Supabase');
+          const nearbyEvents = filterEventsByDistance(data, coordinates, radius);
+          setEvents(nearbyEvents.slice(0, maxEvents));
+        } else {
+          console.log('No events found in Supabase, using fallback data');
+          const nearbyFallbackEvents = filterEventsByDistance(fallbackEvents, coordinates, radius);
+          setEvents(nearbyFallbackEvents.slice(0, maxEvents));
+        }
       } catch (error) {
-        handleSupabaseError(error, {
-          title: 'Error loading nearby events',
-          message: 'Could not load nearby events. Using fallback data instead.',
-        });
-
-        // Use fallback data
+        console.error('Error fetching events:', error);
+        // Always use fallback data on error
         const nearbyFallbackEvents = filterEventsByDistance(fallbackEvents, coordinates, radius);
         setEvents(nearbyFallbackEvents.slice(0, maxEvents));
+        
+        handleSupabaseError(error, {
+          title: 'Error loading nearby events',
+          message: 'Using fallback data instead.',
+        });
       } finally {
         setLoading(false);
       }
