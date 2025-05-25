@@ -75,6 +75,27 @@ const supabaseClient = createClient<Database>(
   }
 );
 
+interface SupabaseConnectionResult {
+  success: boolean;
+  error?: string;
+  details?: {
+    error?: unknown;
+    usingDefaults: boolean;
+    url: string;
+    data?: unknown;
+  };
+}
+
+// Utility function to extract error message from unknown error
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  if (error && typeof error === 'object' && 'message' in error) {
+    return (error as { message?: string }).message || 'An error occurred with the database connection';
+  }
+  return 'An error occurred with the database connection';
+}
+
 // Create a proxy to handle errors and provide fallback data
 const supabaseProxy = new Proxy(supabaseClient, {
   get(target, prop, receiver) {
@@ -93,7 +114,7 @@ const supabaseProxy = new Proxy(supabaseClient, {
 
             // If it's the 'select' method, wrap it
             if (fromProp === 'select') {
-              return function(...args: any[]) {
+              return function(...args: unknown[]) {
                 const originalSelect = fromValue.apply(fromTarget, args);
 
                 // Add error handling to the execute method
@@ -103,7 +124,7 @@ const supabaseProxy = new Proxy(supabaseClient, {
                     try {
                       const result = await originalExecute.apply(this);
                       return result;
-                    } catch (error) {
+                    } catch (error: unknown) {
                       // Log the error for debugging
                       console.error(`Database error for ${table}:`, error);
 
@@ -126,17 +147,17 @@ const supabaseProxy = new Proxy(supabaseClient, {
 
     // If the property is a function, wrap it to handle errors
     if (typeof value === 'function') {
-      return function(...args: any[]) {
+      return function(...args: unknown[]) {
         try {
           const result = value.apply(target, args);
 
           // If the result is a Promise, handle any errors
           if (result instanceof Promise) {
-            return result.catch((error) => {
+            return result.catch((error: unknown) => {
               console.error('Supabase error:', error);
               // Show a toast notification for all users (remove duplicate for dev)
               toast.error('Database Error', {
-                description: error.message || 'An error occurred with the database connection',
+                description: getErrorMessage(error),
               });
               // Rethrow the error to be handled by the application
               throw error;
@@ -144,11 +165,11 @@ const supabaseProxy = new Proxy(supabaseClient, {
           }
 
           return result;
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('Supabase synchronous error:', error);
           // Show a toast notification for all users (remove duplicate for dev)
           toast.error('Database Error', {
-            description: error.message || 'An error occurred with the database connection',
+            description: getErrorMessage(error),
           });
           // Rethrow the error to be handled by the application
           throw error;
@@ -167,7 +188,7 @@ export const supabase = supabaseProxy as SupabaseClient<Database>;
 export const isUsingDefaultCredentials = usingDefaults;
 
 // Function to check Supabase connection
-export const checkSupabaseConnection = async (): Promise<{ success: boolean; error?: string; details?: any }> => {
+export const checkSupabaseConnection = async (): Promise<SupabaseConnectionResult> => {
   try {
     // Check environment variables
     const envVars = {
@@ -188,12 +209,12 @@ export const checkSupabaseConnection = async (): Promise<{ success: boolean; err
     if (error) {
       // Show a toast notification for the error
       toast.error('Database Connection Error', {
-        description: error.message || 'Failed to connect to the database',
+        description: getErrorMessage(error),
       });
 
       return {
         success: false,
-        error: error.message || 'Database connection error',
+        error: getErrorMessage(error),
         details: {
           error,
           usingDefaults,
@@ -217,10 +238,10 @@ export const checkSupabaseConnection = async (): Promise<{ success: boolean; err
         url: SUPABASE_URL
       }
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Show a toast notification for the error
     toast.error('Database Connection Error', {
-      description: error.message || 'Failed to connect to the database',
+      description: getErrorMessage(error),
     });
 
     if (IS_DEV) {
@@ -229,7 +250,7 @@ export const checkSupabaseConnection = async (): Promise<{ success: boolean; err
 
     return {
       success: false,
-      error: error.message || 'Unexpected error connecting to Supabase',
+      error: getErrorMessage(error),
       details: {
         error,
         usingDefaults,
