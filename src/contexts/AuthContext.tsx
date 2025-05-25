@@ -1,17 +1,54 @@
-import React, { createContext, useState, useEffect } from 'react';
-import { supabase } from '../integrations/supabase/client';
-import { AuthContextType } from './AuthContextTypes';
-import { toast } from '@/components/ui/sonner';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-// Create the context
+interface User {
+  id: string;
+  email: string;
+  user_metadata?: {
+    full_name?: string;
+    avatar_url?: string;
+  };
+  app_metadata?: {
+    role?: string;
+  };
+}
+
+interface Session {
+  access_token: string;
+  refresh_token: string;
+  user: User;
+}
+
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  userRole: string | null;
+  session: Session | null;
+  isAdmin: boolean;
+  isMerchant: boolean;
+  signIn: (email: string, password: string) => Promise<any>;
+  signUp: (email: string, password: string, metadata?: any) => Promise<any>;
+  signOut: () => Promise<void>;
+  signInWithGoogle: () => Promise<any>;
+  signInWithFacebook: () => Promise<any>;
+  resetPassword: (email: string) => Promise<any>;
+}
+
 const AuthContext = createContext<AuthContextType | null>(null);
 
-// Create the provider component
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
 export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [session, setSession] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Get initial session
@@ -22,9 +59,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     });
 
     // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -33,7 +68,6 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     return () => subscription.unsubscribe();
   }, []);
 
-  // Auth methods using Supabase
   const signIn = async (email: string, password: string) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -43,18 +77,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
       if (error) throw error;
 
-      if (data.user) {
-        // Get user role from metadata
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.user.id)
-          .single();
-
-        setUserRole(profile?.role || 'user');
-        toast.success('Signed in successfully');
-      }
-
+      toast.success('Signed in successfully');
       return { success: true, data };
     } catch (error: any) {
       toast.error('Sign in failed', {
@@ -76,23 +99,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
       if (error) throw error;
 
-      if (data.user) {
-        // Create profile with default role
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: data.user.id,
-              role: 'user',
-              ...metadata
-            }
-          ]);
-
-        if (profileError) throw profileError;
-
-        toast.success('Account created successfully');
-      }
-
+      toast.success('Account created successfully');
       return { success: true, data };
     } catch (error: any) {
       toast.error('Sign up failed', {
@@ -112,6 +119,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
       });
 
       if (error) throw error;
+
       return { success: true, data };
     } catch (error: any) {
       toast.error('Google sign in failed', {
@@ -131,6 +139,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
       });
 
       if (error) throw error;
+
       return { success: true, data };
     } catch (error: any) {
       toast.error('Facebook sign in failed', {
@@ -143,7 +152,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   const resetPassword = async (email: string) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`
+        redirectTo: `${window.location.origin}/auth/reset-password`
       });
 
       if (error) throw error;
@@ -158,22 +167,24 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     }
   };
 
-  const handleSignOut = async () => {
+  const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-
-      setUser(null);
-      setUserRole(null);
-      setSession(null);
+      
       toast.success('Signed out successfully');
     } catch (error: any) {
-      console.error("Sign out error:", error);
       toast.error('Sign out failed', {
         description: error.message || 'Could not sign out'
       });
+      throw error;
     }
   };
+
+  // Get user role from metadata
+  const userRole = user?.app_metadata?.role || null;
+  const isAdmin = userRole === 'admin';
+  const isMerchant = userRole === 'merchant';
 
   return (
     <AuthContext.Provider value={{
@@ -181,11 +192,11 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
       loading,
       userRole,
       session,
-      isAdmin: userRole === 'admin',
-      isMerchant: userRole === 'merchant',
+      isAdmin,
+      isMerchant,
       signIn,
       signUp,
-      signOut: handleSignOut,
+      signOut,
       signInWithGoogle,
       signInWithFacebook,
       resetPassword
@@ -195,10 +206,4 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   );
 };
 
-// Export the context
 export { AuthContext };
-
-// Export the useAuth hook
-import { useAuth } from '../hooks/useAuth';
-export { useAuth };
-export default AuthProvider;

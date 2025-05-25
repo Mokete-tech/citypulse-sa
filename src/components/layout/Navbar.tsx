@@ -11,10 +11,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Menu, X, LogOut, User, Settings } from 'lucide-react';
+import { Menu, X, LogOut, User, Settings, Store, Shield } from 'lucide-react';
 import { ModeToggle } from "@/components/ui/mode-toggle"
 import { useTheme } from "@/components/providers/ThemeProvider"
-import { siteConfig } from "@/config/site"
+import { Logo } from "@/components/ui/logo"
+import { useAuth } from "@/contexts/AuthContext"
 import { cn } from "@/lib/utils"
 
 interface NavbarProps {
@@ -24,8 +25,50 @@ interface NavbarProps {
 const Navbar = ({ toggleSidebar }: NavbarProps) => {
   const { isSignedIn, signOut } = useClerk();
   const { user } = useUser();
+  const { isAdmin, isMerchant } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { theme } = useTheme();
+
+  const renderRoleBasedLinks = () => {
+    const links = [
+      <Link key="home" to="/" className="text-foreground/60 hover:text-foreground transition-colors">
+        Home
+      </Link>,
+      <Link key="deals" to="/deals" className="text-foreground/60 hover:text-foreground transition-colors">
+        Deals
+      </Link>,
+      <Link key="events" to="/events" className="text-foreground/60 hover:text-foreground transition-colors">
+        Events
+      </Link>,
+      <Link key="automation" to="/automation" className="text-foreground/60 hover:text-foreground transition-colors">
+        Automation
+      </Link>,
+      <Link key="ai-assistant" to="/ai-assistant" className="text-foreground/60 hover:text-foreground transition-colors">
+        AI Assistant
+      </Link>,
+      <Link key="contact" to="/contact" className="text-foreground/60 hover:text-foreground transition-colors">
+        Contact
+      </Link>,
+    ];
+
+    if (isMerchant) {
+      links.push(
+        <Link key="merchant-dashboard" to="/merchant/dashboard" className="text-foreground/60 hover:text-foreground transition-colors">
+          Merchant Dashboard
+        </Link>
+      );
+    }
+
+    if (isAdmin) {
+      links.push(
+        <Link key="admin-dashboard" to="/admin/dashboard" className="text-foreground/60 hover:text-foreground transition-colors">
+          Admin Dashboard
+        </Link>
+      );
+    }
+
+    return links;
+  };
 
   return (
     <nav className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b sticky top-0 z-50">
@@ -43,33 +86,10 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
               <Menu className="h-5 w-5" />
             </Button>
 
-            <Link to="/" className="flex-shrink-0">
-              <img
-                className="h-8 w-auto transition-opacity hover:opacity-80"
-                src={theme === "dark" ? siteConfig.logoDark : siteConfig.logo}
-                alt="CityPulse Logo"
-              />
-            </Link>
+            <Logo />
             
             <div className="hidden md:flex items-center space-x-6 ml-8">
-              <Link to="/" className="text-foreground/60 hover:text-foreground transition-colors">
-                Home
-              </Link>
-              <Link to="/deals" className="text-foreground/60 hover:text-foreground transition-colors">
-                Deals
-              </Link>
-              <Link to="/events" className="text-foreground/60 hover:text-foreground transition-colors">
-                Events
-              </Link>
-              <Link to="/automation" className="text-foreground/60 hover:text-foreground transition-colors">
-                Automation
-              </Link>
-              <Link to="/ai-assistant" className="text-foreground/60 hover:text-foreground transition-colors">
-                AI Assistant
-              </Link>
-              <Link to="/contact" className="text-foreground/60 hover:text-foreground transition-colors">
-                Contact
-              </Link>
+              {renderRoleBasedLinks()}
             </div>
           </div>
 
@@ -101,6 +121,22 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
                       <span>Profile</span>
                     </Link>
                   </DropdownMenuItem>
+                  {isMerchant && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/merchant/dashboard" className="cursor-pointer">
+                        <Store className="mr-2 h-4 w-4" />
+                        <span>Merchant Dashboard</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  {isAdmin && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/dashboard" className="cursor-pointer">
+                        <Shield className="mr-2 h-4 w-4" />
+                        <span>Admin Dashboard</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem asChild>
                     <Link to="/settings" className="cursor-pointer">
                       <Settings className="mr-2 h-4 w-4" />
@@ -149,48 +185,11 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
         isMobileMenuOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
       )}>
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-          <Link
-            to="/"
-            className="block px-3 py-2 text-foreground/60 hover:text-foreground transition-colors"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            Home
-          </Link>
-          <Link
-            to="/deals"
-            className="block px-3 py-2 text-foreground/60 hover:text-foreground transition-colors"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            Deals
-          </Link>
-          <Link
-            to="/events"
-            className="block px-3 py-2 text-foreground/60 hover:text-foreground transition-colors"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            Events
-          </Link>
-          <Link
-            to="/automation"
-            className="block px-3 py-2 text-foreground/60 hover:text-foreground transition-colors"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            Automation
-          </Link>
-          <Link
-            to="/ai-assistant"
-            className="block px-3 py-2 text-foreground/60 hover:text-foreground transition-colors"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            AI Assistant
-          </Link>
-          <Link
-            to="/contact"
-            className="block px-3 py-2 text-foreground/60 hover:text-foreground transition-colors"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            Contact
-          </Link>
+          {renderRoleBasedLinks().map((link, index) => (
+            <div key={index} onClick={() => setIsMobileMenuOpen(false)}>
+              {link}
+            </div>
+          ))}
         </div>
       </div>
     </nav>

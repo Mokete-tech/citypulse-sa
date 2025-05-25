@@ -1,45 +1,161 @@
 import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Users, Store, Shield, Settings, Plus, AlertTriangle, CheckCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
-export const AdminDashboard = () => {
+const AdminDashboard = () => {
+  const { userRole } = useAuth();
+
   return (
-    <div className="max-w-4xl mx-auto py-12 px-4">
-      <h1 className="text-4xl font-bold mb-6 text-center">Admin Dashboard</h1>
-      <p className="text-lg text-center mb-8 text-muted-foreground">
-        Welcome to the admin dashboard. Here you can manage users, merchants, and system settings.
-      </p>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-        <div className="border rounded-lg p-6 bg-background shadow">
-          <h2 className="text-2xl font-semibold mb-2">Users</h2>
-          <p className="text-3xl font-bold mb-4">150</p>
-          <ul className="mb-4 space-y-2 text-muted-foreground">
-            <li>Active Users: 120</li>
-            <li>New Users (Today): 5</li>
-            <li>Pending Approvals: 3</li>
-          </ul>
-          <button className="w-full bg-primary text-primary-foreground py-2 rounded">Manage Users</button>
+    <div className="container max-w-7xl py-8 space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80">
+            Admin Dashboard
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Manage users, merchants, and platform settings
+          </p>
         </div>
-        <div className="border rounded-lg p-6 bg-background shadow">
-          <h2 className="text-2xl font-semibold mb-2">Merchants</h2>
-          <p className="text-3xl font-bold mb-4">45</p>
-          <ul className="mb-4 space-y-2 text-muted-foreground">
-            <li>Active Merchants: 40</li>
-            <li>New Merchants (Today): 2</li>
-            <li>Pending Approvals: 1</li>
-          </ul>
-          <button className="w-full bg-primary text-primary-foreground py-2 rounded">Manage Merchants</button>
-        </div>
+        <Button className="bg-primary hover:bg-primary/90">
+          <Plus className="mr-2 h-4 w-4" />
+          New Merchant
+        </Button>
       </div>
-      <div className="aspect-video rounded-lg overflow-hidden shadow-lg mx-auto max-w-2xl">
-        <iframe
-          width="100%"
-          height="100%"
-          src="https://www.youtube.com/embed/9No-FiEInLA"
-          title="Admin Dashboard Demo Video"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        ></iframe>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">2,345</div>
+            <p className="text-xs text-muted-foreground">
+              +180 this month
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Merchants</CardTitle>
+            <Store className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">156</div>
+            <p className="text-xs text-muted-foreground">
+              +12 this month
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Approvals</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">8</div>
+            <p className="text-xs text-muted-foreground">
+              3 merchants, 5 users
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Platform Health</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">99.9%</div>
+            <p className="text-xs text-muted-foreground">
+              Uptime this month
+            </p>
+          </CardContent>
+        </Card>
       </div>
+
+      <Tabs defaultValue="merchants" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="merchants">Merchants</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="approvals">Approvals</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
+        </TabsList>
+        <TabsContent value="merchants" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Merchant Management</CardTitle>
+              <CardDescription>
+                View and manage merchant accounts
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Merchant list will go here */}
+                <div className="text-center text-muted-foreground py-8">
+                  No merchants yet. Click "New Merchant" to add your first merchant.
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="users" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>User Management</CardTitle>
+              <CardDescription>
+                View and manage user accounts
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* User list will go here */}
+                <div className="text-center text-muted-foreground py-8">
+                  No users yet. They will appear here after signing up.
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="approvals" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Pending Approvals</CardTitle>
+              <CardDescription>
+                Review and approve merchant applications
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Approval list will go here */}
+                <div className="text-center text-muted-foreground py-8">
+                  No pending approvals at the moment.
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="settings" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Platform Settings</CardTitle>
+              <CardDescription>
+                Configure platform-wide settings and preferences
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Settings form will go here */}
+                <div className="text-center text-muted-foreground py-8">
+                  Platform settings will be available soon.
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

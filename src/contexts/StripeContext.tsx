@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Elements } from '@stripe/react-stripe-js';
 import { Stripe } from '@stripe/stripe-js';
-import { getStripe, isStripeConfigured } from '@/integrations/stripe/client';
+import { getStripe, isStripeConfigured, validatePaymentAmount, isCurrencySupported } from '@/integrations/stripe/client';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -9,9 +9,18 @@ interface StripeContextType {
   isLoading: boolean;
   isConfigured: boolean;
   createPaymentIntent: (amount: number, metadata?: Record<string, any>) => Promise<{ clientSecret: string | null; error?: string }>;
+  validatePayment: (amount: number, currency: string) => { isValid: boolean; error?: string };
 }
 
 const StripeContext = createContext<StripeContextType | undefined>(undefined);
+
+export function useStripe() {
+  const context = useContext(StripeContext);
+  if (!context) {
+    throw new Error('useStripe must be used within a StripeProvider');
+  }
+  return context;
+}
 
 export function StripeProvider({ children }: { children: React.ReactNode }) {
   const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
@@ -19,37 +28,45 @@ export function StripeProvider({ children }: { children: React.ReactNode }) {
   const [isConfigured, setIsConfigured] = useState(false);
 
   useEffect(() => {
-    // Initialize Stripe
-    const initStripe = async () => {
+    const initializeStripe = async () => {
       try {
         setIsLoading(true);
-
-        // Check if Stripe is configured
-        const configured = isStripeConfigured();
-        setIsConfigured(configured);
-
-        if (configured) {
-          // Initialize Stripe promise
-          setStripePromise(getStripe());
-        } else {
-          console.warn('Stripe is not configured. Payment features will be disabled.');
-        }
+        const stripe = await getStripe();
+        setStripePromise(stripe ? Promise.resolve(stripe) : null);
+        setIsConfigured(Boolean(stripe));
       } catch (error) {
-        console.error('Error initializing Stripe:', error);
+        console.error('Failed to initialize Stripe:', error);
+        setStripePromise(null);
+        setIsConfigured(false);
+        toast.error('Payment system initialization failed', {
+          description: 'Please try again later or contact support if the issue persists.'
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
-    initStripe();
+    initializeStripe();
   }, []);
 
-  /**
-   * Create a payment intent via Supabase Edge Function
-   * @param amount Amount in currency units (will be converted to cents)
-   * @param metadata Additional metadata for the payment
-   * @returns Client secret for the payment intent
-   */
+  const validatePayment = (amount: number, currency: string) => {
+    if (!validatePaymentAmount(amount)) {
+      return {
+        isValid: false,
+        error: 'Invalid payment amount'
+      };
+    }
+
+    if (!isCurrencySupported(currency)) {
+      return {
+        isValid: false,
+        error: 'Unsupported currency'
+      };
+    }
+
+    return { isValid: true };
+  };
+
   const createPaymentIntent = async (
     amount: number,
     metadata?: Record<string, any>
@@ -59,21 +76,32 @@ export function StripeProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Stripe is not configured');
       }
 
+      // Validate payment amount
+      if (!validatePaymentAmount(amount)) {
+        throw new Error('Invalid payment amount');
+      }
+
       // Convert amount to cents
       const amountInCents = Math.round(amount * 100);
 
       // Call Supabase Edge Function to create payment intent
-      // This keeps API keys secure on the server side
       const { data, error } = await supabase.functions.invoke('create-payment-intent', {
         body: {
           amount: amountInCents,
           currency: 'zar',
-          metadata
+          metadata: {
+            ...metadata,
+            created_at: new Date().toISOString()
+          }
         }
       });
 
       if (error) {
         throw error;
+      }
+
+      if (!data?.clientSecret) {
+        throw new Error('No client secret received from payment intent creation');
       }
 
       return { clientSecret: data.clientSecret };
@@ -86,11 +114,11 @@ export function StripeProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Context value
   const value = {
     isLoading,
     isConfigured,
-    createPaymentIntent
+    createPaymentIntent,
+    validatePayment
   };
 
   // If Stripe is not initialized yet, just render children without Elements
@@ -102,38 +130,11 @@ export function StripeProvider({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Options for Stripe Elements
-  const options = {
-    appearance: {
-      theme: 'stripe',
-      variables: {
-        colorPrimary: '#0EA5E9',
-        colorBackground: '#ffffff',
-        colorText: '#1f2937',
-        colorDanger: '#ef4444',
-        fontFamily: 'Inter, system-ui, sans-serif',
-        spacingUnit: '4px',
-        borderRadius: '8px'
-      }
-    }
-  };
-
-  // Render with Stripe Elements provider
   return (
     <StripeContext.Provider value={value}>
-      <Elements stripe={stripePromise} options={options}>
+      <Elements stripe={stripePromise}>
         {children}
       </Elements>
     </StripeContext.Provider>
   );
-}
-
-export function useStripe() {
-  const context = useContext(StripeContext);
-
-  if (context === undefined) {
-    throw new Error('useStripe must be used within a StripeProvider');
-  }
-
-  return context;
 }

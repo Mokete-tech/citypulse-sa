@@ -20,6 +20,11 @@ import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { CheckoutSuccess } from './pages/CheckoutSuccess';
 import Automation from './pages/Automation';
 import { PulsePal } from './components/ai/PulsePal';
+import { ThemeProvider } from './components/providers/ThemeProvider';
+import SignIn from './pages/SignIn';
+import SignUp from './pages/SignUp';
+import Profile from './pages/Profile';
+import RoleRoute from './components/auth/RoleRoute';
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -44,126 +49,156 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <BrowserRouter>
-      <ClerkProvider publishableKey={clerkPubKey}>
-        <ClerkAuthProvider>
-          <div className="min-h-screen bg-background">
-            <Routes>
-              <Route
-                path="/"
-                element={
-                  <PublicRoute>
-                    <Index />
-                  </PublicRoute>
-                }
-              />
-              <Route
-                path="/deals"
-                element={
-                  <PublicRoute>
-                    <Deals />
-                  </PublicRoute>
-                }
-              />
-              <Route
-                path="/events"
-                element={
-                  <PublicRoute>
-                    <Events />
-                  </PublicRoute>
-                }
-              />
-              <Route
-                path="/contact"
-                element={
-                  <PublicRoute>
-                    <Contact />
-                  </PublicRoute>
-                }
-              />
-              <Route
-                path="/pricing"
-                element={
-                  <PublicRoute>
-                    <Pricing />
-                  </PublicRoute>
-                }
-              />
-              <Route
-                path="/terms"
-                element={
-                  <PublicRoute>
-                    <Terms />
-                  </PublicRoute>
-                }
-              />
-              <Route
-                path="/privacy"
-                element={
-                  <PublicRoute>
-                    <Privacy />
-                  </PublicRoute>
-                }
-              />
-              <Route
-                path="/checkout-success"
-                element={
-                  <PrivateRoute>
-                    <CheckoutSuccess />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/merchant/dashboard"
-                element={
-                  <PrivateRoute>
-                    <MerchantDashboard />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/admin/dashboard"
-                element={
-                  <PrivateRoute>
-                    <AdminDashboard />
-                  </PrivateRoute>
-                }
-              />
-              <Route path="/automation" element={<Automation />} />
-              <Route
-                path="/ai-assistant"
-                element={
-                  <PublicRoute>
-                    <div className="p-6 max-w-4xl mx-auto">
-                      <h1 className="text-3xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">
-                        CityPulse AI Assistant
-                      </h1>
-                      <div className="border rounded-lg bg-white shadow-md overflow-hidden">
-                        <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-400 p-4">
-                          <h2 className="text-white text-xl font-bold">PulsePal AI</h2>
-                          <p className="text-white text-opacity-90">
-                            Ask me anything about local deals, events, or get personalized recommendations
-                          </p>
-                        </div>
-                        <div className="p-6">
-                          <PulsePal apiKey={import.meta.env.VITE_GEMINI_API_KEY || ""} />
+      <ThemeProvider>
+        <ClerkProvider publishableKey={clerkPubKey}>
+          <ClerkAuthProvider>
+            <div className="min-h-screen bg-background">
+              <Routes>
+                <Route
+                  path="/"
+                  element={
+                    <PublicRoute>
+                      <Index />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/sign-in"
+                  element={
+                    <PublicRoute>
+                      <SignIn />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/sign-up"
+                  element={
+                    <PublicRoute>
+                      <SignUp />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/deals"
+                  element={
+                    <PublicRoute>
+                      <Deals />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/events"
+                  element={
+                    <PublicRoute>
+                      <Events />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/contact"
+                  element={
+                    <PublicRoute>
+                      <Contact />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/pricing"
+                  element={
+                    <PublicRoute>
+                      <Pricing />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/terms"
+                  element={
+                    <PublicRoute>
+                      <Terms />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/privacy"
+                  element={
+                    <PublicRoute>
+                      <Privacy />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/checkout-success"
+                  element={
+                    <PrivateRoute>
+                      <CheckoutSuccess />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/merchant/dashboard"
+                  element={
+                    <PrivateRoute>
+                      <RoleRoute allowedRoles={['merchant', 'admin']}>
+                        <MerchantDashboard />
+                      </RoleRoute>
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/admin/dashboard"
+                  element={
+                    <PrivateRoute>
+                      <RoleRoute allowedRoles={['admin']}>
+                        <AdminDashboard />
+                      </RoleRoute>
+                    </PrivateRoute>
+                  }
+                />
+                <Route path="/automation" element={<Automation />} />
+                <Route
+                  path="/ai-assistant"
+                  element={
+                    <PublicRoute>
+                      <div className="p-6 max-w-4xl mx-auto">
+                        <h1 className="text-3xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">
+                          CityPulse AI Assistant
+                        </h1>
+                        <div className="border rounded-lg bg-white shadow-md overflow-hidden">
+                          <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-400 p-4">
+                            <h2 className="text-white text-xl font-bold">PulsePal AI</h2>
+                            <p className="text-white text-opacity-90">
+                              Ask me anything about local deals, events, or get personalized recommendations
+                            </p>
+                          </div>
+                          <div className="p-6">
+                            <PulsePal apiKey={import.meta.env.VITE_GEMINI_API_KEY || ""} />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </PublicRoute>
-                }
-              />
-              <Route
-                path="*"
-                element={
-                  <PublicRoute>
-                    <NotFound />
-                  </PublicRoute>
-                }
-              />
-            </Routes>
-          </div>
-        </ClerkAuthProvider>
-      </ClerkProvider>
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <PrivateRoute>
+                      <Profile />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="*"
+                  element={
+                    <PublicRoute>
+                      <NotFound />
+                    </PublicRoute>
+                  }
+                />
+              </Routes>
+            </div>
+          </ClerkAuthProvider>
+        </ClerkProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

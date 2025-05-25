@@ -14,15 +14,28 @@ import { filterItemsByDistance } from '@/lib/geo-utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LocationMap from './LocationMap';
 
+interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
+
+interface Event {
+  id: number;
+  title: string;
+  description?: string;
+  price: number;
+  location?: string;
+  city?: string;
+  date?: string;
+  latitude?: string;
+  longitude?: string;
+  distance?: number;
+}
+
 interface NearbyEventsProps {
   initialRadius?: number;
   maxEvents?: number;
   className?: string;
-}
-
-interface Coordinates {
-  latitude: number;
-  longitude: number;
 }
 
 const NearbyEvents = ({
@@ -31,9 +44,8 @@ const NearbyEvents = ({
   className = '',
 }: NearbyEventsProps) => {
   const [radius, setRadius] = useState(initialRadius);
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
@@ -41,6 +53,8 @@ const NearbyEvents = ({
 
   // Get user's location
   useEffect(() => {
+    let locationTimeout: NodeJS.Timeout;
+    
     const getUserLocation = () => {
       // Use default coordinates for Johannesburg if geolocation is not available
       const useDefaultLocation = () => {
@@ -66,13 +80,13 @@ const NearbyEvents = ({
         maximumAge: 300000         // Accept positions up to 5 minutes old
       };
 
-      const locationTimeout = setTimeout(() => {
+      locationTimeout = setTimeout(() => {
         // If geolocation takes too long, use default location
         if (!coordinates) {
           setLocationError('Location request timed out. Using default location.');
           useDefaultLocation();
         }
-      }, 6000); // Slightly longer than the geolocation timeout
+      }, 6000);
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -82,56 +96,27 @@ const NearbyEvents = ({
             longitude: position.coords.longitude,
           });
           setLocationPermission('granted');
-          setLocationError(null);
-
-          // Store location permission in localStorage for future reference
-          localStorage.setItem('locationPermission', 'granted');
+          setLoading(false);
         },
         (error) => {
           clearTimeout(locationTimeout);
-          console.error('Error getting location:', error);
-
-          // Provide more specific error messages based on the error code
-          let errorMessage = 'Unable to retrieve your location. Using default location.';
-
-          switch(error.code) {
-            case error.PERMISSION_DENIED:
-              errorMessage = 'Location permission denied. Using default location.';
-              setLocationPermission('denied');
-              localStorage.setItem('locationPermission', 'denied');
-              break;
-            case error.POSITION_UNAVAILABLE:
-              errorMessage = 'Location information is unavailable. Using default location.';
-              break;
-            case error.TIMEOUT:
-              errorMessage = 'Location request timed out. Using default location.';
-              break;
-          }
-
-          setLocationError(errorMessage);
+          console.error('Geolocation error:', error);
+          setLocationError(`Location access denied: ${error.message}`);
+          setLocationPermission('denied');
           useDefaultLocation();
         },
         options
       );
     };
 
-    // Check if we have a stored permission first
-    const storedPermission = localStorage.getItem('locationPermission');
-    if (storedPermission === 'granted') {
-      setLocationPermission('granted');
-    } else if (storedPermission === 'denied') {
-      setLocationPermission('denied');
-      setLocationError('Location permission was previously denied. Using default location.');
-      // Use default location for Johannesburg
-      setCoordinates({
-        latitude: -26.2041,
-        longitude: 28.0473,
-      });
-      setLoading(false);
-    } else {
-      getUserLocation();
-    }
-  }, [coordinates]);
+    getUserLocation();
+
+    return () => {
+      if (locationTimeout) {
+        clearTimeout(locationTimeout);
+      }
+    };
+  }, []);
 
   // Fetch nearby events when coordinates or radius changes
   useEffect(() => {
@@ -323,7 +308,7 @@ const NearbyEvents = ({
                       featured={event.featured}
                     />
                     <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
-                      {event.distance.toFixed(1)} km
+                      {event.distance?.toFixed(1)} km
                     </div>
                   </div>
                 ))}

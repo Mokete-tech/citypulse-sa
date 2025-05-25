@@ -6,10 +6,15 @@ import { useStripe as useStripeContext } from '@/contexts/StripeContext';
 import { formatAmountForDisplay } from '@/integrations/stripe/client';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PaymentFormProps {
   amount: number;
   description: string;
+  itemId: string | number;
+  itemType: 'deal' | 'event';
+  itemName: string;
   onSuccess?: (paymentId: string) => void;
   onCancel?: () => void;
   metadata?: Record<string, any>;
@@ -17,7 +22,10 @@ interface PaymentFormProps {
 
 export function PaymentForm({ 
   amount, 
-  description, 
+  description,
+  itemId,
+  itemType,
+  itemName,
   onSuccess, 
   onCancel,
   metadata = {}
@@ -25,6 +33,7 @@ export function PaymentForm({
   const stripe = useStripe();
   const elements = useElements();
   const { createPaymentIntent, isConfigured } = useStripeContext();
+  const { user } = useAuth();
   
   const [isLoading, setIsLoading] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
@@ -39,10 +48,20 @@ export function PaymentForm({
         return;
       }
 
+      if (!user) {
+        setPaymentError('You must be logged in to make a payment');
+        return;
+      }
+
       setIsLoading(true);
       try {
         const { clientSecret, error } = await createPaymentIntent(amount, {
           description,
+          itemId,
+          itemType,
+          itemName,
+          userId: user.id,
+          userEmail: user.email,
           ...metadata
         });
 
@@ -54,18 +73,21 @@ export function PaymentForm({
       } catch (error: any) {
         console.error('Payment initialization error:', error);
         setPaymentError(error.message || 'Failed to initialize payment');
+        toast.error('Payment initialization failed', {
+          description: error.message || 'Failed to initialize payment'
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
     initializePayment();
-  }, [amount, description, createPaymentIntent, isConfigured, metadata]);
+  }, [amount, description, createPaymentIntent, isConfigured, metadata, user, itemId, itemType, itemName]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!stripe || !elements || !clientSecret) {
+    if (!stripe || !elements || !clientSecret || !user) {
       return;
     }
 
@@ -78,14 +100,12 @@ export function PaymentForm({
     setPaymentError(null);
 
     try {
-      // Use stripe instance to confirm card payment
-      // Adding a type assertion to handle the API mismatch
-      const stripeWithMethods = stripe as any;
-      const { error, paymentIntent } = await stripeWithMethods.confirmCardPayment(clientSecret, {
+      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
           card: cardElement,
           billing_details: {
-            name: metadata.customerName || 'CityPulse Customer',
+            name: user.user_metadata?.full_name || 'CityPulse Customer',
+            email: user.email,
           },
         },
       });
@@ -95,6 +115,29 @@ export function PaymentForm({
       }
 
       if (paymentIntent.status === 'succeeded') {
+        // Record the payment in Supabase
+        const { error: dbError } = await supabase.from('payments').insert({
+          id: paymentIntent.id,
+          user_id: user.id,
+          amount,
+          currency: 'ZAR',
+          payment_method: 'card',
+          status: 'succeeded',
+          item_type: itemType,
+          item_id: itemId,
+          item_name: itemName,
+          payment_intent_id: paymentIntent.id,
+          metadata: {
+            ...metadata,
+            payment_intent_status: paymentIntent.status
+          }
+        });
+
+        if (dbError) {
+          console.error('Error recording payment:', dbError);
+          throw new Error('Payment succeeded but failed to record in database');
+        }
+
         setPaymentSuccess(true);
         toast.success('Payment successful!', {
           description: `Your payment of ${formatAmountForDisplay(amount * 100)} has been processed.`
@@ -128,19 +171,30 @@ export function PaymentForm({
     );
   }
 
+  if (!user) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Authentication Required</CardTitle>
+          <CardDescription>
+            Please log in to complete your payment.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
+
   if (paymentSuccess) {
     return (
       <Card>
         <CardHeader>
           <CardTitle>Payment Successful</CardTitle>
           <CardDescription>
-            Your payment of {formatAmountForDisplay(amount * 100)} has been processed successfully.
+            Your payment has been processed successfully.
           </CardDescription>
         </CardHeader>
         <CardFooter>
-          <Button onClick={() => onSuccess && onSuccess('success')}>
-            Continue
-          </Button>
+          <Button onClick={onSuccess}>Continue</Button>
         </CardFooter>
       </Card>
     );
@@ -149,40 +203,32 @@ export function PaymentForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Payment Details</CardTitle>
+        <CardTitle>Complete Payment</CardTitle>
         <CardDescription>
-          {description} - {formatAmountForDisplay(amount * 100)}
+          {description}
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Card Details
-            </label>
-            <div className="border rounded-md p-3">
-              <CardElement 
-                options={{
-                  style: {
-                    base: {
-                      fontSize: '16px',
-                      color: '#424770',
-                      '::placeholder': {
-                        color: '#aab7c4',
-                      },
-                    },
-                    invalid: {
-                      color: '#9e2146',
-                    },
+      <form onSubmit={handleSubmit}>
+        <CardContent className="space-y-4">
+          <div className="border rounded p-3">
+            <CardElement options={{
+              style: {
+                base: {
+                  fontSize: '16px',
+                  color: '#424770',
+                  '::placeholder': {
+                    color: '#aab7c4',
                   },
-                }}
-              />
-            </div>
-            {paymentError && (
-              <p className="text-sm text-red-500">{paymentError}</p>
-            )}
+                },
+                invalid: {
+                  color: '#9e2146',
+                },
+              },
+            }} />
           </div>
-          
+          {paymentError && (
+            <div className="text-red-500 text-sm">{paymentError}</div>
+          )}
           <div className="flex justify-between">
             <Button 
               type="button" 
@@ -206,8 +252,8 @@ export function PaymentForm({
               )}
             </Button>
           </div>
-        </form>
-      </CardContent>
+        </CardContent>
+      </form>
     </Card>
   );
 }

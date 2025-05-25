@@ -9,6 +9,7 @@ import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { PaymentMethodSelector, PaymentMethod } from './PaymentMethodSelector';
+import { useStripe as useStripeContext } from '@/contexts/StripeContext';
 
 // Load Stripe outside of component to avoid recreating it on renders
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
@@ -21,6 +22,12 @@ interface PaymentFormProps {
   isPremium: boolean;
   onSuccess?: () => void;
   onCancel?: () => void;
+}
+
+interface PaymentError {
+  code: string;
+  message: string;
+  type: 'validation' | 'payment' | 'network' | 'unknown';
 }
 
 // The inner form component that uses the Stripe hooks
@@ -36,64 +43,81 @@ function PaymentForm({
   const stripe = useStripe();
   const elements = useElements();
   const { user } = useAuth();
+  const { createPaymentIntent, validatePayment } = useStripeContext();
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [error, setError] = useState<PaymentError | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
 
   // Create a payment intent when the component mounts
   useEffect(() => {
-    const createPaymentIntent = async () => {
-      if (!user) return;
+    const initializePayment = async () => {
+      if (!user) {
+        setError({
+          code: 'auth_required',
+          message: 'You must be logged in to make a payment',
+          type: 'validation'
+        });
+        return;
+      }
+
+      // Validate payment amount
+      const validation = validatePayment(amount, 'ZAR');
+      if (!validation.isValid) {
+        setError({
+          code: 'invalid_amount',
+          message: validation.error || 'Invalid payment amount',
+          type: 'validation'
+        });
+        return;
+      }
 
       try {
-        const response = await fetch('/api/create-payment-intent', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            amount,
-            currency: 'zar',
-            metadata: {
-              user_id: user.id,
-              item_type: itemType,
-              item_id: itemId,
-              item_name: itemName,
-              premium: isPremium
-            }
-          }),
+        const { clientSecret, error } = await createPaymentIntent(amount, {
+          user_id: user.id,
+          item_type: itemType,
+          item_id: itemId,
+          item_name: itemName,
+          premium: isPremium
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to create payment intent');
+        if (error || !clientSecret) {
+          throw new Error(error || 'Failed to initialize payment');
         }
 
-        const data = await response.json();
-        setClientSecret(data.clientSecret);
-      } catch (error) {
-        console.error('Error creating payment intent:', error);
-        setErrorMessage('Failed to initialize payment. Please try again.');
+        setClientSecret(clientSecret);
+      } catch (err: any) {
+        console.error('Payment initialization error:', err);
+        setError({
+          code: 'init_failed',
+          message: err.message || 'Failed to initialize payment',
+          type: 'payment'
+        });
+        toast.error('Payment initialization failed', {
+          description: err.message || 'Failed to initialize payment'
+        });
       }
     };
 
-    if (user) {
-      createPaymentIntent();
-    }
-  }, [user, amount, itemType, itemId, itemName, isPremium]);
+    initializePayment();
+  }, [user, amount, itemType, itemId, itemName, isPremium, createPaymentIntent, validatePayment]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     if (!stripe || !elements) {
-      // Stripe.js has not loaded yet
+      setError({
+        code: 'stripe_not_loaded',
+        message: 'Payment system is not ready. Please try again.',
+        type: 'payment'
+      });
       return;
     }
 
     setIsProcessing(true);
     setPaymentStatus('processing');
-    setErrorMessage(null);
+    setError(null);
 
     try {
       // Handle different payment methods
@@ -105,7 +129,7 @@ function PaymentForm({
           throw new Error('Card element not found');
         }
 
-        const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret!, {
+        const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret!, {
           payment_method: {
             card: cardElement,
             billing_details: {
@@ -114,28 +138,31 @@ function PaymentForm({
           },
         });
 
-        if (error) {
-          throw error;
+        if (stripeError) {
+          throw stripeError;
         }
 
         if (paymentIntent.status === 'succeeded') {
           // Record the payment in Supabase
-          const { error: dbError } = await supabase.from('payments').insert({
-            user_id: user?.id,
-            merchant_id: 'merchant_id', // Replace with actual merchant ID
+          const { error: dbError } = await supabase.from('transactions').insert({
+            payment_intent_id: paymentIntent.id,
             amount: amount,
             currency: 'ZAR',
-            payment_method: 'card',
             status: 'succeeded',
-            item_type: itemType,
-            item_id: itemId,
-            item_name: itemName,
-            premium: isPremium,
-            payment_intent_id: paymentIntent.id
+            type: 'payment',
+            description: `Payment for ${itemType}: ${itemName}`,
+            metadata: {
+              user_id: user?.id,
+              item_type: itemType,
+              item_id: itemId,
+              item_name: itemName,
+              premium: isPremium
+            }
           });
 
           if (dbError) {
             console.error('Error recording payment:', dbError);
+            throw new Error('Failed to record payment in database');
           }
 
           setPaymentStatus('success');
@@ -189,12 +216,16 @@ function PaymentForm({
           onSuccess();
         }
       }
-    } catch (error: any) {
-      console.error('Payment error:', error);
+    } catch (err: any) {
+      console.error('Payment error:', err);
+      setError({
+        code: err.code || 'payment_failed',
+        message: err.message || 'Payment failed. Please try again.',
+        type: err.type || 'payment'
+      });
       setPaymentStatus('error');
-      setErrorMessage(error.message || 'An error occurred during payment processing');
       toast.error('Payment failed', {
-        description: error.message || 'An error occurred during payment processing'
+        description: err.message || 'Payment failed. Please try again.'
       });
     } finally {
       setIsProcessing(false);
@@ -228,7 +259,7 @@ function PaymentForm({
             <AlertCircle className="h-16 w-16 text-red-500 mb-4" />
             <h3 className="text-xl font-bold mb-2">Payment Failed</h3>
             <p className="text-center text-muted-foreground mb-4">
-              {errorMessage || 'An error occurred during payment processing'}
+              {error?.message || 'An error occurred during payment processing'}
             </p>
             <div className="flex gap-2">
               <Button variant="outline" onClick={handleCancel}>Cancel</Button>
@@ -241,33 +272,31 @@ function PaymentForm({
         return (
           <>
             <PaymentMethodSelector
-              selectedMethod={paymentMethod}
-              onSelect={setPaymentMethod}
-              className="mb-6"
+              value={paymentMethod}
+              onChange={setPaymentMethod}
+              disabled={isProcessing}
             />
             
             {paymentMethod === 'card' && (
-              <>
-                <h3 className="text-lg font-medium mb-2">Card Details</h3>
-                <div className="border rounded-md p-3 mb-6">
-                  <CardElement
-                    options={{
-                      style: {
-                        base: {
-                          fontSize: '16px',
-                          color: '#424770',
-                          '::placeholder': {
-                            color: '#aab7c4',
-                          },
-                        },
-                        invalid: {
-                          color: '#9e2146',
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Card Details</label>
+                <CardElement
+                  options={{
+                    style: {
+                      base: {
+                        fontSize: '16px',
+                        color: '#424770',
+                        '::placeholder': {
+                          color: '#aab7c4',
                         },
                       },
-                    }}
-                  />
-                </div>
-              </>
+                      invalid: {
+                        color: '#9e2146',
+                      },
+                    },
+                  }}
+                />
+              </div>
             )}
             
             {paymentMethod === 'eft' && (
@@ -380,8 +409,81 @@ function PaymentForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full">
-      {renderContent()}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-4">
+        <PaymentMethodSelector
+          value={paymentMethod}
+          onChange={setPaymentMethod}
+          disabled={isProcessing}
+        />
+
+        {paymentMethod === 'card' && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Card Details</label>
+            <CardElement
+              options={{
+                style: {
+                  base: {
+                    fontSize: '16px',
+                    color: '#424770',
+                    '::placeholder': {
+                      color: '#aab7c4',
+                    },
+                  },
+                  invalid: {
+                    color: '#9e2146',
+                  },
+                },
+              }}
+            />
+          </div>
+        )}
+      </div>
+
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+          <div className="flex items-center space-x-2 text-red-600">
+            <AlertCircle className="h-5 w-5" />
+            <p className="text-sm font-medium">{error.message}</p>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between pt-4">
+        <div className="text-sm text-gray-500">
+          Total: <span className="font-medium text-gray-900">R{amount.toFixed(2)}</span>
+        </div>
+        <div className="flex items-center space-x-4">
+          {onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isProcessing}
+            >
+              Cancel
+            </Button>
+          )}
+          <Button
+            type="submit"
+            disabled={!stripe || !elements || isProcessing || paymentStatus === 'success'}
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : paymentStatus === 'success' ? (
+              <>
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                Paid
+              </>
+            ) : (
+              'Pay Now'
+            )}
+          </Button>
+        </div>
+      </div>
     </form>
   );
 }

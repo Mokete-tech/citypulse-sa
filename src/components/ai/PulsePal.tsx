@@ -4,6 +4,32 @@ import { Coins, MapPin, Search, Brain, Sparkles, Calculator, List, Wand2, PartyP
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
+interface Deal {
+  id: number;
+  title: string;
+  description?: string;
+  price: number;
+  discount?: number;
+  location?: string;
+  city?: string;
+  date?: string;
+  latitude?: string;
+  longitude?: string;
+  distance?: number;
+}
+
+interface Event {
+  id: number;
+  title: string;
+  description?: string;
+  price: number;
+  location?: string;
+  city?: string;
+  date?: string;
+  latitude?: string;
+  longitude?: string;
+}
+
 // Updated to use the list models endpoint first, then we'll use an available model
 const GEMINI_LIST_MODELS_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 // We'll set the content generation URL after we get the available models
@@ -24,8 +50,8 @@ const LOADING_MESSAGES = [
 ];
 
 export function PulsePal({ apiKey }: { apiKey: string }) {
-  const [deals, setDeals] = useState<any[]>([]);
-  const [events, setEvents] = useState<any[]>([]);
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [question, setQuestion] = useState("");
   const [response, setResponse] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -42,13 +68,18 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
 
   // Rotate through loading messages
   useEffect(() => {
+    let interval: NodeJS.Timeout;
     if (loading) {
-      const interval = setInterval(() => {
+      interval = setInterval(() => {
         setLoadingMessage(LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)]);
       }, 2000);
-      return () => clearInterval(interval);
     }
-  }, [loading]);
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [loading, LOADING_MESSAGES]);
 
   // Validate API key on mount
   useEffect(() => {
@@ -64,19 +95,46 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data: dealsData, error: dealsError } = await supabase.from("deals").select("*");
-        if (dealsError) throw dealsError;
+        // Fetch deals with proper error handling
+        const { data: dealsData, error: dealsError } = await supabase
+          .from("deals")
+          .select("*")
+          .order('created_at', { ascending: false });
+
+        if (dealsError) {
+          console.error("Error fetching deals:", dealsError);
+          toast.error("Failed to load deals", {
+            description: "Please try again later"
+          });
+          setDeals([]);
+        } else {
         setDeals(dealsData || []);
+        }
         
-        const { data: eventsData, error: eventsError } = await supabase.from("events").select("*");
-        if (eventsError) throw eventsError;
+        // Fetch events with proper error handling
+        const { data: eventsData, error: eventsError } = await supabase
+          .from("events")
+          .select("*")
+          .order('created_at', { ascending: false });
+
+        if (eventsError) {
+          console.error("Error fetching events:", eventsError);
+          toast.error("Failed to load events", {
+            description: "Please try again later"
+          });
+          setEvents([]);
+        } else {
         setEvents(eventsData || []);
+        }
         
         // Try to get available models if we have an API key
         if (apiKey && isApiKeyValid) {
           try {
             const modelsRes = await fetch(`${GEMINI_LIST_MODELS_URL}?key=${apiKey}`);
-            if (modelsRes.ok) {
+            if (!modelsRes.ok) {
+              throw new Error(`Failed to fetch models: ${modelsRes.status}`);
+            }
+            
               const modelsData = await modelsRes.json();
               console.log("Available models:", modelsData);
               
@@ -97,16 +155,18 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
                 GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
                 console.log("Selected model:", preferredModel);
                 console.log("Content generation URL:", GEMINI_API_URL);
-              }
             } else {
-              console.error("Failed to fetch models:", await modelsRes.json());
+              throw new Error("No supported Gemini model found");
             }
           } catch (err) {
             console.error("Error fetching available models:", err);
+            toast.error("Failed to load AI models", {
+              description: "Some features may be limited"
+            });
           }
         }
       } catch (err: any) {
-        console.error("Error fetching data:", err);
+        console.error("Error in data fetching:", err);
         toast.error("Failed to load data", {
           description: "Could not load deals and events. Please try again later."
         });
@@ -129,6 +189,11 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
           toast.info("Location access denied", {
             description: "Some features may be limited without location access."
           });
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 300000
         }
       );
     }
@@ -345,19 +410,22 @@ Guidelines:
 
   // Initialize speech recognition
   useEffect(() => {
+    let recognitionInstance: any = null;
+    
     if ('webkitSpeechRecognition' in window) {
-      const recognition = new (window as any).webkitSpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = 'en-US';
+      try {
+        recognitionInstance = new (window as any).webkitSpeechRecognition();
+        recognitionInstance.continuous = false;
+        recognitionInstance.interimResults = false;
+        recognitionInstance.lang = 'en-US';
 
-      recognition.onresult = (event: any) => {
+        recognitionInstance.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
         setQuestion(transcript);
         setIsListening(false);
       };
 
-      recognition.onerror = (event: any) => {
+        recognitionInstance.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
         setIsListening(false);
         toast.error('Voice input failed', {
@@ -365,18 +433,112 @@ Guidelines:
         });
       };
 
-      setRecognition(recognition);
+        recognitionInstance.onend = () => {
+          setIsListening(false);
+        };
+
+        setRecognition(recognitionInstance);
+      } catch (err) {
+        console.error('Failed to initialize speech recognition:', err);
+        toast.error('Voice input not available', {
+          description: 'Speech recognition is not supported in your browser.'
+        });
+      }
+    } else {
+      toast.info('Voice input not available', {
+        description: 'Speech recognition is not supported in your browser.'
+      });
     }
+
+    // Cleanup function
+    return () => {
+      if (recognitionInstance) {
+        try {
+          recognitionInstance.stop();
+        } catch (err) {
+          console.error('Error stopping speech recognition:', err);
+        }
+      }
+    };
   }, []);
 
-  // Toggle dark mode
+  // Handle speech recognition toggle
+  const toggleSpeechRecognition = () => {
+    if (!recognition) {
+      toast.error('Voice input not available', {
+        description: 'Speech recognition is not supported in your browser.'
+      });
+      return;
+    }
+
+    try {
+      if (isListening) {
+        recognition.stop();
+        setIsListening(false);
+      } else {
+        recognition.start();
+        setIsListening(true);
+      }
+    } catch (err) {
+      console.error('Error toggling speech recognition:', err);
+      toast.error('Voice input failed', {
+        description: 'Could not start speech recognition. Please try typing instead.'
+      });
+      setIsListening(false);
+    }
+  };
+
+  // Toggle dark mode with persistence
+  useEffect(() => {
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    setIsDarkMode(savedDarkMode);
+  }, []);
+
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
+      localStorage.setItem('darkMode', 'true');
     } else {
       document.documentElement.classList.remove('dark');
+      localStorage.setItem('darkMode', 'false');
     }
   }, [isDarkMode]);
+
+  // Optimize confetti animation
+  const Confetti = React.memo(() => {
+    const confettiCount = 30; // Reduced from 50 for better performance
+    
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="fixed inset-0 pointer-events-none"
+      >
+        {[...Array(confettiCount)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{ 
+              x: Math.random() * window.innerWidth,
+              y: -20,
+              scale: Math.random() * 0.5 + 0.5
+            }}
+            animate={{ 
+              y: window.innerHeight + 20,
+              rotate: Math.random() * 360
+            }}
+            transition={{ 
+              duration: Math.random() * 2 + 2,
+              repeat: 0,
+              ease: "linear"
+            }}
+            className="absolute"
+          >
+            {['🎉', '✨', '🎊', '🌟', '🎈'][Math.floor(Math.random() * 5)]}
+          </motion.div>
+        ))}
+      </motion.div>
+    );
+  });
 
   return (
     <div className={`space-y-6 ${isDarkMode ? 'dark' : ''}`}>
@@ -473,15 +635,7 @@ Guidelines:
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               type="button"
-              onClick={() => {
-                if (isListening) {
-                  recognition.stop();
-                  setIsListening(false);
-                } else {
-                  recognition.start();
-                  setIsListening(true);
-                }
-              }}
+              onClick={toggleSpeechRecognition}
               className="absolute right-3 top-2.5 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               disabled={!selectedModel || loading}
             >
@@ -553,36 +707,7 @@ Guidelines:
         )}
       </AnimatePresence>
 
-      {showConfetti && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 pointer-events-none"
-        >
-          {[...Array(50)].map((_, i) => (
-            <motion.div
-              key={i}
-              initial={{ 
-                x: Math.random() * window.innerWidth,
-                y: -20,
-                scale: Math.random() * 0.5 + 0.5
-              }}
-              animate={{ 
-                y: window.innerHeight + 20,
-                rotate: Math.random() * 360
-              }}
-              transition={{ 
-                duration: Math.random() * 2 + 2,
-                repeat: 0,
-                ease: "linear"
-              }}
-              className="absolute"
-            >
-              {['🎉', '✨', '🎊', '🌟', '🎈'][Math.floor(Math.random() * 5)]}
-            </motion.div>
-          ))}
-        </motion.div>
-      )}
+      {showConfetti && <Confetti />}
     </div>
   );
 }
