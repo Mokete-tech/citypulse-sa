@@ -20,11 +20,21 @@ interface BaseError {
   };
 }
 
+// Utility function to extract error message from unknown error
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  if (error && typeof error === 'object' && 'message' in error) {
+    return (error as { message?: string }).message || 'An unknown error occurred';
+  }
+  return 'An unknown error occurred';
+}
+
 export const handleError = (error: unknown, options: ErrorOptions = {}) => {
   console.error('Error occurred:', error);
   
   const title = options.title || 'An error occurred';
-  const message = options.message || extractErrorMessage(error);
+  const message = options.message || getErrorMessage(error);
   
   if (!options.silent) {
     toast.error(title, {
@@ -40,7 +50,7 @@ export const handleSupabaseError = (error: unknown, options: ErrorOptions = {}) 
   console.error('Supabase error:', error);
   
   // Extract specific Supabase error information
-  let errorMessage = extractErrorMessage(error);
+  let errorMessage = getErrorMessage(error);
   
   // Handle specific Supabase error codes
   if (error && typeof error === 'object' && 'code' in error) {
