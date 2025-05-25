@@ -38,6 +38,44 @@ interface Conversation {
   language: string;
 }
 
+// Add Web Speech API type definitions
+interface SpeechRecognitionEvent {
+  results: {
+    [index: number]: {
+      [index: number]: {
+        transcript: string;
+      };
+    };
+  };
+}
+
+interface SpeechRecognitionErrorEvent {
+  error: string;
+  message?: string;
+}
+
+interface SpeechRecognitionConstructor {
+  new(): SpeechRecognitionInstance;
+  prototype: SpeechRecognitionInstance;
+}
+
+interface SpeechRecognitionInstance {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onstart: () => void;
+  onresult: (event: SpeechRecognitionEvent) => void;
+  onerror: (event: SpeechRecognitionErrorEvent) => void;
+  onend: () => void;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+}
+
+// For speech recognition
+const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+type SpeechRecognitionType = SpeechRecognitionConstructor;
+
 // Supported languages
 const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English' },
@@ -177,11 +215,11 @@ class PulsePalErrorBoundary extends React.Component<{children: React.ReactNode},
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: any) {
+  static getDerivedStateFromError(error: Error) {
     return { hasError: true };
   }
 
-  componentDidCatch(error: any, errorInfo: any) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('PulsePal error:', error, errorInfo);
   }
 
@@ -241,177 +279,319 @@ const timeout = (ms: number) => new Promise((_, reject) =>
 // Add loading state types
 type LoadingState = 'idle' | 'loading' | 'success' | 'error';
 
-// Add type for API response
-interface GeminiResponse {
-  candidates: Array<{
-    content: {
-      parts: Array<{
-        text: string;
-      }>;
-    };
+// Add proper type definitions for API responses
+interface GeminiModel {
+  name: string;
+  displayName: string;
+  description: string;
+  supportedGenerationMethods: string[];
+}
+
+interface GeminiModelsResponse {
+  models: GeminiModel[];
+}
+
+interface GeminiContentPart {
+  text: string;
+}
+
+interface GeminiContent {
+  parts: GeminiContentPart[];
+}
+
+interface GeminiCandidate {
+  content: GeminiContent;
+  finishReason?: string;
+  safetyRatings?: Array<{
+    category: string;
+    probability: string;
   }>;
 }
 
-// Add animation variants
-const fadeIn = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 }
-};
+interface GeminiResponse {
+  candidates: GeminiCandidate[];
+  promptFeedback?: {
+    safetyRatings: Array<{
+      category: string;
+      probability: string;
+    }>;
+  };
+}
 
-const scaleIn = {
-  initial: { scale: 0.95, opacity: 0 },
-  animate: { scale: 1, opacity: 1 },
-  exit: { scale: 0.95, opacity: 0 }
-};
+// Add proper type definitions for state
+interface PulsePalState {
+  // Core state
+  deals: Deal[];
+  events: Event[];
+  question: string;
+  response: string | null;
+  loading: boolean;
+  error: string | null;
+  userLocation: { lat: number; lng: number } | null;
+  
+  // API state
+  isApiKeyValid: boolean;
+  availableModels: string[];
+  selectedModel: string;
+  loadingMessage: string;
+  loadingState: LoadingState;
+  retryCount: number;
+  
+  // UI state
+  showConfetti: boolean;
+  isDarkMode: boolean;
+  showFilters: boolean;
+  showCommands: boolean;
+  isHistoryOpen: boolean;
+  
+  // Voice recognition state
+  recognition: SpeechRecognitionInstance | null;
+  isVoiceActive: boolean;
+  voiceFeedback: string;
+  voiceRecognition: {
+    isActive: boolean;
+    feedback: string;
+    language: string;
+    commands: Record<string, string[]>;
+  };
+  
+  // Conversation state
+  conversations: Conversation[];
+  selectedConversation: Conversation | null;
+  conversationSearch: string;
+  conversationFilter: string;
+  isExporting: boolean;
+  
+  // Language and localization
+  selectedLanguage: string;
+  
+  // Network state
+  isOffline: boolean;
+  
+  // Search and filter state
+  searchQuery: string;
+  filterDate: string;
+  
+  // Selection state
+  selectedDeal: Deal | null;
+  selectedEvent: Event | null;
+}
 
-// Add loading state component
-const LoadingIndicator = () => (
-  <motion.div
-    initial="initial"
-    animate="animate"
-    exit="exit"
-    variants={fadeIn}
-    className="flex items-center gap-2 text-purple-600"
-  >
-    <Loader2 className="h-5 w-5 animate-spin" />
-    <span className="text-sm font-medium">{LOADING_MESSAGES[0]}</span>
-  </motion.div>
-);
+// Add proper type definitions for event handlers
+interface VoiceCommandHandler {
+  (transcript: string): void;
+}
 
-// Add error state component
-const ErrorMessage = ({ message }: { message: string }) => (
-  <motion.div
-    initial="initial"
-    animate="animate"
-    exit="exit"
-    variants={fadeIn}
-    className="bg-red-50 border border-red-200 rounded-md p-3"
-  >
-    <div className="flex items-center gap-2">
-      <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-      </svg>
-      <p className="text-sm text-red-800">{message}</p>
-    </div>
-  </motion.div>
-);
+interface QuestionChangeHandler {
+  (e: React.ChangeEvent<HTMLTextAreaElement>): void;
+}
 
-// Add success state component
-const SuccessMessage = () => (
-  <motion.div
-    initial="initial"
-    animate="animate"
-    exit="exit"
-    variants={scaleIn}
-    className="bg-green-50 border border-green-200 rounded-md p-3"
-  >
-    <div className="flex items-center gap-2">
-      <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-      </svg>
-      <p className="text-sm text-green-800">Response generated successfully!</p>
-    </div>
-  </motion.div>
-);
+interface ApiCallHandler {
+  (): Promise<void>;
+}
 
-export function PulsePal({ apiKey }: { apiKey: string }) {
-  // State declarations
-  const [deals, setDeals] = useState<Deal[]>([]);
-  const [events, setEvents] = useState<Event[]>([]);
-  const [question, setQuestion] = useState("");
-  const [response, setResponse] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [isApiKeyValid, setIsApiKeyValid] = useState<boolean>(false);
-  const [availableModels, setAvailableModels] = useState<string[]>([]);
-  const [selectedModel, setSelectedModel] = useState<string>("");
-  const [loadingMessage, setLoadingMessage] = useState(LOADING_MESSAGES[0]);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [recognition, setRecognition] = useState<any>(null);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
-  const [isOffline, setIsOffline] = useState(false);
-  const [isVoiceActive, setIsVoiceActive] = useState(false);
-  const [voiceFeedback, setVoiceFeedback] = useState('');
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterDate, setFilterDate] = useState<string>('');
-  const [showFilters, setShowFilters] = useState(false);
-  const [showCommands, setShowCommands] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const [loadingState, setLoadingState] = useState<LoadingState>('idle');
+// Add proper type definitions for utility functions
+interface ExportFunction {
+  (): void;
+}
+
+interface ValidationResult {
+  isValid: boolean;
+  error?: string;
+}
+
+// Add proper type definitions for animation variants
+interface AnimationVariants {
+  initial: {
+    opacity: number;
+    y: number;
+  };
+  animate: {
+    opacity: number;
+    y: number;
+  };
+  exit: {
+    opacity: number;
+    y: number;
+  };
+}
+
+// Add proper type definitions for API interactions
+interface ApiResponse<T> {
+  data: T;
+  error: string | null;
+  status: number;
+  headers?: Record<string, string>;
+  timestamp?: string;
+}
+
+interface ApiError {
+  message: string;
+  code: string;
+  details?: Record<string, unknown>;
+  timestamp?: string;
+  retryable?: boolean;
+}
+
+// Add proper type definitions for state updates
+type StateUpdate<T> = Partial<T> | ((prev: T) => Partial<T>);
+
+// Add proper type definitions for event handlers
+interface EventHandlers {
+  handleVoiceCommand: VoiceCommandHandler;
+  handleQuestionChange: QuestionChangeHandler;
+  handleApiCall: ApiCallHandler;
+  handleExport: ExportFunction;
+  handleValidation: (input: string) => ValidationResult;
+  handleLanguageChange: (language: string) => void;
+  handleDarkModeToggle: () => void;
+  handleFilterToggle: () => void;
+  handleCommandToggle: () => void;
+}
+
+// Add proper type definitions for component props
+interface PulsePalProps {
+  apiKey: string;
+  initialLanguage?: string;
+  onError?: (error: ApiError) => void;
+  onSuccess?: (response: GeminiResponse) => void;
+  onLanguageChange?: (language: string) => void;
+  onDarkModeChange?: (isDarkMode: boolean) => void;
+  onFilterChange?: (filters: { search: string; date: string }) => void;
+  onCommandChange?: (showCommands: boolean) => void;
+}
+
+// Update the component to use these types
+export function PulsePal({ 
+  apiKey, 
+  initialLanguage = 'en',
+  onError,
+  onSuccess,
+  onLanguageChange,
+  onDarkModeChange,
+  onFilterChange,
+  onCommandChange
+}: PulsePalProps): JSX.Element {
+  // Initialize state with proper types
+  const [state, setState] = useState<PulsePalState>({
+    // Core state
+    deals: [],
+    events: [],
+    question: '',
+    response: null,
+    loading: false,
+    error: null,
+    userLocation: null,
+    
+    // API state
+    isApiKeyValid: false,
+    availableModels: [],
+    selectedModel: '',
+    loadingMessage: LOADING_MESSAGES[0],
+    loadingState: 'idle',
+    retryCount: 0,
+    
+    // UI state
+    showConfetti: false,
+    isDarkMode: false,
+    showFilters: false,
+    showCommands: false,
+    isHistoryOpen: false,
+    
+    // Voice recognition state
+    recognition: null,
+    isVoiceActive: false,
+    voiceFeedback: '',
+    voiceRecognition: {
+      isActive: false,
+      feedback: '',
+      language: initialLanguage,
+      commands: {}
+    },
+    
+    // Conversation state
+    conversations: [],
+    selectedConversation: null,
+    conversationSearch: '',
+    conversationFilter: '',
+    isExporting: false,
+    
+    // Language and localization
+    selectedLanguage: initialLanguage,
+    
+    // Network state
+    isOffline: false,
+    
+    // Search and filter state
+    searchQuery: '',
+    filterDate: '',
+    
+    // Selection state
+    selectedDeal: null,
+    selectedEvent: null
+  });
 
   // Validate API key
   useEffect(() => {
     if (!apiKey) {
-      setError('API key is required');
+      setState(prev => ({ ...prev, error: 'API key is required' }));
       toast.error('Configuration Error', {
         description: 'Please provide a valid API key'
       });
       return;
     }
-    setIsApiKeyValid(true);
+    setState(prev => ({ ...prev, isApiKeyValid: true }));
   }, [apiKey]);
 
   // Memoized values
   const filteredConversations = useMemo(() => {
-    return conversations.filter(conv => {
-      const matchesSearch = searchQuery === '' || 
-        conv.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        conv.response.toLowerCase().includes(searchQuery.toLowerCase());
+    return state.conversations.filter(conv => {
+      const matchesSearch = state.searchQuery === '' || 
+        conv.question.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
+        conv.response.toLowerCase().includes(state.searchQuery.toLowerCase());
       
-      const matchesDate = filterDate === '' || 
-        new Date(conv.timestamp).toLocaleDateString() === new Date(filterDate).toLocaleDateString();
+      const matchesDate = state.filterDate === '' || 
+        new Date(conv.timestamp).toLocaleDateString() === new Date(state.filterDate).toLocaleDateString();
       
       return matchesSearch && matchesDate;
     });
-  }, [conversations, searchQuery, filterDate]);
+  }, [state.conversations, state.searchQuery, state.filterDate]);
 
   // Create export function
   const exportConversations = useCallback(() => {
-    setIsExporting(true);
+    setState(prev => ({ ...prev, isExporting: true }));
     try {
-      createExportFunction(filteredConversations, selectedLanguage)();
+      createExportFunction(filteredConversations, state.selectedLanguage)();
     } catch (error) {
       console.error('Error exporting conversations:', error);
       toast.error('Failed to export conversations', {
         description: 'Please try again later'
       });
     } finally {
-      setIsExporting(false);
+      setState(prev => ({ ...prev, isExporting: false }));
     }
-  }, [filteredConversations, selectedLanguage]);
+  }, [filteredConversations, state.selectedLanguage]);
 
-  // Handle voice commands
-  const handleVoiceCommand = useCallback((transcript: string) => {
+  // Add proper type definitions for handlers
+  const handleVoiceCommand: VoiceCommandHandler = useCallback((transcript: string) => {
     try {
-      const commands = VOICE_COMMANDS[selectedLanguage as keyof typeof VOICE_COMMANDS] || VOICE_COMMANDS.en;
+      const commands = VOICE_COMMANDS[state.selectedLanguage as keyof typeof VOICE_COMMANDS] || VOICE_COMMANDS.en;
       
       if (commands.search.some(cmd => transcript.toLowerCase().includes(cmd))) {
         const searchTerm = transcript.split(commands.search[0])[1]?.trim();
         if (searchTerm) {
-          setSearchQuery(searchTerm);
+          setState(prev => ({ ...prev, searchQuery: searchTerm }));
           toast.info('Searching...', { description: `Looking for "${searchTerm}"` });
         }
       } else if (commands.filter.some(cmd => transcript.toLowerCase().includes(cmd))) {
-        setShowFilters(true);
-        toast.info('Filters opened', { description: 'Please select your filter criteria' });
+        setState(prev => ({ ...prev, showFilters: true, voiceFeedback: VOICE_FEEDBACK.listening[state.selectedLanguage as keyof typeof VOICE_FEEDBACK.listening] || 'Listening...' }));
       } else if (commands.export.some(cmd => transcript.toLowerCase().includes(cmd))) {
         exportConversations();
       } else if (commands.clear.some(cmd => transcript.toLowerCase().includes(cmd))) {
-        setSearchQuery('');
-        setFilterDate('');
+        setState(prev => ({ ...prev, searchQuery: '', filterDate: '', voiceFeedback: '', showFilters: false }));
         toast.success('Filters cleared');
       } else if (commands.help.some(cmd => transcript.toLowerCase().includes(cmd))) {
-        setShowCommands(true);
-        toast.info('Voice Commands', { 
-          description: VOICE_FEEDBACK.commands[selectedLanguage as keyof typeof VOICE_FEEDBACK.commands] || VOICE_FEEDBACK.commands.en
-        });
+        setState(prev => ({ ...prev, showCommands: true, voiceFeedback: VOICE_FEEDBACK.commands[state.selectedLanguage as keyof typeof VOICE_FEEDBACK.commands] || VOICE_FEEDBACK.commands.en }));
       }
     } catch (error) {
       console.error('Error processing voice command:', error);
@@ -419,11 +599,11 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
         description: 'Please try again'
       });
     }
-  }, [selectedLanguage, exportConversations]);
+  }, [state.selectedLanguage, exportConversations]);
 
   // Add cleanup for voice recognition
   useEffect(() => {
-    let recognitionInstance: any = null;
+    let recognitionInstance: SpeechRecognitionInstance | null = null;
     let mounted = true;
     let cleanupTimeout: NodeJS.Timeout;
     
@@ -438,28 +618,27 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
       }
     };
 
-    if ('webkitSpeechRecognition' in window) {
+    if (SpeechRecognition) {
       try {
-        recognitionInstance = new (window as any).webkitSpeechRecognition();
+        recognitionInstance = new SpeechRecognition();
         recognitionInstance.continuous = false;
         recognitionInstance.interimResults = false;
-        recognitionInstance.lang = VOICE_RECOGNITION_LANGUAGES[selectedLanguage as keyof typeof VOICE_RECOGNITION_LANGUAGES] || 'en-US';
+        recognitionInstance.lang = VOICE_RECOGNITION_LANGUAGES[state.selectedLanguage as keyof typeof VOICE_RECOGNITION_LANGUAGES] || 'en-US';
 
         recognitionInstance.onstart = () => {
           if (mounted) {
-            setIsVoiceActive(true);
-            setVoiceFeedback(VOICE_FEEDBACK.listening[selectedLanguage as keyof typeof VOICE_FEEDBACK.listening] || 'Listening...');
+            setState(prev => ({ ...prev, isVoiceActive: true, voiceFeedback: VOICE_FEEDBACK.listening[state.selectedLanguage as keyof typeof VOICE_FEEDBACK.listening] || 'Listening...' }));
           }
         };
 
-        recognitionInstance.onresult = (event: any) => {
+        recognitionInstance.onresult = (event: SpeechRecognitionEvent) => {
           try {
             const transcript = event.results[0][0].transcript;
             if (mounted) {
               if (transcript.toLowerCase().startsWith('command')) {
                 handleVoiceCommand(transcript);
               } else {
-                setQuestion(transcript);
+                setState(prev => ({ ...prev, question: transcript }));
               }
             }
           } catch (error) {
@@ -471,17 +650,15 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
             }
           } finally {
             if (mounted) {
-              setIsVoiceActive(false);
-              setVoiceFeedback('');
+              setState(prev => ({ ...prev, isVoiceActive: false, voiceFeedback: '' }));
             }
           }
         };
 
-        recognitionInstance.onerror = (event: any) => {
+        recognitionInstance.onerror = (event: SpeechRecognitionErrorEvent) => {
           console.error('Speech recognition error:', event.error);
           if (mounted) {
-            setIsVoiceActive(false);
-            setVoiceFeedback('');
+            setState(prev => ({ ...prev, isVoiceActive: false, voiceFeedback: '' }));
             toast.error('Voice input failed', {
               description: 'Could not recognize speech. Please try typing instead.'
             });
@@ -490,12 +667,11 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
 
         recognitionInstance.onend = () => {
           if (mounted) {
-            setIsVoiceActive(false);
-            setVoiceFeedback('');
+            setState(prev => ({ ...prev, isVoiceActive: false, voiceFeedback: '' }));
           }
         };
 
-        setRecognition(recognitionInstance);
+        setState(prev => ({ ...prev, recognition: recognitionInstance }));
       } catch (err) {
         console.error('Failed to initialize speech recognition:', err);
         if (mounted) {
@@ -513,22 +689,22 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
         clearTimeout(cleanupTimeout);
       }
     };
-  }, [selectedLanguage, handleVoiceCommand]);
+  }, [state.selectedLanguage, handleVoiceCommand]);
 
   // Add network status handling
   useEffect(() => {
     const handleOnline = () => {
-      setIsOffline(false);
+      setState(prev => ({ ...prev, isOffline: false }));
       toast.success(NETWORK_RECOVERY_MESSAGE);
     };
 
     const handleOffline = () => {
-      setIsOffline(true);
+      setState(prev => ({ ...prev, isOffline: true }));
       toast.error(OFFLINE_MESSAGE);
     };
 
     // Set initial state
-    setIsOffline(!navigator.onLine);
+    setState(prev => ({ ...prev, isOffline: !navigator.onLine }));
 
     // Add event listeners
     window.addEventListener('online', handleOnline);
@@ -541,28 +717,28 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
     };
   }, []);
 
-  // Modify handleApiCall to use loading state
-  const handleApiCall = async () => {
+  // Add proper type definitions for handlers
+  const handleApiCall: ApiCallHandler = async () => {
     // Validate input first
-    const validation = validateInput(question);
+    const validation = validateInput(state.question);
     if (!validation.isValid) {
-      setLoadingState('error');
+      setState(prev => ({ ...prev, loadingState: 'error', error: validation.error }));
       toast.error('Invalid Input', {
         description: validation.error
       });
       return;
     }
 
-    if (isOffline) {
-      setLoadingState('error');
+    if (state.isOffline) {
+      setState(prev => ({ ...prev, loadingState: 'error', error: 'Cannot make API calls while offline' }));
       toast.error('Cannot make API calls while offline', {
         description: 'Please check your internet connection'
       });
       return;
     }
 
-    if (!isApiKeyValid) {
-      setLoadingState('error');
+    if (!state.isApiKeyValid) {
+      setState(prev => ({ ...prev, loadingState: 'error', error: 'Invalid API Key' }));
       toast.error('Invalid API Key', {
         description: 'Please check your configuration'
       });
@@ -570,9 +746,7 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
     }
 
     try {
-      setLoadingState('loading');
-      setLoading(true);
-      setError(null);
+      setState(prev => ({ ...prev, loadingState: 'loading', loading: true, error: null }));
       
       // First, get available models with timeout
       const modelsResponse = await Promise.race([
@@ -584,33 +758,32 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
         throw new Error('Failed to fetch available models');
       }
       
-      const modelsData = await modelsResponse.json() as { models: Array<{ name: string }> };
+      const modelsData = await modelsResponse.json() as GeminiModelsResponse;
       const availableModels = modelsData.models
         .filter(model => model.name.startsWith('models/gemini'))
         .map(model => model.name);
       
-      setAvailableModels(availableModels);
+      setState(prev => ({ 
+        ...prev, 
+        availableModels,
+        selectedModel: availableModels[0] || ''
+      }));
       
       if (availableModels.length === 0) {
         throw new Error('No Gemini models available');
       }
       
-      // Select the first available model
-      const model = availableModels[0];
-      setSelectedModel(model);
-      GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/${model}:generateContent`;
-      
       // Make the actual API call with timeout
       const response = await Promise.race([
         fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
           method: 'POST',
-          headers: {
+          headers: { 
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             contents: [{
               parts: [{
-                text: question
+                text: state.question
               }]
             }]
           })
@@ -628,30 +801,34 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
       // Save conversation
       const newConversation: Conversation = {
         id: Date.now().toString(),
-        question,
+        question: state.question,
         response: generatedText,
         timestamp: new Date().toISOString(),
-        language: selectedLanguage
+        language: state.selectedLanguage
       };
       
-      setConversations(prev => [newConversation, ...prev]);
-      setResponse(generatedText);
-      setShowConfetti(true);
-      setLoadingState('success');
-      setRetryCount(0); // Reset retry count on success
-      
-      // Reset loading message
-      setLoadingMessage(LOADING_MESSAGES[0]);
+      setState(prev => ({
+        ...prev,
+        conversations: [newConversation, ...prev.conversations],
+        response: generatedText,
+        showConfetti: true,
+        loadingState: 'success',
+        retryCount: 0,
+        loadingMessage: LOADING_MESSAGES[0]
+      }));
       
     } catch (error) {
       console.error('API call failed:', error);
-      setError(error instanceof Error ? error.message : 'An unknown error occurred');
-      setLoadingState('error');
+      setState(prev => ({
+        ...prev,
+        error: error instanceof Error ? error.message : 'An unknown error occurred',
+        loadingState: 'error'
+      }));
       
       // Implement retry logic with exponential backoff
-      if (retryCount < MAX_RETRIES) {
-        const nextRetry = retryCount + 1;
-        setRetryCount(nextRetry);
+      if (state.retryCount < MAX_RETRIES) {
+        const nextRetry = state.retryCount + 1;
+        setState(prev => ({ ...prev, retryCount: nextRetry }));
         const backoffDelay = RETRY_DELAY * Math.pow(2, nextRetry - 1);
         
         toast.error('Request failed', {
@@ -663,51 +840,52 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
         toast.error('Request failed', {
           description: 'Maximum retry attempts reached. Please try again later.'
         });
-        setRetryCount(0);
+        setState(prev => ({ ...prev, retryCount: 0 }));
       }
     } finally {
-      setLoading(false);
+      setState(prev => ({ ...prev, loading: false }));
     }
   };
 
   // Add cleanup for confetti
   useEffect(() => {
-    if (showConfetti) {
+    if (state.showConfetti) {
       const timer = setTimeout(() => {
-        setShowConfetti(false);
+        setState(prev => ({ ...prev, showConfetti: false }));
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [showConfetti]);
+  }, [state.showConfetti]);
 
   // Add loading message rotation
   useEffect(() => {
-    if (loading) {
+    if (state.loading) {
       const interval = setInterval(() => {
-        setLoadingMessage(prev => {
-          const currentIndex = LOADING_MESSAGES.indexOf(prev);
-          const nextIndex = (currentIndex + 1) % LOADING_MESSAGES.length;
-          return LOADING_MESSAGES[nextIndex];
-        });
+        setState(prev => ({
+          ...prev,
+          loadingMessage: prev.loadingMessage === LOADING_MESSAGES[LOADING_MESSAGES.length - 1]
+            ? LOADING_MESSAGES[0]
+            : LOADING_MESSAGES[LOADING_MESSAGES.indexOf(prev.loadingMessage) + 1]
+        }));
       }, 3000);
       return () => clearInterval(interval);
     }
-  }, [loading]);
+  }, [state.loading]);
 
   // Add input validation to the question input
-  const handleQuestionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleQuestionChange: QuestionChangeHandler = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
     if (newValue.length <= MAX_QUESTION_LENGTH) {
-      setQuestion(newValue);
+      setState(prev => ({ ...prev, question: newValue }));
     }
   };
 
   return (
     <PulsePalErrorBoundary>
-      <div className={`space-y-6 ${isDarkMode ? 'dark' : ''}`}>
+      <div className={`space-y-6 ${state.isDarkMode ? 'dark' : ''}`}>
         {/* Offline Indicator */}
         <AnimatePresence>
-          {isOffline && (
+          {state.isOffline && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -732,8 +910,8 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
         >
           <Globe className="h-5 w-5 text-gray-500" />
           <select
-            value={selectedLanguage}
-            onChange={(e) => setSelectedLanguage(e.target.value)}
+            value={state.selectedLanguage}
+            onChange={(e) => setState(prev => ({ ...prev, selectedLanguage: e.target.value }))}
             className="bg-white border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200"
           >
             {SUPPORTED_LANGUAGES.map(lang => (
@@ -751,19 +929,19 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
           className="relative"
         >
           <textarea
-            value={question}
+            value={state.question}
             onChange={handleQuestionChange}
             placeholder="Ask me anything about deals and events..."
             className={`w-full p-4 rounded-lg border ${
-              question.length > MAX_QUESTION_LENGTH * 0.9
+              state.question.length > MAX_QUESTION_LENGTH * 0.9
                 ? 'border-yellow-300 focus:border-yellow-400'
                 : 'border-gray-300 focus:border-purple-400'
             } focus:ring-2 focus:ring-purple-200 transition-colors`}
             rows={4}
-            disabled={loadingState === 'loading'}
+            disabled={state.loadingState === 'loading'}
           />
           <div className="absolute bottom-2 right-2 text-sm text-gray-500">
-            {question.length}/{MAX_QUESTION_LENGTH}
+            {state.question.length}/{MAX_QUESTION_LENGTH}
           </div>
         </motion.div>
 
@@ -777,14 +955,14 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleApiCall}
-            disabled={loadingState === 'loading' || !question.trim()}
+            disabled={state.loadingState === 'loading' || !state.question.trim()}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-              loadingState === 'loading'
+              state.loadingState === 'loading'
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 : 'bg-purple-600 text-white hover:bg-purple-700'
             }`}
           >
-            {loadingState === 'loading' ? (
+            {state.loadingState === 'loading' ? (
               <>
                 <Loader2 className="h-5 w-5 animate-spin" />
                 <span>Processing...</span>
@@ -800,14 +978,14 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => setIsVoiceActive(!isVoiceActive)}
+            onClick={() => setState(prev => ({ ...prev, isVoiceActive: !prev.isVoiceActive }))}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-              isVoiceActive
+              state.isVoiceActive
                 ? 'bg-red-100 text-red-600 hover:bg-red-200'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            {isVoiceActive ? (
+            {state.isVoiceActive ? (
               <>
                 <MicOff className="h-5 w-5" />
                 <span>Stop Voice</span>
@@ -823,10 +1001,10 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => setIsDarkMode(!isDarkMode)}
+            onClick={() => setState(prev => ({ ...prev, isDarkMode: !prev.isDarkMode }))}
             className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
           >
-            {isDarkMode ? (
+            {state.isDarkMode ? (
               <>
                 <Sun className="h-5 w-5" />
                 <span>Light Mode</span>
@@ -842,7 +1020,7 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
 
         {/* Status Messages */}
         <AnimatePresence>
-          {loadingState === 'loading' && (
+          {state.loadingState === 'loading' && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -850,10 +1028,10 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
               className="flex items-center gap-2 text-purple-600"
             >
               <Loader2 className="h-5 w-5 animate-spin" />
-              <span className="text-sm font-medium">{loadingMessage}</span>
+              <span className="text-sm font-medium">{state.loadingMessage}</span>
             </motion.div>
           )}
-          {loadingState === 'error' && error && (
+          {state.loadingState === 'error' && state.error && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -864,11 +1042,11 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
                 <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
-                <p className="text-sm text-red-800">{error}</p>
+                <p className="text-sm text-red-800">{state.error}</p>
               </div>
             </motion.div>
           )}
-          {loadingState === 'success' && (
+          {state.loadingState === 'success' && (
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -887,7 +1065,7 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
 
         {/* Response Display */}
         <AnimatePresence>
-          {response && (
+          {state.response && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -895,7 +1073,7 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
               className="bg-white border border-gray-200 rounded-lg p-4"
             >
               <div className="prose max-w-none">
-                {response}
+                {state.response}
               </div>
             </motion.div>
           )}
@@ -913,10 +1091,10 @@ export function PulsePal({ apiKey }: { apiKey: string }) {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={exportConversations}
-              disabled={isExporting || !isApiKeyValid}
+              disabled={state.isExporting || !state.isApiKeyValid}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 hover:bg-purple-200 rounded-md text-purple-700 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isExporting ? (
+              {state.isExporting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
                   <span>Exporting...</span>

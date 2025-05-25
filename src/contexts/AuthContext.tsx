@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { AuthUser, AuthError, SignInParams, SignUpParams, SignInResponse, SignUpResponse } from './AuthContextTypes';
 
 interface User {
   id: string;
@@ -20,150 +21,139 @@ interface Session {
   user: User;
 }
 
-interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  userRole: string | null;
-  session: Session | null;
-  isAdmin: boolean;
-  isMerchant: boolean;
-  signIn: (email: string, password: string) => Promise<any>;
-  signUp: (email: string, password: string, metadata?: any) => Promise<any>;
-  signOut: () => Promise<void>;
-  signInWithGoogle: () => Promise<any>;
-  signInWithFacebook: () => Promise<any>;
-  resetPassword: (email: string) => Promise<any>;
+interface AuthState {
+  user: AuthUser | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: AuthError | null;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+interface AuthContextValue extends AuthState {
+  login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string, userData: Partial<AuthUser>) => Promise<void>;
+  logout: () => Promise<void>;
+  updateProfile: (data: Partial<AuthUser>) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  verifyEmail: (token: string) => Promise<void>;
+  userRole: string | null;
+  isAdmin: boolean;
+  isMerchant: boolean;
+}
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+interface AuthProviderProps {
+  children: React.ReactNode;
+}
 
-export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+export const AuthContext = createContext<AuthContextValue>({
+  user: null,
+  isAuthenticated: false,
+  isLoading: false,
+  error: null,
+  login: async () => {},
+  signup: async () => {},
+  logout: async () => {},
+  updateProfile: async () => {},
+  resetPassword: async () => {},
+  verifyEmail: async () => {},
+  userRole: null,
+  isAdmin: false,
+  isMerchant: false,
+});
 
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [state, setState] = useState<AuthState>({
+    user: null,
+    isAuthenticated: false,
+    isLoading: true,
+    error: null,
+  });
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+  const handleError = (error: unknown): AuthError => {
+    if (error instanceof Error) {
+      return {
+        code: 'AUTH_ERROR',
+        message: error.message,
+      };
+    }
+    return {
+      code: 'UNKNOWN_ERROR',
+      message: 'An unknown error occurred',
+    };
+  };
 
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const signIn = async (email: string, password: string) => {
+  const login = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+      setState(prev => ({ ...prev, isLoading: true, error: null }));
+      const params: SignInParams = { identifier: email, password };
+      const response: SignInResponse = await clerk.client.signIn.create(params);
+      
+      if (response.status === 'complete') {
+        const user = await clerk.user;
+        setState({
+          user: {
+            id: user.id,
+            email: user.emailAddresses[0].emailAddress,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            imageUrl: user.imageUrl,
+            role: 'user',
+          },
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        });
+      }
+    } catch (error) {
+      const authError = handleError(error);
+      setState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: authError,
+      }));
+      toast.error('Login failed', {
+        description: authError.message,
+      });
+    }
+  };
+
+  const signup = async (email: string, password: string, userData: Partial<AuthUser>) => {
+    try {
+      setState(prev => ({ ...prev, isLoading: true, error: null }));
+      const params: SignUpParams = {
+        emailAddress: email,
         password,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        metadata: { role: userData.role },
+      };
+      const response: SignUpResponse = await clerk.client.signUp.create(params);
+      
+      if (response.status === 'complete') {
+        const user = await clerk.user;
+        setState({
+          user: {
+            id: user.id,
+            email: user.emailAddresses[0].emailAddress,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            imageUrl: user.imageUrl,
+            role: userData.role || 'user',
+          },
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        });
+      }
+    } catch (error) {
+      const authError = handleError(error);
+      setState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: authError,
+      }));
+      toast.error('Signup failed', {
+        description: authError.message,
       });
-
-      if (error) throw error;
-
-      toast.success('Signed in successfully');
-      return { success: true, data };
-    } catch (error: any) {
-      toast.error('Sign in failed', {
-        description: error.message || 'Invalid credentials'
-      });
-      throw error;
-    }
-  };
-
-  const signUp = async (email: string, password: string, metadata?: any) => {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: metadata
-        }
-      });
-
-      if (error) throw error;
-
-      toast.success('Account created successfully');
-      return { success: true, data };
-    } catch (error: any) {
-      toast.error('Sign up failed', {
-        description: error.message || 'Could not create account'
-      });
-      throw error;
-    }
-  };
-
-  const signInWithGoogle = async () => {
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
-      });
-
-      if (error) throw error;
-
-      return { success: true, data };
-    } catch (error: any) {
-      toast.error('Google sign in failed', {
-        description: error.message || 'Could not sign in with Google'
-      });
-      throw error;
-    }
-  };
-
-  const signInWithFacebook = async () => {
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'facebook',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
-      });
-
-      if (error) throw error;
-
-      return { success: true, data };
-    } catch (error: any) {
-      toast.error('Facebook sign in failed', {
-        description: error.message || 'Could not sign in with Facebook'
-      });
-      throw error;
-    }
-  };
-
-  const resetPassword = async (email: string) => {
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`
-      });
-
-      if (error) throw error;
-
-      toast.success('Password reset email sent');
-      return { success: true };
-    } catch (error: any) {
-      toast.error('Password reset failed', {
-        description: error.message || 'Could not send reset email'
-      });
-      throw error;
     }
   };
 
@@ -172,34 +162,43 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
-      toast.success('Signed out successfully');
-    } catch (error: any) {
-      toast.error('Sign out failed', {
-        description: error.message || 'Could not sign out'
+      setState({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: null,
       });
-      throw error;
+      
+      toast.success('Signed out successfully');
+    } catch (error) {
+      const authError = handleError(error);
+      toast.error('Sign out failed', {
+        description: authError.message,
+      });
+      throw authError;
     }
   };
 
   // Get user role from metadata
-  const userRole = user?.app_metadata?.role || null;
+  const userRole = state.user?.app_metadata?.role || null;
   const isAdmin = userRole === 'admin';
   const isMerchant = userRole === 'merchant';
 
   return (
     <AuthContext.Provider value={{
-      user,
-      loading,
+      user: state.user,
+      isAuthenticated: state.isAuthenticated,
+      isLoading: state.isLoading,
+      error: state.error,
+      login,
+      signup,
+      logout: signOut,
+      updateProfile: async () => {},
+      resetPassword: async () => {},
+      verifyEmail: async () => {},
       userRole,
-      session,
       isAdmin,
       isMerchant,
-      signIn,
-      signUp,
-      signOut,
-      signInWithGoogle,
-      signInWithFacebook,
-      resetPassword
     }}>
       {children}
     </AuthContext.Provider>

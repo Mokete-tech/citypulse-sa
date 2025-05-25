@@ -1,31 +1,29 @@
 import { toast } from "sonner";
+import { AuthUser, AuthError, SignInParams, SignUpParams, SignInResponse, SignUpResponse } from '../contexts/AuthContextTypes';
 
 // Types for Clerk methods
-interface SignInParams {
-  identifier: string;
-  password?: string; // Make password optional
-}
-
-interface SignUpParams {
-  emailAddress?: string;
-  password?: string;
-  phoneNumber?: string;
-  unsafeMetadata?: any;
-}
-
-interface PhoneSignInParams {
-  strategy: string;
-  phoneNumberId: string;
+interface ClerkUser {
+  id: string;
+  emailAddresses: Array<{ emailAddress: string }>;
+  firstName: string | null;
+  lastName: string | null;
+  imageUrl: string;
 }
 
 interface ClerkClient {
   signIn: {
-    create: (params: SignInParams) => Promise<any>;
-    attemptFirstFactor: (params: any) => Promise<any>;
+    create: (params: SignInParams) => Promise<SignInResponse>;
+    attemptFirstFactor: (params: SignInParams) => Promise<SignInResponse>;
   };
   signUp: {
-    create: (params: SignUpParams) => Promise<any>;
+    create: (params: SignUpParams) => Promise<SignUpResponse>;
   };
+}
+
+interface Clerk {
+  user: Promise<ClerkUser>;
+  client: ClerkClient;
+  signOut: () => Promise<void>;
 }
 
 interface ClerkInstance {
@@ -35,23 +33,35 @@ interface ClerkInstance {
     strategy: string;
     redirectUrl: string;
     redirectUrlComplete?: string;
-  }) => Promise<any>;
+  }) => Promise<void>;
+}
+
+interface AuthResponse {
+  success: boolean;
+  data?: SignInResponse | SignUpResponse;
+  error?: string;
+}
+
+interface PhoneFactor {
+  strategy: string;
+  phoneNumberId: string;
 }
 
 // Email authentication methods
-export const emailSignIn = async (clerk: ClerkInstance, email: string, password: string) => {
+export const emailSignIn = async (clerk: ClerkInstance, email: string, password: string): Promise<AuthResponse> => {
   try {
     const response = await clerk.client.signIn.create({
       identifier: email,
       password: password,
     });
     return { success: true, data: response };
-  } catch (error: any) {
-    console.error("Sign in error:", error);
+  } catch (error) {
+    const authError = handleAuthError(error);
+    console.error("Sign in error:", authError);
     toast.error("Sign in failed", {
-      description: error.message || "Invalid credentials. Please try again.",
+      description: authError.message || "Invalid credentials. Please try again.",
     });
-    throw error;
+    throw authError;
   }
 };
 
@@ -59,8 +69,8 @@ export const emailSignUp = async (
   clerk: ClerkInstance, 
   email: string, 
   password: string, 
-  metadata?: any
-) => {
+  metadata?: Record<string, unknown>
+): Promise<AuthResponse> => {
   try {
     const response = await clerk.client.signUp.create({
       emailAddress: email,
@@ -68,52 +78,54 @@ export const emailSignUp = async (
       unsafeMetadata: metadata || {},
     });
     return { success: true, data: response };
-  } catch (error: any) {
-    console.error("Sign up error:", error);
+  } catch (error) {
+    const authError = handleAuthError(error);
+    console.error("Sign up error:", authError);
     toast.error("Sign up failed", {
-      description: error.message || "Could not create account. Please try again.",
+      description: authError.message || "Could not create account. Please try again.",
     });
-    throw error;
+    throw authError;
   }
 };
 
 // OAuth authentication methods
-export const googleSignIn = async (clerk: ClerkInstance) => {
+export const googleSignIn = async (clerk: ClerkInstance): Promise<AuthResponse> => {
   try {
     await clerk.authenticateWithRedirect({
       strategy: "oauth_google",
       redirectUrl: '/auth/callback',
     });
     return { success: true };
-  } catch (error: any) {
-    console.error("Google sign in error:", error);
+  } catch (error) {
+    const authError = handleAuthError(error);
+    console.error("Google sign in error:", authError);
     toast.error("Google sign in failed", {
-      description: error.message || "Could not sign in with Google. Please try again.",
+      description: authError.message || "Could not sign in with Google. Please try again.",
     });
-    throw error;
+    throw authError;
   }
 };
 
-export const facebookSignIn = async (clerk: ClerkInstance) => {
+export const facebookSignIn = async (clerk: ClerkInstance): Promise<AuthResponse> => {
   try {
     await clerk.authenticateWithRedirect({
       strategy: "oauth_facebook",
       redirectUrl: '/auth/callback',
     });
     return { success: true };
-  } catch (error: any) {
-    console.error("Facebook sign in error:", error);
+  } catch (error) {
+    const authError = handleAuthError(error);
+    console.error("Facebook sign in error:", authError);
     toast.error("Facebook sign in failed", {
-      description: error.message || "Could not sign in with Facebook. Please try again.",
+      description: authError.message || "Could not sign in with Facebook. Please try again.",
     });
-    throw error;
+    throw authError;
   }
 };
 
 // Phone authentication methods
-export const phoneSignIn = async (clerk: ClerkInstance, phone: string, verificationCode?: string) => {
+export const phoneSignIn = async (clerk: ClerkInstance, phone: string, verificationCode?: string): Promise<AuthResponse> => {
   try {
-    // If verification code is provided, complete sign-in
     if (verificationCode) {
       const response = await clerk.client.signIn.attemptFirstFactor({
         strategy: "phone_code",
@@ -122,14 +134,12 @@ export const phoneSignIn = async (clerk: ClerkInstance, phone: string, verificat
       return { success: true, data: response };
     }
     
-    // Otherwise start the phone verification process
     const response = await clerk.client.signIn.create({
       identifier: phone,
     });
     
-    // Initiate phone code verification
     const phoneFactors = response.supportedFirstFactors.find(
-      (factor: any) => factor.strategy === "phone_code"
+      (factor: PhoneFactor) => factor.strategy === "phone_code"
     );
     
     if (phoneFactors) {
@@ -140,98 +150,169 @@ export const phoneSignIn = async (clerk: ClerkInstance, phone: string, verificat
     }
     
     return { success: true, data: response };
-  } catch (error: any) {
-    console.error("Phone sign in error:", error);
+  } catch (error) {
+    const authError = handleAuthError(error);
+    console.error("Phone sign in error:", authError);
     toast.error("Phone sign in failed", {
-      description: error.message || "Could not sign in with phone. Please try again.",
+      description: authError.message || "Could not sign in with phone. Please try again.",
     });
-    throw error;
+    throw authError;
   }
 };
 
-export const phoneSignUp = async (clerk: ClerkInstance, phone: string, metadata?: any) => {
+export const phoneSignUp = async (
+  clerk: ClerkInstance, 
+  phone: string, 
+  metadata?: Record<string, unknown>
+): Promise<AuthResponse> => {
   try {
     const response = await clerk.client.signUp.create({
       phoneNumber: phone,
       unsafeMetadata: metadata || {},
     });
     
-    // Prepare phone verification
     await response.prepareVerification({
       strategy: "phone_code",
     });
     
     return { success: true, data: response };
-  } catch (error: any) {
-    console.error("Phone sign up error:", error);
+  } catch (error) {
+    const authError = handleAuthError(error);
+    console.error("Phone sign up error:", authError);
     toast.error("Phone sign up failed", {
-      description: error.message || "Could not sign up with phone. Please try again.",
+      description: authError.message || "Could not sign up with phone. Please try again.",
     });
-    throw error;
+    throw authError;
   }
 };
 
-export const verifyPhoneOtp = async (clerk: ClerkInstance, phone: string, code: string) => {
+export const verifyPhoneOtp = async (clerk: ClerkInstance, phone: string, code: string): Promise<AuthResponse> => {
   try {
-    // This handles verification by passing the verification code to phoneSignIn
     return await phoneSignIn(clerk, phone, code);
-  } catch (error: any) {
-    console.error("OTP verification error:", error);
+  } catch (error) {
+    const authError = handleAuthError(error);
+    console.error("OTP verification error:", authError);
     toast.error("OTP verification failed", {
-      description: error.message || "Invalid verification code. Please try again.",
+      description: authError.message || "Invalid verification code. Please try again.",
     });
-    throw error;
+    throw authError;
   }
 };
 
-export const sendPhoneVerification = async (clerk: ClerkInstance, phone: string) => {
+export const sendPhoneVerification = async (clerk: ClerkInstance, phone: string): Promise<AuthResponse> => {
   try {
-    // Try to create a sign in with phone
     await phoneSignIn(clerk, phone);
     return { success: true };
-  } catch (error: any) {
-    console.error("Send verification error:", error);
+  } catch (error) {
+    const authError = handleAuthError(error);
+    console.error("Send verification error:", authError);
     toast.error("Failed to send verification code", {
-      description: error.message || "Could not send verification code. Please try again.",
+      description: authError.message || "Could not send verification code. Please try again.",
     });
-    return { success: false, error: String(error) };
+    return { success: false, error: authError.message };
   }
 };
 
 // Password reset method
-export const resetPassword = async (clerk: ClerkInstance, email: string) => {
+export const resetPassword = async (clerk: ClerkInstance, email: string): Promise<AuthResponse> => {
   try {
-    // Use the password reset flow instead of the regular sign-in
     await clerk.client.signIn.create({
       identifier: email,
-      // Use reset_password_email_code strategy without password
     });
     
-    // Get the first factor for password reset
-    // We'll simulate this for now since the actual flow might be different in your Clerk implementation
     toast.success("Password reset email sent", {
       description: `If an account exists with ${email}, you'll receive an email with reset instructions.`
     });
     return { success: true };
-  } catch (error: any) {
-    console.error("Password reset error:", error);
+  } catch (error) {
+    const authError = handleAuthError(error);
+    console.error("Password reset error:", authError);
     toast.error("Password reset failed", {
-      description: error.message || "Could not reset password. Please try again.",
+      description: authError.message || "Could not reset password. Please try again.",
     });
-    return { success: false, error: String(error) };
+    return { success: false, error: authError.message };
   }
 };
 
-export const signOut = async (clerk: ClerkInstance) => {
+export const signOut = async (clerk: ClerkInstance): Promise<AuthResponse> => {
   try {
     await clerk.signOut();
     toast.success("Signed out successfully");
     return { success: true };
-  } catch (error: any) {
-    console.error("Sign out error:", error);
+  } catch (error) {
+    const authError = handleAuthError(error);
+    console.error("Sign out error:", authError);
     toast.error("Sign out failed", {
-      description: error.message || "Could not sign out. Please try again.",
+      description: authError.message || "Could not sign out. Please try again.",
     });
-    throw error;
+    throw authError;
+  }
+};
+
+export const handleAuthError = (error: unknown): AuthError => {
+  if (error instanceof Error) {
+    return {
+      code: 'AUTH_ERROR',
+      message: error.message,
+    };
+  }
+  return {
+    code: 'UNKNOWN_ERROR',
+    message: 'An unknown error occurred',
+  };
+};
+
+export const login = async (clerk: Clerk, email: string, password: string): Promise<AuthUser> => {
+  try {
+    const params: SignInParams = { identifier: email, password };
+    const response: SignInResponse = await clerk.client.signIn.create(params);
+    
+    if (response.status === 'complete') {
+      const user = await clerk.user;
+      return {
+        id: user.id,
+        email: user.emailAddresses[0].emailAddress,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        imageUrl: user.imageUrl,
+        role: 'user',
+      };
+    }
+    throw new Error('Authentication failed');
+  } catch (error) {
+    throw handleAuthError(error);
+  }
+};
+
+export const signup = async (
+  clerk: Clerk,
+  email: string,
+  password: string,
+  userData: Partial<AuthUser>
+): Promise<AuthUser> => {
+  try {
+    const params: SignUpParams = {
+      emailAddress: email,
+      password,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      metadata: { role: userData.role },
+    };
+    const response: SignUpResponse = await clerk.client.signUp.create(params);
+    
+    if (response.status === 'complete') {
+      const user = await clerk.user;
+      return {
+        id: user.id,
+        email: user.emailAddresses[0].emailAddress,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        imageUrl: user.imageUrl,
+        role: userData.role || 'user',
+      };
+    }
+    throw new Error('Registration failed');
+  } catch (error) {
+    throw handleAuthError(error);
   }
 };

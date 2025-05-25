@@ -1,4 +1,3 @@
-
 import { toast } from 'sonner';
 
 interface ErrorOptions {
@@ -8,10 +7,20 @@ interface ErrorOptions {
     label: string;
     onClick: () => void;
   };
-  silent?: boolean; // Adding silent option
+  silent?: boolean;
 }
 
-export const handleError = (error: any, options: ErrorOptions = {}) => {
+interface BaseError {
+  message?: string;
+  error?: {
+    message?: string;
+  };
+  data?: {
+    message?: string;
+  };
+}
+
+export const handleError = (error: unknown, options: ErrorOptions = {}) => {
   console.error('Error occurred:', error);
   
   const title = options.title || 'An error occurred';
@@ -27,17 +36,20 @@ export const handleError = (error: any, options: ErrorOptions = {}) => {
   return error;
 };
 
-export const handleSupabaseError = (error: any, options: ErrorOptions = {}) => {
+export const handleSupabaseError = (error: unknown, options: ErrorOptions = {}) => {
   console.error('Supabase error:', error);
   
   // Extract specific Supabase error information
   let errorMessage = extractErrorMessage(error);
   
   // Handle specific Supabase error codes
-  if (error?.code === 'PGRST116') {
-    errorMessage = 'Not found: The requested resource does not exist';
-  } else if (error?.code === 'PGRST301') {
-    errorMessage = 'Permission denied: You do not have access to this resource';
+  if (error && typeof error === 'object' && 'code' in error) {
+    const errorWithCode = error as { code: string };
+    if (errorWithCode.code === 'PGRST116') {
+      errorMessage = 'Not found: The requested resource does not exist';
+    } else if (errorWithCode.code === 'PGRST301') {
+      errorMessage = 'Permission denied: You do not have access to this resource';
+    }
   }
   
   const title = options.title || 'Database error';
@@ -52,16 +64,17 @@ export const handleSupabaseError = (error: any, options: ErrorOptions = {}) => {
   return error;
 };
 
-const extractErrorMessage = (error: any): string => {
+const extractErrorMessage = (error: unknown): string => {
   if (!error) return 'Unknown error occurred';
   
   if (typeof error === 'string') return error;
   
-  if (error.message) return error.message;
-  
-  if (error.error && error.error.message) return error.error.message;
-  
-  if (error.data && error.data.message) return error.data.message;
+  if (error && typeof error === 'object') {
+    const err = error as BaseError;
+    if (err.message) return err.message;
+    if (err.error?.message) return err.error.message;
+    if (err.data?.message) return err.data.message;
+  }
   
   return 'Something went wrong';
 };

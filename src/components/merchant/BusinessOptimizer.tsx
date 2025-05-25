@@ -11,17 +11,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays, subMonths } from "date-fns";
 import { cn } from "@/lib/utils";
 
-interface Deal {
-  id: string;
-  title: string;
-  description: string;
-  discount: string;
-  validUntil: string;
-  category: string;
-  views: number;
-  redemptions: number;
-}
-
 interface Event {
   id: string;
   title: string;
@@ -32,15 +21,63 @@ interface Event {
   category: string;
   attendees: number;
   capacity: number;
+  status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
+  price?: number;
+  currency?: string;
+}
+
+interface Deal {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  discount?: number;
+  startDate: string;
+  endDate: string;
+  location: string;
+  category: string;
+  status: 'active' | 'expired' | 'sold_out' | 'cancelled';
+  views: number;
+  shares: number;
+  purchases: number;
+}
+
+interface TemplateDeal {
+  title: string;
+  description: string;
+  discount: string;
+  validUntil: string;
+  category: 'flash' | 'weekly' | 'monthly' | 'seasonal' | 'bulk';
+  views: number;
+  redemptions: number;
+}
+
+interface TemplateEvent {
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  location: string;
+  category: 'tasting' | 'workshop' | 'showcase' | 'tournament';
+  attendees: number;
+  capacity: number;
 }
 
 interface Template {
   id: string;
   name: string;
   icon: React.ElementType;
-  deals: Deal[];
-  events: Event[];
+  deals: TemplateDeal[];
+  events: TemplateEvent[];
   bestPractices: string[];
+  category: 'food' | 'entertainment' | 'retail' | 'services' | 'other';
+  targetAudience: string[];
+  successMetrics: {
+    views: number;
+    shares: number;
+    purchases: number;
+    revenue: number;
+  };
 }
 
 interface SeasonalPromotion {
@@ -51,183 +88,398 @@ interface SeasonalPromotion {
   events: Event[];
 }
 
-interface CreativeTemplate extends Template {}
+interface CreativeTemplate extends Template {
+  innovationLevel: 'basic' | 'intermediate' | 'advanced';
+  techRequirements: string[];
+  implementationTime: string;
+  expectedROI: {
+    min: number;
+    max: number;
+    timeframe: string;
+  };
+}
 
-const BusinessOptimizer = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [sortBy, setSortBy] = useState('newest');
-  const [dateRange, setDateRange] = useState<{
+interface Filter {
+  type: 'search' | 'category' | 'date' | 'sort';
+  label: string;
+  value: string;
+  options?: Array<{
+    label: string;
+    value: string;
+  }>;
+}
+
+interface FilterState {
+  search: string;
+  category: string;
+  sort: string;
+  dateRange: {
     from: Date | undefined;
     to: Date | undefined;
-  }>({
-    from: undefined,
-    to: undefined,
-  });
-  const [savedFilters, setSavedFilters] = useState<Array<{
-    name: string;
-    filters: {
-      search: string;
-      category: string;
-      sort: string;
-      dateRange: { from: Date | undefined; to: Date | undefined };
-    };
-  }>>([]);
-  const [deals, setDeals] = useState<Deal[]>([]);
-  const [events, setEvents] = useState<Event[]>([]);
+  };
+}
 
-  const applyDatePreset = (preset: string) => {
+interface SavedFilter {
+  name: string;
+  filters: FilterState;
+}
+
+interface FilterStats {
+  total: number;
+  filtered: number;
+  percentage: number;
+}
+
+interface BusinessMetrics {
+  totalDeals: number;
+  activeDeals: number;
+  totalEvents: number;
+  upcomingEvents: number;
+  totalViews: number;
+  totalShares: number;
+  totalPurchases: number;
+  totalRevenue: number;
+  averageRating: number;
+  customerSatisfaction: number;
+}
+
+interface OptimizationSuggestion {
+  type: 'deal' | 'event' | 'marketing' | 'pricing' | 'timing';
+  title: string;
+  description: string;
+  impact: 'high' | 'medium' | 'low';
+  effort: 'high' | 'medium' | 'low';
+  priority: number;
+  action: () => Promise<void>;
+}
+
+interface BusinessOptimizerState {
+  searchQuery: string;
+  selectedCategory: string;
+  sortBy: string;
+  dateRange: {
+    from: Date | undefined;
+    to: Date | undefined;
+  };
+  savedFilters: SavedFilter[];
+  filterState: FilterState;
+  deals: Deal[];
+  events: Event[];
+  selectedTemplate: string | null;
+  selectedSeason: string | null;
+  selectedCreative: string | null;
+  metrics: BusinessMetrics;
+  suggestions: OptimizationSuggestion[];
+  isLoading: boolean;
+  error: string | null;
+}
+
+type StateUpdate<T> = Partial<T> | ((prev: T) => Partial<T>);
+
+interface BusinessOptimizerProps {
+  onFilterChange?: (filters: FilterState) => void;
+  onTemplateApply?: (template: Template) => void;
+  onSeasonalPromotionApply?: (promotion: SeasonalPromotion) => void;
+  onCreativeTemplateApply?: (template: CreativeTemplate) => void;
+  onMetricsUpdate?: (metrics: BusinessMetrics) => void;
+  onSuggestionApply?: (suggestion: OptimizationSuggestion) => void;
+}
+
+const BusinessOptimizer: React.FC<BusinessOptimizerProps> = ({
+  onFilterChange,
+  onTemplateApply,
+  onSeasonalPromotionApply,
+  onCreativeTemplateApply,
+  onMetricsUpdate,
+  onSuggestionApply
+}) => {
+  const [state, setState] = useState<BusinessOptimizerState>({
+    searchQuery: '',
+    selectedCategory: 'all',
+    sortBy: 'newest',
+    dateRange: {
+      from: undefined,
+      to: undefined,
+    },
+    savedFilters: [],
+    filterState: {
+      search: '',
+      category: 'all',
+      sort: 'newest',
+      dateRange: {
+        from: undefined,
+        to: undefined
+      }
+    },
+    deals: [],
+    events: [],
+    selectedTemplate: null,
+    selectedSeason: null,
+    selectedCreative: null,
+    metrics: {
+      totalDeals: 0,
+      activeDeals: 0,
+      totalEvents: 0,
+      upcomingEvents: 0,
+      totalViews: 0,
+      totalShares: 0,
+      totalPurchases: 0,
+      totalRevenue: 0,
+      averageRating: 0,
+      customerSatisfaction: 0
+    },
+    suggestions: [],
+    isLoading: false,
+    error: null
+  });
+
+  const applyDatePreset: DatePresetHandler = (preset: DatePreset) => {
     const today = new Date();
     switch (preset) {
       case 'today':
-        setDateRange({ from: today, to: today });
+        setState(prev => ({
+          ...prev,
+          dateRange: { from: today, to: today }
+        }));
         break;
-      case 'yesterday':
-        setDateRange({ from: subDays(today, 1), to: subDays(today, 1) });
+      case 'yesterday': {
+        const yesterday = subDays(today, 1);
+        setState(prev => ({
+          ...prev,
+          dateRange: { from: yesterday, to: yesterday }
+        }));
         break;
+      }
       case 'last7Days':
-        setDateRange({ from: subDays(today, 7), to: today });
+        setState(prev => ({
+          ...prev,
+          dateRange: { from: subDays(today, 7), to: today }
+        }));
         break;
       case 'last30Days':
-        setDateRange({ from: subDays(today, 30), to: today });
+        setState(prev => ({
+          ...prev,
+          dateRange: { from: subDays(today, 30), to: today }
+        }));
         break;
       case 'thisWeek':
-        setDateRange({ from: startOfWeek(today), to: endOfWeek(today) });
+        setState(prev => ({
+          ...prev,
+          dateRange: { from: startOfWeek(today), to: endOfWeek(today) }
+        }));
         break;
-      case 'lastWeek':
-        setDateRange({ 
-          from: startOfWeek(subDays(today, 7)), 
-          to: endOfWeek(subDays(today, 7)) 
-        });
+      case 'lastWeek': {
+        const lastWeekStart = startOfWeek(subDays(today, 7));
+        const lastWeekEnd = endOfWeek(subDays(today, 7));
+        setState(prev => ({
+          ...prev,
+          dateRange: { from: lastWeekStart, to: lastWeekEnd }
+        }));
         break;
-      case 'nextWeek':
-        setDateRange({ 
-          from: addDays(startOfWeek(today), 7), 
-          to: addDays(endOfWeek(today), 7) 
-        });
+      }
+      case 'nextWeek': {
+        const nextWeekStart = addDays(startOfWeek(today), 7);
+        const nextWeekEnd = addDays(endOfWeek(today), 7);
+        setState(prev => ({
+          ...prev,
+          dateRange: { from: nextWeekStart, to: nextWeekEnd }
+        }));
         break;
+      }
       case 'thisMonth':
-        setDateRange({ from: startOfMonth(today), to: endOfMonth(today) });
+        setState(prev => ({
+          ...prev,
+          dateRange: { from: startOfMonth(today), to: endOfMonth(today) }
+        }));
         break;
-      case 'lastMonth':
-        setDateRange({ 
-          from: startOfMonth(subMonths(today, 1)), 
-          to: endOfMonth(subMonths(today, 1)) 
-        });
+      case 'lastMonth': {
+        const lastMonthStart = startOfMonth(subMonths(today, 1));
+        const lastMonthEnd = endOfMonth(subMonths(today, 1));
+        setState(prev => ({
+          ...prev,
+          dateRange: { from: lastMonthStart, to: lastMonthEnd }
+        }));
         break;
-      case 'nextMonth':
+      }
+      case 'nextMonth': {
         const nextMonth = addDays(today, 30);
-        setDateRange({ 
-          from: startOfMonth(nextMonth), 
-          to: endOfMonth(nextMonth) 
-        });
+        setState(prev => ({
+          ...prev,
+          dateRange: {
+            from: startOfMonth(nextMonth),
+            to: endOfMonth(nextMonth)
+          }
+        }));
         break;
+      }
       case 'clear':
-        setDateRange({ from: undefined, to: undefined });
+        setState(prev => ({
+          ...prev,
+          dateRange: { from: undefined, to: undefined }
+        }));
         break;
     }
   };
 
-  const applyFilterCombination = (combination: string) => {
+  const applyFilterCombination: FilterCombinationHandler = (combination: FilterCombination) => {
     switch (combination) {
       case 'popularThisWeek':
-        setSortBy('popular');
-        applyDatePreset('thisWeek');
+        setState(prev => ({
+          ...prev,
+          filterState: {
+            ...prev.filterState,
+            sort: 'popular',
+            dateRange: {
+              from: startOfWeek(new Date()),
+              to: endOfWeek(new Date())
+            }
+          }
+        }));
         break;
       case 'endingSoon':
-        setSortBy('oldest');
-        applyDatePreset('last7Days');
+        setState(prev => ({
+          ...prev,
+          filterState: {
+            ...prev.filterState,
+            sort: 'oldest',
+            dateRange: {
+              from: subDays(new Date(), 7),
+              to: new Date()
+            }
+          }
+        }));
         break;
       case 'newDeals':
-        setSortBy('newest');
-        applyDatePreset('last7Days');
+        setState(prev => ({
+          ...prev,
+          filterState: {
+            ...prev.filterState,
+            sort: 'newest',
+            dateRange: {
+              from: subDays(new Date(), 7),
+              to: new Date()
+            }
+          }
+        }));
         break;
       case 'upcomingEvents':
-        setSortBy('newest');
-        applyDatePreset('nextWeek');
+        setState(prev => ({
+          ...prev,
+          filterState: {
+            ...prev.filterState,
+            sort: 'newest',
+            dateRange: {
+              from: addDays(new Date(), 1),
+              to: addDays(new Date(), 7)
+            }
+          }
+        }));
         break;
       case 'trendingDeals':
-        setSortBy('popular');
-        applyDatePreset('last30Days');
+        setState(prev => ({
+          ...prev,
+          filterState: {
+            ...prev.filterState,
+            sort: 'popular',
+            dateRange: {
+              from: subDays(new Date(), 30),
+              to: new Date()
+            }
+          }
+        }));
         break;
       case 'highConversion':
-        setSortBy('popular');
-        setSelectedCategory('flash');
-        applyDatePreset('last30Days');
+        setState(prev => ({
+          ...prev,
+          filterState: {
+            ...prev.filterState,
+            sort: 'popular',
+            category: 'flash',
+            dateRange: {
+              from: subDays(new Date(), 30),
+              to: new Date()
+            }
+          }
+        }));
         break;
       case 'bestSellers':
-        setSortBy('popular');
-        setSelectedCategory('monthly');
-        applyDatePreset('last30Days');
+        setState(prev => ({
+          ...prev,
+          filterState: {
+            ...prev.filterState,
+            sort: 'popular',
+            category: 'monthly',
+            dateRange: {
+              from: subDays(new Date(), 30),
+              to: new Date()
+            }
+          }
+        }));
         break;
       case 'clearAll':
-        setSearchQuery('');
-        setSelectedCategory('all');
-        setSortBy('newest');
-        setDateRange({ from: undefined, to: undefined });
+        setState(prev => ({
+          ...prev,
+          filterState: {
+            search: '',
+            category: 'all',
+            sort: 'newest',
+            dateRange: {
+              from: undefined,
+              to: undefined
+            }
+          }
+        }));
         break;
     }
   };
 
-  const saveCurrentFilters = () => {
+  const saveCurrentFilters: FilterSaveHandler = () => {
     const name = prompt('Enter a name for this filter combination:');
     if (name) {
-      setSavedFilters([
-        ...savedFilters,
-        {
-          name,
-          filters: {
-            search: searchQuery,
-            category: selectedCategory,
-            sort: sortBy,
-            dateRange
+      setState(prev => ({
+        ...prev,
+        savedFilters: [
+          ...prev.savedFilters,
+          {
+            name,
+            filters: prev.filterState
           }
-        }
-      ]);
+        ]
+      }));
     }
   };
 
-  const applySavedFilter = (filter: typeof savedFilters[0]) => {
-    setSearchQuery(filter.filters.search);
-    setSelectedCategory(filter.filters.category);
-    setSortBy(filter.filters.sort);
-    setDateRange(filter.filters.dateRange);
+  const applySavedFilter: SavedFilterHandler = (filter: SavedFilter) => {
+    setState(prev => ({
+      ...prev,
+      filterState: filter.filters
+    }));
   };
 
-  const getActiveFilters = () => {
-    const filters = [];
-    if (searchQuery) filters.push({ type: 'search', label: `Search: ${searchQuery}` });
-    if (selectedCategory !== 'all') filters.push({ type: 'category', label: `Category: ${selectedCategory}` });
-    if (dateRange.from) {
-      const dateLabel = dateRange.to 
-        ? `${format(dateRange.from, "MMM dd")} - ${format(dateRange.to, "MMM dd")}`
-        : format(dateRange.from, "MMM dd");
-      filters.push({ type: 'date', label: `Date: ${dateLabel}` });
-    }
-    if (sortBy !== 'newest') filters.push({ type: 'sort', label: `Sort: ${sortBy}` });
-    return filters;
+  const removeFilter: FilterRemoveHandler = (type: FilterType) => {
+    setState(prev => {
+      const newFilterState = { ...prev.filterState };
+      switch (type) {
+        case 'search':
+          newFilterState.search = '';
+          break;
+        case 'category':
+          newFilterState.category = 'all';
+          break;
+        case 'date':
+          newFilterState.dateRange = { from: undefined, to: undefined };
+          break;
+        case 'sort':
+          newFilterState.sort = 'newest';
+          break;
+      }
+      return { ...prev, filterState: newFilterState };
+    });
   };
 
-  const removeFilter = (type: string) => {
-    switch (type) {
-      case 'search':
-        setSearchQuery('');
-        break;
-      case 'category':
-        setSelectedCategory('all');
-        break;
-      case 'date':
-        setDateRange({ from: undefined, to: undefined });
-        break;
-      case 'sort':
-        setSortBy('newest');
-        break;
-    }
-  };
-
-  const sortItems = (items: Deal[] | Event[], type: 'deals' | 'events') => {
+  const sortItems: SortFunction = (items: Deal[] | Event[], type: 'deals' | 'events') => {
     return [...items].sort((a, b) => {
-      switch (sortBy) {
+      switch (state.filterState.sort) {
         case 'newest':
           return new Date(b.validUntil || b.date).getTime() - new Date(a.validUntil || a.date).getTime();
         case 'oldest':
@@ -244,13 +496,13 @@ const BusinessOptimizer = () => {
     });
   };
 
-  const filterByDateRange = (items: Deal[] | Event[], type: 'deals' | 'events') => {
-    if (!dateRange.from && !dateRange.to) return items;
+  const filterByDateRange: FilterByDateFunction = (items: Deal[] | Event[], type: 'deals' | 'events') => {
+    if (!state.filterState.dateRange.from && !state.filterState.dateRange.to) return items;
     
     return items.filter(item => {
       const itemDate = new Date(type === 'deals' ? (item as Deal).validUntil : (item as Event).date);
-      const fromDate = dateRange.from ? new Date(dateRange.from) : null;
-      const toDate = dateRange.to ? new Date(dateRange.to) : null;
+      const fromDate = state.filterState.dateRange.from ? new Date(state.filterState.dateRange.from) : null;
+      const toDate = state.filterState.dateRange.to ? new Date(state.filterState.dateRange.to) : null;
       
       if (fromDate && toDate) {
         return itemDate >= fromDate && itemDate <= toDate;
@@ -263,30 +515,42 @@ const BusinessOptimizer = () => {
     });
   };
 
-  const filteredDeals = deals
+  const filteredDeals = state.deals
     .filter(deal => {
-      const matchesSearch = deal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           deal.description.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = selectedCategory === 'all' || deal.category === selectedCategory;
+      const matchesSearch = deal.title.toLowerCase().includes(state.filterState.search.toLowerCase()) ||
+                           deal.description.toLowerCase().includes(state.filterState.search.toLowerCase());
+      const matchesCategory = state.filterState.category === 'all' || deal.category === state.filterState.category;
       return matchesSearch && matchesCategory;
     });
 
-  const filteredEvents = events
+  const filteredEvents = state.events
     .filter(event => {
-      const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           event.description.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = selectedCategory === 'all' || event.category === selectedCategory;
+      const matchesSearch = event.title.toLowerCase().includes(state.filterState.search.toLowerCase()) ||
+                           event.description.toLowerCase().includes(state.filterState.search.toLowerCase());
+      const matchesCategory = state.filterState.category === 'all' || event.category === state.filterState.category;
       return matchesSearch && matchesCategory;
     });
 
   const sortedAndFilteredDeals = filterByDateRange(sortItems(filteredDeals, 'deals'), 'deals');
   const sortedAndFilteredEvents = filterByDateRange(sortItems(filteredEvents, 'events'), 'events');
 
-  const activeFilters = getActiveFilters();
+  const activeFilters = useMemo(() => {
+    const filters = [];
+    if (state.filterState.search) filters.push({ type: 'search', label: `Search: ${state.filterState.search}` });
+    if (state.filterState.category !== 'all') filters.push({ type: 'category', label: `Category: ${state.filterState.category}` });
+    if (state.filterState.dateRange.from) {
+      const dateLabel = state.filterState.dateRange.to 
+        ? `${format(state.filterState.dateRange.from, "MMM dd")} - ${format(state.filterState.dateRange.to, "MMM dd")}`
+        : format(state.filterState.dateRange.from, "MMM dd");
+      filters.push({ type: 'date', label: `Date: ${dateLabel}` });
+    }
+    if (state.filterState.sort !== 'newest') filters.push({ type: 'sort', label: `Sort: ${state.filterState.sort}` });
+    return filters;
+  }, [state.filterState.search, state.filterState.category, state.filterState.dateRange, state.filterState.sort]);
 
   const filterStats = useMemo(() => {
-    const totalDeals = deals.length;
-    const totalEvents = events.length;
+    const totalDeals = state.deals.length;
+    const totalEvents = state.events.length;
     const filteredDealsCount = sortedAndFilteredDeals.length;
     const filteredEventsCount = sortedAndFilteredEvents.length;
     const activeTab = document.querySelector('[data-state="active"]')?.getAttribute('value') || 'deals';
@@ -300,7 +564,7 @@ const BusinessOptimizer = () => {
     };
 
     return stats;
-  }, [deals.length, events.length, sortedAndFilteredDeals.length, sortedAndFilteredEvents.length]);
+  }, [state.deals.length, state.events.length, sortedAndFilteredDeals.length, sortedAndFilteredEvents.length]);
 
   const quickStartTemplates = [
     {
@@ -938,26 +1202,31 @@ const BusinessOptimizer = () => {
     }
   ];
 
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [selectedSeason, setSelectedSeason] = useState<string | null>(null);
-  const [selectedCreative, setSelectedCreative] = useState<string | null>(null);
-
-  const applyTemplate = (template: typeof quickStartTemplates[0]) => {
-    setDeals([...deals, ...template.deals]);
-    setEvents([...events, ...template.events]);
-    setSelectedTemplate(template.id);
+  const applyTemplate: TemplateApplyHandler = (template: Template) => {
+    setState(prev => ({
+      ...prev,
+      deals: [...prev.deals, ...template.deals],
+      events: [...prev.events, ...template.events],
+      selectedTemplate: template.id
+    }));
   };
 
-  const applySeasonalPromotion = (promotion: typeof seasonalPromotions[0]) => {
-    setDeals([...deals, ...promotion.deals]);
-    setEvents([...events, ...promotion.events]);
-    setSelectedSeason(promotion.id);
+  const applySeasonalPromotion: SeasonalPromotionHandler = (promotion: SeasonalPromotion) => {
+    setState(prev => ({
+      ...prev,
+      deals: [...prev.deals, ...promotion.deals],
+      events: [...prev.events, ...promotion.events],
+      selectedSeason: promotion.id
+    }));
   };
 
-  const applyCreativeTemplate = (template: typeof creativeTemplates[0]) => {
-    setDeals([...deals, ...template.deals]);
-    setEvents([...events, ...template.events]);
-    setSelectedCreative(template.id);
+  const applyCreativeTemplate: CreativeTemplateHandler = (template: CreativeTemplate) => {
+    setState(prev => ({
+      ...prev,
+      deals: [...prev.deals, ...template.deals],
+      events: [...prev.events, ...template.events],
+      selectedCreative: template.id
+    }));
   };
 
   return (
@@ -991,7 +1260,7 @@ const BusinessOptimizer = () => {
                   key={template.id} 
                   className={cn(
                     "hover:shadow-lg transition-shadow",
-                    selectedTemplate === template.id && "ring-2 ring-primary"
+                    state.selectedTemplate === template.id && "ring-2 ring-primary"
                   )}
                 >
                   <CardHeader>
@@ -1074,7 +1343,7 @@ const BusinessOptimizer = () => {
                   key={promotion.id} 
                   className={cn(
                     "hover:shadow-lg transition-shadow",
-                    selectedSeason === promotion.id && "ring-2 ring-primary"
+                    state.selectedSeason === promotion.id && "ring-2 ring-primary"
                   )}
                 >
                   <CardHeader>
@@ -1137,7 +1406,7 @@ const BusinessOptimizer = () => {
                   key={template.id} 
                   className={cn(
                     "hover:shadow-lg transition-shadow",
-                    selectedCreative === template.id && "ring-2 ring-primary"
+                    state.selectedCreative === template.id && "ring-2 ring-primary"
                   )}
                 >
                   <CardHeader>
@@ -1219,12 +1488,12 @@ const BusinessOptimizer = () => {
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    value={state.filterState.search}
+                    onChange={(e) => setState(prev => ({ ...prev, filterState: { ...prev.filterState, search: e.target.value } } }))}
                     className="pl-8"
                   />
                 </div>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <Select value={state.filterState.category} onValueChange={(value) => setState(prev => ({ ...prev, filterState: { ...prev.filterState, category: value } } }))} className="w-[180px]">
                   <SelectTrigger className="w-[180px]">
                     <Filter className="h-4 w-4 mr-2" />
                     <SelectValue placeholder="Filter by category" />
@@ -1242,7 +1511,7 @@ const BusinessOptimizer = () => {
                     <SelectItem value="showcase">Showcases</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={sortBy} onValueChange={setSortBy}>
+                <Select value={state.filterState.sort} onValueChange={(value) => setState(prev => ({ ...prev, filterState: { ...prev.filterState, sort: value } } }))} className="w-[180px]">
                   <SelectTrigger className="w-[180px]">
                     <ArrowUpDown className="h-4 w-4 mr-2" />
                     <SelectValue placeholder="Sort by" />
@@ -1260,18 +1529,18 @@ const BusinessOptimizer = () => {
                       variant="outline"
                       className={cn(
                         "w-[240px] justify-start text-left font-normal",
-                        !dateRange.from && "text-muted-foreground"
+                        !state.filterState.dateRange.from && "text-muted-foreground"
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateRange.from ? (
-                        dateRange.to ? (
+                      {state.filterState.dateRange.from ? (
+                        state.filterState.dateRange.to ? (
                           <>
-                            {format(dateRange.from, "LLL dd, y")} -{" "}
-                            {format(dateRange.to, "LLL dd, y")}
+                            {format(state.filterState.dateRange.from, "LLL dd, y")} -{" "}
+                            {format(state.filterState.dateRange.to, "LLL dd, y")}
                           </>
                         ) : (
-                          format(dateRange.from, "LLL dd, y")
+                          format(state.filterState.dateRange.from, "LLL dd, y")
                         )
                       ) : (
                         <span>Pick a date range</span>
@@ -1319,9 +1588,9 @@ const BusinessOptimizer = () => {
                     <CalendarComponent
                       initialFocus
                       mode="range"
-                      defaultMonth={dateRange.from}
-                      selected={dateRange}
-                      onSelect={setDateRange}
+                      defaultMonth={state.filterState.dateRange.from}
+                      selected={state.filterState.dateRange}
+                      onSelect={(value) => setState(prev => ({ ...prev, filterState: { ...prev.filterState, dateRange: value } } }))}
                       numberOfMonths={2}
                     />
                   </PopoverContent>
@@ -1411,9 +1680,9 @@ const BusinessOptimizer = () => {
               </div>
             </div>
 
-            {savedFilters.length > 0 && (
+            {state.savedFilters.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {savedFilters.map((filter, index) => (
+                {state.savedFilters.map((filter, index) => (
                   <Button
                     key={index}
                     variant="secondary"

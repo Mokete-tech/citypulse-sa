@@ -33,7 +33,12 @@ export enum PaymentMethod {
 export interface PaymentMetadata {
   item_type: 'deal' | 'event';
   item_id: string;
-  [key: string]: any;
+  user_id?: string;
+  merchant_id?: string;
+  description?: string;
+  customer_email?: string;
+  customer_name?: string;
+  additional_data?: Record<string, string | number | boolean>;
 }
 
 /**

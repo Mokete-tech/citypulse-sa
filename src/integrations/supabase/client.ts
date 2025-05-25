@@ -39,7 +39,7 @@ const supabaseProxy = new Proxy(supabaseClient, {
 
             // Wrap common database operations
             if (['select', 'insert', 'update', 'delete', 'upsert'].includes(String(fromProp))) {
-              return function(...args: any[]) {
+              return function(...args: unknown[]) {
                 const originalOperation = fromValue.apply(fromTarget, args);
 
                 // Add error handling to the execute method
@@ -55,7 +55,7 @@ const supabaseProxy = new Proxy(supabaseClient, {
                         });
                       }
                       return result;
-                    } catch (error) {
+                    } catch (error: unknown) {
                       handleSupabaseError(error, {
                         title: `Database Error (${table})`,
                         message: `Operation failed: ${String(fromProp)}`
@@ -77,13 +77,13 @@ const supabaseProxy = new Proxy(supabaseClient, {
 
     // If the property is a function, wrap it to handle errors
     if (typeof value === 'function') {
-      return function(...args: any[]) {
+      return function(...args: unknown[]) {
         try {
           const result = value.apply(target, args);
 
           // If the result is a Promise, handle any errors
           if (result instanceof Promise) {
-            return result.catch((error) => {
+            return result.catch((error: unknown) => {
               handleSupabaseError(error, {
                 title: 'Supabase Error',
                 message: `Operation failed: ${String(prop)}`
@@ -93,7 +93,7 @@ const supabaseProxy = new Proxy(supabaseClient, {
           }
 
           return result;
-        } catch (error) {
+        } catch (error: unknown) {
           handleSupabaseError(error, {
             title: 'Supabase Error',
             message: `Operation failed: ${String(prop)}`
@@ -110,12 +110,12 @@ const supabaseProxy = new Proxy(supabaseClient, {
           const objValue = Reflect.get(objTarget, objProp, objReceiver);
 
           if (typeof objValue === 'function') {
-            return function(...args: any[]) {
+            return function(...args: unknown[]) {
               try {
                 const result = objValue.apply(objTarget, args);
 
                 if (result instanceof Promise) {
-                  return result.catch((error) => {
+                  return result.catch((error: unknown) => {
                     handleSupabaseError(error, {
                       title: `Supabase ${String(prop)} Error`,
                       message: `Operation failed: ${String(objProp)}`
@@ -125,7 +125,7 @@ const supabaseProxy = new Proxy(supabaseClient, {
                 }
 
                 return result;
-              } catch (error) {
+              } catch (error: unknown) {
                 handleSupabaseError(error, {
                   title: `Supabase ${String(prop)} Error`,
                   message: `Operation failed: ${String(objProp)}`

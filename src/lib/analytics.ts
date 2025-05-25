@@ -3,18 +3,19 @@ import { handleError } from '@/lib/error-handler';
 
 export interface AnalyticsEvent {
   name: string;
-  properties?: Record<string, string | number | boolean>;
-  timestamp?: number;
+  properties: Record<string, string | number | boolean>;
+  timestamp: number;
 }
 
 export interface PageView {
   path: string;
-  referrer?: string;
+  title: string;
+  metadata: PageViewMetadata;
   timestamp: number;
 }
 
 export interface UserAction {
-  type: string;
+  type: 'click' | 'search' | 'filter' | 'share' | 'favorite' | 'view';
   target: string;
   value?: string | number;
   timestamp: number;
@@ -29,8 +30,8 @@ export interface AnalyticsData {
 export interface AnalyticsConfig {
   enabled: boolean;
   debug: boolean;
-  endpoint: string;
-  batchSize: number;
+  sampleRate: number;
+  maxEvents: number;
   flushInterval: number;
 }
 
@@ -59,12 +60,47 @@ export interface AnalyticsOptions {
   onSuccess?: (data: AnalyticsData) => void;
 }
 
+interface PageViewMetadata {
+  referrer?: string;
+  userAgent?: string;
+  screenSize?: string;
+  language?: string;
+  timezone?: string;
+  [key: string]: string | number | boolean | undefined;
+}
+
+interface DealViewMetadata {
+  dealId: number;
+  category?: string;
+  price?: number;
+  location?: string;
+  merchantId?: string;
+  [key: string]: string | number | boolean | undefined;
+}
+
+interface EventViewMetadata {
+  eventId: number;
+  category?: string;
+  date?: string;
+  location?: string;
+  organizerId?: string;
+  [key: string]: string | number | boolean | undefined;
+}
+
+interface ShareMetadata {
+  itemType: 'deal' | 'event';
+  itemId: number;
+  platform: 'facebook' | 'x' | 'linkedin' | 'whatsapp' | 'copy';
+  success: boolean;
+  [key: string]: string | number | boolean | undefined;
+}
+
 /**
  * Track a page view event
  * @param page The page being viewed
  * @param metadata Additional metadata about the page view
  */
-export async function trackPageView(page: string, metadata: any = {}) {
+export async function trackPageView(page: string, metadata: PageViewMetadata = {}) {
   try {
     // Only track in production
     if (import.meta.env.MODE === 'development') {
@@ -88,7 +124,7 @@ export async function trackPageView(page: string, metadata: any = {}) {
  * @param dealId The ID of the deal being viewed
  * @param metadata Additional metadata about the deal view
  */
-export async function trackDealView(dealId: number, metadata: any = {}) {
+export async function trackDealView(dealId: number, metadata: DealViewMetadata = {}) {
   try {
     // First get the current views count
     const { data: dealData, error: fetchError } = await supabase
@@ -130,7 +166,7 @@ export async function trackDealView(dealId: number, metadata: any = {}) {
  * @param eventId The ID of the event being viewed
  * @param metadata Additional metadata about the event view
  */
-export async function trackEventView(eventId: number, metadata: any = {}) {
+export async function trackEventView(eventId: number, metadata: EventViewMetadata = {}) {
   try {
     // First get the current views count
     const { data: eventData, error: fetchError } = await supabase
@@ -178,7 +214,7 @@ export async function trackShare(
   itemType: 'deal' | 'event', 
   itemId: number, 
   platform: 'facebook' | 'x' | 'linkedin' | 'whatsapp' | 'copy',
-  metadata: any = {}
+  metadata: ShareMetadata = { itemType, itemId, platform }
 ) {
   try {
     // Only track in production
