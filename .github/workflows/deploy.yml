@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 # Define environment variables at the workflow level (non-sensitive only)
@@ -28,7 +31,32 @@ env:
   VITE_DEFAULT_ZOOM: "12"
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Run type check
+        run: npm run type-check
+
+      - name: Run linting
+        run: npm run lint
+
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -135,8 +163,6 @@ jobs:
           # Email configuration
           VITE_SENDGRID_FROM_EMAIL: "noreply@citypulse.co.za"
           VITE_SENDGRID_FROM_NAME: "CityPulse South Africa"
-
-          # SMTP configuration is handled by server-side code
 
           # Feature flags are inherited from the workflow level
 

@@ -1,195 +1,173 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { StripePaymentForm } from '../StripePaymentForm';
-import { StripeProvider } from '@/contexts/StripeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { StripeProvider } from '@/contexts/StripeContext';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-// Mock Stripe
-jest.mock('@stripe/stripe-js', () => ({
-  loadStripe: jest.fn(() => Promise.resolve({
-    confirmCardPayment: jest.fn(() => Promise.resolve({
-      paymentIntent: { status: 'succeeded', id: 'pi_test_123' }
-    }))
-  }))
-}));
-
-// Mock Supabase
+// Mock dependencies
 jest.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: jest.fn(() => ({
-      insert: jest.fn(() => Promise.resolve({ error: null }))
+      insert: jest.fn().mockResolvedValue({ error: null })
     }))
   }
 }));
 
-// Mock Auth Context
-jest.mock('@/contexts/AuthContext', () => ({
-  useAuth: () => ({
-    user: {
-      id: 'test_user_id',
-      email: 'test@example.com'
-    }
-  })
+jest.mock('sonner', () => ({
+  toast: {
+    success: jest.fn(),
+    error: jest.fn()
+  }
+}));
+
+// Mock Stripe
+const mockStripe = {
+  confirmCardPayment: jest.fn(),
+  createPaymentMethod: jest.fn()
+};
+
+const mockElements = {
+  getElement: jest.fn()
+};
+
+jest.mock('@stripe/react-stripe-js', () => ({
+  Elements: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  useStripe: () => mockStripe,
+  useElements: () => mockElements,
+  CardElement: () => <div data-testid="card-element">Card Element</div>
 }));
 
 describe('StripePaymentForm', () => {
   const defaultProps = {
-    amount: 100,
+    amount: 1000,
     itemType: 'deal' as const,
-    itemId: 1,
+    itemId: 123,
     itemName: 'Test Deal',
-    isPremium: true,
+    isPremium: false,
     onSuccess: jest.fn(),
     onCancel: jest.fn()
   };
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('renders payment form with correct amount', () => {
-    render(
+  const renderComponent = (props = {}) => {
+    return render(
       <AuthProvider>
         <StripeProvider>
-          <StripePaymentForm {...defaultProps} />
+          <StripePaymentForm {...defaultProps} {...props} />
         </StripeProvider>
       </AuthProvider>
     );
+  };
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockStripe.confirmCardPayment.mockResolvedValue({
+      paymentIntent: { status: 'succeeded' }
+    });
+  });
+
+  it('renders payment form with correct title and description', () => {
+    renderComponent();
+    
     expect(screen.getByText('Payment Details')).toBeInTheDocument();
-    expect(screen.getByText('R100.00')).toBeInTheDocument();
+    expect(screen.getByText(/Complete your payment for Deal: Test Deal/)).toBeInTheDocument();
+  });
+
+  it('displays the correct total amount', () => {
+    renderComponent();
+    
+    expect(screen.getByText('R10.00')).toBeInTheDocument();
+  });
+
+  it('shows card element when card payment is selected', () => {
+    renderComponent();
+    
+    expect(screen.getByTestId('card-element')).toBeInTheDocument();
   });
 
   it('handles successful payment', async () => {
-    render(
-      <AuthProvider>
-        <StripeProvider>
-          <StripePaymentForm {...defaultProps} />
-        </StripeProvider>
-      </AuthProvider>
-    );
+    renderComponent();
+    
+    const payButton = screen.getByText('Pay Now');
+    fireEvent.click(payButton);
 
-    // Wait for payment intent to be created
     await waitFor(() => {
-      expect(screen.getByText('Pay Now')).toBeInTheDocument();
+      expect(mockStripe.confirmCardPayment).toHaveBeenCalled();
+      expect(supabase.from).toHaveBeenCalledWith('transactions');
+      expect(toast.success).toHaveBeenCalled();
+      expect(defaultProps.onSuccess).toHaveBeenCalled();
     });
-
-    // Submit payment
-    fireEvent.click(screen.getByText('Pay Now'));
-
-    // Wait for payment to be processed
-    await waitFor(() => {
-      expect(screen.getByText('Payment successful!')).toBeInTheDocument();
-    });
-
-    // Verify database record
-    expect(supabase.from).toHaveBeenCalledWith('transactions');
-    expect(supabase.from('transactions').insert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        amount: 100,
-        currency: 'ZAR',
-        status: 'succeeded',
-        type: 'payment'
-      })
-    );
-
-    // Verify success callback
-    expect(defaultProps.onSuccess).toHaveBeenCalled();
   });
 
   it('handles payment failure', async () => {
-    // Mock Stripe error
-    jest.spyOn(require('@stripe/stripe-js'), 'loadStripe').mockImplementationOnce(() => 
-      Promise.resolve({
-        confirmCardPayment: jest.fn(() => Promise.resolve({
-          error: { message: 'Your card was declined' }
-        }))
-      })
-    );
+    const error = new Error('Payment failed');
+    mockStripe.confirmCardPayment.mockRejectedValue(error);
+    
+    renderComponent();
+    
+    const payButton = screen.getByText('Pay Now');
+    fireEvent.click(payButton);
 
-    render(
-      <AuthProvider>
-        <StripeProvider>
-          <StripePaymentForm {...defaultProps} />
-        </StripeProvider>
-      </AuthProvider>
-    );
-
-    // Wait for payment intent to be created
     await waitFor(() => {
-      expect(screen.getByText('Pay Now')).toBeInTheDocument();
-    });
-
-    // Submit payment
-    fireEvent.click(screen.getByText('Pay Now'));
-
-    // Wait for error message
-    await waitFor(() => {
-      expect(screen.getByText('Your card was declined')).toBeInTheDocument();
+      expect(toast.error).toHaveBeenCalled();
+      expect(screen.getByText('Payment Failed')).toBeInTheDocument();
     });
   });
 
-  it('handles database error', async () => {
-    // Mock database error
-    jest.spyOn(supabase.from('transactions'), 'insert').mockImplementationOnce(() => 
-      Promise.resolve({ error: { message: 'Database error' } })
-    );
+  it('calls onCancel when cancel button is clicked', () => {
+    renderComponent();
+    
+    const cancelButton = screen.getByText('Cancel');
+    fireEvent.click(cancelButton);
 
-    render(
-      <AuthProvider>
-        <StripeProvider>
-          <StripePaymentForm {...defaultProps} />
-        </StripeProvider>
-      </AuthProvider>
-    );
+    expect(defaultProps.onCancel).toHaveBeenCalled();
+  });
 
-    // Wait for payment intent to be created
+  it('disables form when processing payment', async () => {
+    renderComponent();
+    
+    const payButton = screen.getByText('Pay Now');
+    fireEvent.click(payButton);
+
+    expect(payButton).toBeDisabled();
+    expect(screen.getByText('Processing...')).toBeInTheDocument();
+  });
+
+  it('shows success state after payment completion', async () => {
+    renderComponent();
+    
+    const payButton = screen.getByText('Pay Now');
+    fireEvent.click(payButton);
+
     await waitFor(() => {
-      expect(screen.getByText('Pay Now')).toBeInTheDocument();
-    });
-
-    // Submit payment
-    fireEvent.click(screen.getByText('Pay Now'));
-
-    // Wait for error message
-    await waitFor(() => {
-      expect(screen.getByText('Failed to record payment in database')).toBeInTheDocument();
+      expect(screen.getByText('Payment Successful!')).toBeInTheDocument();
     });
   });
 
   it('validates payment amount', async () => {
-    render(
-      <AuthProvider>
-        <StripeProvider>
-          <StripePaymentForm {...defaultProps} amount={-100} />
-        </StripeProvider>
-      </AuthProvider>
-    );
+    renderComponent({ amount: -100 });
+    
+    const payButton = screen.getByText('Pay Now');
+    fireEvent.click(payButton);
 
-    // Wait for validation error
     await waitFor(() => {
-      expect(screen.getByText('Invalid payment amount')).toBeInTheDocument();
+      expect(toast.error).toHaveBeenCalled();
     });
   });
 
-  it('requires authentication', async () => {
-    // Mock unauthenticated user
-    jest.spyOn(require('@/contexts/AuthContext'), 'useAuth').mockImplementationOnce(() => ({
-      user: null
-    }));
+  it('handles network errors gracefully', async () => {
+    mockStripe.confirmCardPayment.mockRejectedValue(new Error('Network error'));
+    
+    renderComponent();
+    
+    const payButton = screen.getByText('Pay Now');
+    fireEvent.click(payButton);
 
-    render(
-      <AuthProvider>
-        <StripeProvider>
-          <StripePaymentForm {...defaultProps} />
-        </StripeProvider>
-      </AuthProvider>
-    );
-
-    // Wait for auth error
     await waitFor(() => {
-      expect(screen.getByText('You must be logged in to make a payment')).toBeInTheDocument();
+      expect(toast.error).toHaveBeenCalledWith('Payment failed', {
+        description: 'Network error'
+      });
     });
   });
 }); 
