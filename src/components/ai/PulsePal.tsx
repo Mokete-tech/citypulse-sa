@@ -461,6 +461,16 @@ interface PulsePalProps {
   onCommandChange?: (showCommands: boolean) => void;
 }
 
+// Utility function to extract error message from unknown error
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  if (error && typeof error === 'object' && 'message' in error) {
+    return (error as { message?: string }).message || 'An unknown error occurred';
+  }
+  return 'An unknown error occurred';
+}
+
 // Update the component to use these types
 export function PulsePal({ 
   apiKey, 
@@ -821,7 +831,7 @@ export function PulsePal({
       console.error('API call failed:', error);
       setState(prev => ({
         ...prev,
-        error: error instanceof Error ? error.message : 'An unknown error occurred',
+        error: getErrorMessage(error),
         loadingState: 'error'
       }));
       
