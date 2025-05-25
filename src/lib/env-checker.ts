@@ -1,4 +1,3 @@
-
 /**
  * Environment variable checker utility
  *
@@ -13,6 +12,40 @@ interface EnvCheckResult {
   missingVars: string[];
   usingFallbacks: boolean;
   warnings: string[];
+}
+
+// Add specific error types for clarity
+export interface EnvError {
+  code: 'missing_required' | 'invalid_format' | 'invalid_value' | 'unknown_error';
+  message: string;
+  details?: Record<string, unknown>;
+}
+
+// Add helper function to create EnvError
+export function createEnvError(code: EnvError['code'], message: string, details?: Record<string, unknown>): EnvError {
+  return {
+    code,
+    message,
+    details
+  };
+}
+
+// Add specific error codes for clarity
+export const ENV_ERROR_CODES = {
+  MISSING_REQUIRED: 'missing_required',
+  INVALID_FORMAT: 'invalid_format',
+  INVALID_VALUE: 'invalid_value',
+  UNKNOWN_ERROR: 'unknown_error'
+} as const;
+
+// Add helper function to check if an error is an EnvError
+export function isEnvError(error: unknown): error is EnvError {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    'message' in error
+  );
 }
 
 // Helper function to check if email configuration is available

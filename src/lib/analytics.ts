@@ -60,39 +60,41 @@ export interface AnalyticsOptions {
   onSuccess?: (data: AnalyticsData) => void;
 }
 
-interface PageViewMetadata {
+// Add a generic type for metadata
+interface Metadata {
+  [key: string]: string | number | boolean | undefined;
+}
+
+// Update PageViewMetadata, DealViewMetadata, EventViewMetadata, and ShareMetadata to extend Metadata
+interface PageViewMetadata extends Metadata {
   referrer?: string;
   userAgent?: string;
   screenSize?: string;
   language?: string;
   timezone?: string;
-  [key: string]: string | number | boolean | undefined;
 }
 
-interface DealViewMetadata {
+interface DealViewMetadata extends Metadata {
   dealId: number;
   category?: string;
   price?: number;
   location?: string;
   merchantId?: string;
-  [key: string]: string | number | boolean | undefined;
 }
 
-interface EventViewMetadata {
+interface EventViewMetadata extends Metadata {
   eventId: number;
   category?: string;
   date?: string;
   location?: string;
   organizerId?: string;
-  [key: string]: string | number | boolean | undefined;
 }
 
-interface ShareMetadata {
+interface ShareMetadata extends Metadata {
   itemType: 'deal' | 'event';
   itemId: number;
   platform: 'facebook' | 'x' | 'linkedin' | 'whatsapp' | 'copy';
   success: boolean;
-  [key: string]: string | number | boolean | undefined;
 }
 
 /**
@@ -214,7 +216,7 @@ export async function trackShare(
   itemType: 'deal' | 'event', 
   itemId: number, 
   platform: 'facebook' | 'x' | 'linkedin' | 'whatsapp' | 'copy',
-  metadata: ShareMetadata = { itemType, itemId, platform }
+  metadata: ShareMetadata = { itemType, itemId, platform, success: false }
 ) {
   try {
     // Only track in production
@@ -225,14 +227,9 @@ export async function trackShare(
     // Record the share in analytics
     await supabase.from('analytics').insert({
       event_type: 'share',
-      event_source: `${itemType}_page`,
+      event_source: itemType,
       source_id: itemId,
-      metadata: { 
-        item_type: itemType, 
-        item_id: itemId, 
-        platform,
-        ...metadata 
-      }
+      metadata
     });
 
     // Update shares counter in the appropriate table

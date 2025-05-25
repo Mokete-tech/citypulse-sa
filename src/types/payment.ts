@@ -83,9 +83,9 @@ export interface PaymentConfirmation {
  * Payment error interface
  */
 export interface PaymentError {
-  code: string;
+  code: 'card_error' | 'validation_error' | 'invalid_request_error' | 'api_error' | 'rate_limit_error' | 'network_error' | 'unknown_error';
   message: string;
-  type: 'card_error' | 'validation_error' | 'invalid_request_error' | 'api_error' | 'rate_limit_error';
+  type: 'card_error' | 'validation_error' | 'invalid_request_error' | 'api_error' | 'rate_limit_error' | 'network_error' | 'unknown_error';
   declineCode?: string;
   raw?: Record<string, unknown>;
 }
@@ -151,4 +151,27 @@ export interface PaymentConfig {
   secretKey: string;
   webhookSecret: string;
   apiVersion: string;
+}
+
+// Add specific error codes for clarity
+export const PAYMENT_ERROR_CODES = {
+  CARD_DECLINED: 'card_declined',
+  INVALID_CARD: 'invalid_card',
+  INVALID_EXPIRY: 'invalid_expiry',
+  INVALID_CVC: 'invalid_cvc',
+  INVALID_REQUEST: 'invalid_request',
+  API_ERROR: 'api_error',
+  RATE_LIMIT: 'rate_limit',
+  NETWORK_ERROR: 'network_error',
+  UNKNOWN_ERROR: 'unknown_error'
+} as const;
+
+// Add helper function to create PaymentError
+export function createPaymentError(code: PaymentError['code'], message: string, raw?: Record<string, unknown>): PaymentError {
+  return {
+    code,
+    message,
+    type: code,
+    raw
+  };
 } 
