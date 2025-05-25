@@ -5,11 +5,53 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar as CalendarIcon, Tag, Calendar, Fire, Search, Filter, Plus, ArrowUpDown, X, Star, Clock, TrendingUp, Users, DollarSign, Percent, Lightbulb, Store, Coffee, BookOpen, Utensils, Scissors, Dumbbell, Palette, Info, Cookie, PawPrint, Wrench, Leaf, Sun, Snowflake, Gift, Heart, GraduationCap, Turkey, Sparkles, Gamepad2, Music, Camera, Rocket, Brain, Microscope, Palette, Sparkles, Wand2, Compass, Globe, Leaf, Sun, Moon, Star, Cloud, Wind, Droplets, Flame, Mountain, Waves, Trees, Flower, Seedling, Sprout, Rainbow, Umbrella, Snowflake, Sun, Moon, Star, Cloud, Wind, Droplets, Flame, Mountain, Waves, Trees, Flower, Seedling, Sprout, Rainbow, Umbrella, Snowflake } from 'lucide-react';
+import { Calendar as CalendarIcon, Tag, Calendar, Flame, Search, Filter, Plus, ArrowUpDown, X, Star, Clock, TrendingUp, Users, DollarSign, Percent, Lightbulb, Store, Coffee, BookOpen, Utensils, Scissors, Dumbbell, Palette, Info, Cookie, PawPrint, Wrench, Leaf, Sun, Snowflake, Gift, Heart, GraduationCap, Turkey, Sparkles, Gamepad2, Music, Camera, Rocket, Brain, Microscope, Palette, Sparkles, Wand2, Compass, Globe, Leaf, Sun, Moon, Star, Cloud, Wind, Droplets, Flame, Mountain, Waves, Trees, Flower, Seedling, Sprout, Rainbow, Umbrella, Snowflake, Sun, Moon, Star, Cloud, Wind, Droplets, Flame, Mountain, Waves, Trees, Flower, Seedling, Sprout, Rainbow, Umbrella, Snowflake } from 'lucide-react';
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays, subMonths } from "date-fns";
 import { cn } from "@/lib/utils";
+
+interface Deal {
+  id: string;
+  title: string;
+  description: string;
+  discount: string;
+  validUntil: string;
+  category: string;
+  views: number;
+  redemptions: number;
+}
+
+interface Event {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  location: string;
+  category: string;
+  attendees: number;
+  capacity: number;
+}
+
+interface Template {
+  id: string;
+  name: string;
+  icon: React.ElementType;
+  deals: Deal[];
+  events: Event[];
+  bestPractices: string[];
+}
+
+interface SeasonalPromotion {
+  id: string;
+  name: string;
+  icon: React.ElementType;
+  deals: Deal[];
+  events: Event[];
+}
+
+interface CreativeTemplate extends Template {}
 
 const BusinessOptimizer = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,6 +73,8 @@ const BusinessOptimizer = () => {
       dateRange: { from: Date | undefined; to: Date | undefined };
     };
   }>>([]);
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
 
   const applyDatePreset = (preset: string) => {
     const today = new Date();
@@ -181,118 +225,7 @@ const BusinessOptimizer = () => {
     }
   };
 
-  const deals = [
-    {
-      id: '1',
-      title: 'Flash Sale: Fresh Produce',
-      description: 'Get 30% off on all fresh fruits and vegetables',
-      discount: '30% OFF',
-      validUntil: '2024-03-20',
-      category: 'flash',
-      views: 245,
-      redemptions: 89
-    },
-    {
-      id: '2',
-      title: 'Weekly Special: Premium Meats',
-      description: 'Buy any premium cut and get a free marinade',
-      discount: 'Free Gift',
-      validUntil: '2024-03-25',
-      category: 'weekly',
-      views: 189,
-      redemptions: 45
-    },
-    {
-      id: '3',
-      title: 'Monthly Bundle: Family Pack',
-      description: 'Complete family grocery bundle at 25% off',
-      discount: '25% OFF',
-      validUntil: '2024-04-01',
-      category: 'monthly',
-      views: 312,
-      redemptions: 67
-    },
-    {
-      id: '4',
-      title: 'Seasonal Special: Summer Fruits',
-      description: 'Get 20% off on all summer fruits',
-      discount: '20% OFF',
-      validUntil: '2024-03-22',
-      category: 'seasonal',
-      views: 156,
-      redemptions: 34
-    },
-    {
-      id: '5',
-      title: 'Bulk Buy: Pantry Essentials',
-      description: 'Buy 3 get 1 free on pantry items',
-      discount: 'Buy 3 Get 1',
-      validUntil: '2024-03-28',
-      category: 'bulk',
-      views: 278,
-      redemptions: 92
-    }
-  ];
-
-  const events = [
-    {
-      id: '1',
-      title: 'Wine Tasting Evening',
-      description: 'Join us for an evening of fine wines and cheese pairings',
-      date: '2024-03-25',
-      time: '6:00 PM - 8:00 PM',
-      location: 'Store Tasting Room',
-      category: 'tasting',
-      attendees: 45,
-      capacity: 60
-    },
-    {
-      id: '2',
-      title: 'Cooking Workshop',
-      description: 'Learn to cook with seasonal ingredients',
-      date: '2024-03-28',
-      time: '2:00 PM - 4:00 PM',
-      location: 'Store Kitchen',
-      category: 'workshop',
-      attendees: 28,
-      capacity: 40
-    },
-    {
-      id: '3',
-      title: 'Weekend Sale Event',
-      description: 'Special weekend discounts on selected items',
-      date: '2024-03-30',
-      time: '10:00 AM - 6:00 PM',
-      location: 'Main Store',
-      category: 'sale',
-      attendees: 120,
-      capacity: 200
-    },
-    {
-      id: '4',
-      title: 'Cheese Making Class',
-      description: 'Learn the art of cheese making from experts',
-      date: '2024-04-02',
-      time: '3:00 PM - 5:00 PM',
-      location: 'Store Kitchen',
-      category: 'workshop',
-      attendees: 15,
-      capacity: 30
-    },
-    {
-      id: '5',
-      title: 'Local Producer Showcase',
-      description: 'Meet local producers and sample their products',
-      date: '2024-04-05',
-      time: '11:00 AM - 4:00 PM',
-      location: 'Main Store',
-      category: 'showcase',
-      attendees: 85,
-      capacity: 150
-    }
-  ];
-
-  const sortItems = (items: any[], type: 'deals' | 'events') => {
+  const sortItems = (items: Deal[] | Event[], type: 'deals' | 'events') => {
     return [...items].sort((a, b) => {
       switch (sortBy) {
         case 'newest':
@@ -301,8 +234,8 @@ const BusinessOptimizer = () => {
           return new Date(a.validUntil || a.date).getTime() - new Date(b.validUntil || b.date).getTime();
         case 'popular':
           return type === 'deals' 
-            ? b.views - a.views 
-            : b.attendees - a.attendees;
+            ? (b as Deal).views - (a as Deal).views 
+            : (b as Event).attendees - (a as Event).attendees;
         case 'name':
           return a.title.localeCompare(b.title);
         default:
@@ -311,11 +244,11 @@ const BusinessOptimizer = () => {
     });
   };
 
-  const filterByDateRange = (items: any[], type: 'deals' | 'events') => {
+  const filterByDateRange = (items: Deal[] | Event[], type: 'deals' | 'events') => {
     if (!dateRange.from && !dateRange.to) return items;
     
     return items.filter(item => {
-      const itemDate = new Date(type === 'deals' ? item.validUntil : item.date);
+      const itemDate = new Date(type === 'deals' ? (item as Deal).validUntil : (item as Event).date);
       const fromDate = dateRange.from ? new Date(dateRange.from) : null;
       const toDate = dateRange.to ? new Date(dateRange.to) : null;
       
@@ -1527,7 +1460,7 @@ const BusinessOptimizer = () => {
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg">{deal.title}</CardTitle>
                         <Badge variant={deal.category === 'flash' ? 'destructive' : 'default'}>
-                          {deal.category === 'flash' ? <Fire className="h-4 w-4 mr-1" /> : null}
+                          {deal.category === 'flash' ? <Flame className="h-4 w-4 mr-1" /> : null}
                           {deal.category.toUpperCase()}
                         </Badge>
                       </div>

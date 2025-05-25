@@ -58,10 +58,10 @@ export interface PaymentIntent {
   id: string;
   amount: number;
   currency: string;
-  status: PaymentStatus;
-  metadata: PaymentMetadata;
-  created_at?: string;
-  updated_at?: string;
+  status: 'succeeded' | 'processing' | 'requires_payment_method' | 'requires_confirmation' | 'requires_action' | 'canceled';
+  clientSecret: string;
+  paymentMethod?: PaymentMethod;
+  created: number;
 }
 
 /**
@@ -80,7 +80,9 @@ export interface PaymentConfirmation {
 export interface PaymentError {
   code: string;
   message: string;
-  details?: any;
+  type: 'card_error' | 'validation_error' | 'invalid_request_error' | 'api_error' | 'rate_limit_error';
+  declineCode?: string;
+  raw?: Record<string, unknown>;
 }
 
 /**
@@ -89,4 +91,59 @@ export interface PaymentError {
 export interface PaymentValidationResult {
   isValid: boolean;
   errors: string[];
+}
+
+export interface PaymentMethod {
+  id: string;
+  type: 'card' | 'bank_account' | 'paypal';
+  last4: string;
+  brand?: string;
+  expiryMonth?: number;
+  expiryYear?: number;
+  isDefault: boolean;
+}
+
+export interface PaymentResponse {
+  success: boolean;
+  error?: PaymentError;
+  paymentIntent?: PaymentIntent;
+}
+
+export interface PaymentOptions {
+  amount: number;
+  currency: string;
+  paymentMethodId?: string;
+  customerId?: string;
+  metadata?: Record<string, string>;
+  description?: string;
+}
+
+export interface PaymentResult {
+  success: boolean;
+  error?: PaymentError;
+  paymentIntent?: PaymentIntent;
+  requiresAction?: boolean;
+  actionType?: 'redirect' | 'confirm' | 'authenticate';
+  actionUrl?: string;
+}
+
+export interface PaymentWebhookEvent {
+  id: string;
+  type: string;
+  data: {
+    object: PaymentIntent;
+    previousAttributes?: Partial<PaymentIntent>;
+  };
+  created: number;
+}
+
+export interface PaymentWebhookHandler {
+  (event: PaymentWebhookEvent): Promise<void>;
+}
+
+export interface PaymentConfig {
+  publishableKey: string;
+  secretKey: string;
+  webhookSecret: string;
+  apiVersion: string;
 } 

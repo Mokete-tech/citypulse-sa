@@ -1,6 +1,64 @@
 import { supabase } from '@/integrations/supabase/client';
 import { handleError } from '@/lib/error-handler';
 
+export interface AnalyticsEvent {
+  name: string;
+  properties?: Record<string, string | number | boolean>;
+  timestamp?: number;
+}
+
+export interface PageView {
+  path: string;
+  referrer?: string;
+  timestamp: number;
+}
+
+export interface UserAction {
+  type: string;
+  target: string;
+  value?: string | number;
+  timestamp: number;
+}
+
+export interface AnalyticsData {
+  events: AnalyticsEvent[];
+  pageViews: PageView[];
+  userActions: UserAction[];
+}
+
+export interface AnalyticsConfig {
+  enabled: boolean;
+  debug: boolean;
+  endpoint: string;
+  batchSize: number;
+  flushInterval: number;
+}
+
+export interface AnalyticsProvider {
+  trackEvent: (event: AnalyticsEvent) => Promise<void>;
+  trackPageView: (pageView: PageView) => Promise<void>;
+  trackUserAction: (action: UserAction) => Promise<void>;
+  flush: () => Promise<void>;
+}
+
+export interface AnalyticsError {
+  code: string;
+  message: string;
+  details?: Record<string, unknown>;
+}
+
+export interface AnalyticsResponse {
+  success: boolean;
+  error?: AnalyticsError;
+  data?: AnalyticsData;
+}
+
+export interface AnalyticsOptions {
+  config?: Partial<AnalyticsConfig>;
+  onError?: (error: AnalyticsError) => void;
+  onSuccess?: (data: AnalyticsData) => void;
+}
+
 /**
  * Track a page view event
  * @param page The page being viewed
