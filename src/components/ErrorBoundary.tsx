@@ -1,4 +1,3 @@
-
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface ErrorBoundaryProps {
@@ -25,12 +24,22 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error("Error caught by ErrorBoundary:", error, errorInfo);
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    this.setState({ hasError: true, error: this.getErrorMessage(error) });
   }
 
   handleRefresh = (): void => {
     window.location.reload();
   };
+
+  getErrorMessage(error: Error): Error | null {
+    if (error instanceof Error) return error;
+    if (typeof error === 'string') return new Error(error);
+    if (error && typeof error === 'object' && 'message' in error) {
+      return new Error((error as { message?: string }).message || 'An unknown error occurred');
+    }
+    return null;
+  }
 
   render(): ReactNode {
     if (this.state.hasError) {
