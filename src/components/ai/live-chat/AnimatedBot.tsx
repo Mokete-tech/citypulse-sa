@@ -9,47 +9,49 @@ interface AnimatedBotProps {
 
 const AnimatedBot = memo(({ isListening, isSpeaking }: AnimatedBotProps) => {
   const [isBlinking, setIsBlinking] = useState(false);
-  const [lipMovement, setLipMovement] = useState(0);
+  const [talkingFrame, setTalkingFrame] = useState(0);
 
   // Blinking animation
   useEffect(() => {
     if (!isSpeaking && !isListening) {
       const blinkInterval = setInterval(() => {
         setIsBlinking(true);
-        setTimeout(() => setIsBlinking(false), 150);
-      }, 2000 + Math.random() * 3000); // Random blink every 2-5 seconds
+        setTimeout(() => setIsBlinking(false), 200);
+      }, 3000 + Math.random() * 2000); // Random blink every 3-5 seconds
 
       return () => clearInterval(blinkInterval);
     }
   }, [isSpeaking, isListening]);
 
-  // Lip movement when speaking
+  // Talking animation frames
   useEffect(() => {
     if (isSpeaking) {
-      const lipInterval = setInterval(() => {
-        setLipMovement(prev => (prev + 1) % 3);
-      }, 200);
+      const talkInterval = setInterval(() => {
+        setTalkingFrame(prev => (prev + 1) % 3);
+      }, 300);
 
-      return () => clearInterval(lipInterval);
+      return () => clearInterval(talkInterval);
     } else {
-      setLipMovement(0);
+      setTalkingFrame(0);
     }
   }, [isSpeaking]);
 
-  const getEyes = () => {
-    if (isListening) return '👀'; // Wide alert eyes when listening
-    if (isBlinking) return '😌'; // Closed eyes when blinking  
-    return '👁️👁️'; // Normal open eyes
-  };
-
-  const getMouth = () => {
+  const getBotFace = () => {
     if (isSpeaking) {
-      // Animated mouth movements when talking
-      const mouths = ['😮', '🗣️', '😯'];
-      return mouths[lipMovement];
+      // Different talking expressions
+      const talkingFaces = ['🗣️', '😮', '🤖'];
+      return talkingFaces[talkingFrame];
     }
-    if (isListening) return '🤔'; // Thinking expression when listening
-    return '😊'; // Happy mouth when idle
+    
+    if (isListening) {
+      return '🤔'; // Thinking/listening face
+    }
+    
+    if (isBlinking) {
+      return '😌'; // Blinking/peaceful face
+    }
+    
+    return '🤖'; // Default friendly bot face
   };
 
   const getAnimationClass = () => {
@@ -60,14 +62,9 @@ const AnimatedBot = memo(({ isListening, isSpeaking }: AnimatedBotProps) => {
 
   return (
     <div className="flex flex-col items-center space-y-6">
-      {/* Complete Bot Face - Much Larger */}
+      {/* Large Animated Bot Face */}
       <div className={`text-9xl transition-all duration-300 ${getAnimationClass()}`}>
-        <div className="flex flex-col items-center space-y-2">
-          {/* Eyes */}
-          <div className="text-7xl">{getEyes()}</div>
-          {/* Mouth */}
-          <div className="text-5xl -mt-4">{getMouth()}</div>
-        </div>
+        {getBotFace()}
       </div>
 
       {/* Status Text */}
