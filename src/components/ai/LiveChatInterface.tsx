@@ -1,11 +1,9 @@
 
-import { useState, useCallback, useMemo, memo } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useGeminiLive } from '@/hooks/useGeminiLive';
+import { useToast } from '@/hooks/use-toast';
 import LiveChatHeader from './live-chat/LiveChatHeader';
 import LiveChatControls from './live-chat/LiveChatControls';
-import LiveChatTextInput from './live-chat/LiveChatTextInput';
-import LiveChatMessages from './live-chat/LiveChatMessages';
 import LiveChatWelcome from './live-chat/LiveChatWelcome';
 
 interface LiveChatInterfaceProps {
@@ -13,85 +11,60 @@ interface LiveChatInterfaceProps {
 }
 
 const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
-  const [textInput, setTextInput] = useState('');
-  const {
-    isConnected,
-    isListening,
-    isSpeaking,
-    messages,
-    connect,
-    disconnect,
-    startListening,
-    stopListening,
-    sendText,
-  } = useGeminiLive();
-
-  const handleSendText = useCallback(() => {
-    if (textInput.trim() && isConnected) {
-      sendText(textInput);
-      setTextInput('');
-    }
-  }, [textInput, isConnected, sendText]);
-
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleSendText();
-    }
-  }, [handleSendText]);
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const { toast } = useToast();
 
   const handleMicToggle = useCallback(() => {
     if (isListening) {
-      stopListening();
+      // Stop listening
+      setIsListening(false);
+      toast({
+        title: "Stopped listening",
+        description: "Tap the button to start talking again",
+      });
     } else {
-      startListening();
+      // Start listening
+      setIsListening(true);
+      toast({
+        title: "Listening...",
+        description: "Speak now! I'm listening to your voice.",
+      });
+      
+      // Simulate speaking response after 3 seconds
+      setTimeout(() => {
+        setIsSpeaking(true);
+        setIsListening(false);
+        
+        // Stop speaking after 2 seconds
+        setTimeout(() => {
+          setIsSpeaking(false);
+        }, 2000);
+      }, 3000);
     }
-  }, [isListening, startListening, stopListening]);
+  }, [isListening, toast]);
 
-  const cardClasses = useMemo(() => 
-    `relative border-2 shadow-xl overflow-hidden ${
-      darkMode 
-        ? 'bg-gray-800/95 border-gray-600' 
-        : 'bg-white/95 border-gray-200'
-    }`, [darkMode]
-  );
+  const cardClasses = `relative border-2 shadow-xl overflow-hidden ${
+    darkMode 
+      ? 'bg-gray-800/95 border-gray-600' 
+      : 'bg-white/95 border-gray-200'
+  }`;
 
   return (
     <div className="relative">
       <Card className={cardClasses}>
         <LiveChatHeader 
-          isConnected={isConnected}
           isListening={isListening}
           isSpeaking={isSpeaking}
         />
         
         <CardContent className="p-6 space-y-6">
           <LiveChatControls
-            isConnected={isConnected}
             isListening={isListening}
-            darkMode={darkMode}
-            onConnect={connect}
-            onDisconnect={disconnect}
             onMicToggle={handleMicToggle}
           />
 
-          {isConnected && (
-            <LiveChatTextInput
-              textInput={textInput}
-              setTextInput={setTextInput}
-              onSendText={handleSendText}
-              onKeyPress={handleKeyPress}
-              darkMode={darkMode}
-            />
-          )}
-
-          {messages.length > 0 && (
-            <LiveChatMessages messages={messages} darkMode={darkMode} />
-          )}
-
-          {!isConnected && (
-            <LiveChatWelcome darkMode={darkMode} />
-          )}
+          <LiveChatWelcome darkMode={darkMode} />
         </CardContent>
       </Card>
     </div>
