@@ -4,11 +4,12 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mic, Send, Download, Moon, Sun, Trash2 } from "lucide-react";
+import { Mic, Send, Download, Moon, Sun, Trash2, Key, ExternalLink } from "lucide-react";
 import { useAI } from "@/hooks/useAI";
 import { formatDistanceToNow } from "date-fns";
 
@@ -17,7 +18,8 @@ const AIAssistant = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [language, setLanguage] = useState("english");
   const [isListening, setIsListening] = useState(false);
-  const { messages, isLoading, sendMessage, clearMessages } = useAI();
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const { messages, isLoading, sendMessage, clearMessages, apiKey, setApiKey } = useAI();
 
   const handleSendMessage = () => {
     if (message.trim() && !isLoading) {
@@ -62,6 +64,7 @@ const AIAssistant = () => {
           <h1 className="text-4xl font-bold mb-4">CityPulse AI Assistant</h1>
           <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full mb-6">
             <span className="text-2xl font-bold">PulsePal AI</span>
+            <span className="text-sm opacity-90">Powered by Gemini</span>
           </div>
           <p className="text-xl text-gray-600 dark:text-gray-300">
             Ask me anything about local deals, events, or get personalized recommendations
@@ -87,6 +90,16 @@ const AIAssistant = () => {
                   <SelectItem value="xhosa">Xhosa</SelectItem>
                 </SelectContent>
               </Select>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowApiKeyInput(!showApiKeyInput)}
+                className={apiKey ? "border-green-500 text-green-600" : ""}
+              >
+                <Key className="w-4 h-4 mr-2" />
+                {apiKey ? "API Key Set" : "Set API Key"}
+              </Button>
             </div>
             
             <div className="flex items-center space-x-4">
@@ -99,6 +112,47 @@ const AIAssistant = () => {
             </div>
           </div>
 
+          {/* API Key Input */}
+          {showApiKeyInput && (
+            <Card className={`mb-6 ${darkMode ? 'bg-gray-800 border-gray-700' : ''}`}>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Gemini API Key Configuration</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => window.open('https://makersuite.google.com/app/apikey', '_blank')}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Get API Key
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Input
+                    type="password"
+                    placeholder="Enter your Gemini API key..."
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    className="w-full"
+                  />
+                  <p className="text-sm text-gray-500 mt-2">
+                    Your API key is stored locally and never sent to our servers. 
+                    Get a free Gemini API key from Google AI Studio.
+                  </p>
+                </div>
+                <Button
+                  onClick={() => setShowApiKeyInput(false)}
+                  disabled={!apiKey.trim()}
+                  className="w-full"
+                >
+                  Save API Key
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Chat Area */}
           <Card className={`mb-6 ${darkMode ? 'bg-gray-800 border-gray-700' : ''}`}>
             <CardContent className="p-6">
@@ -106,7 +160,13 @@ const AIAssistant = () => {
                 {messages.length === 0 ? (
                   <div className="text-center text-gray-500 dark:text-gray-400 mt-20">
                     <div className="text-6xl mb-4">🤖</div>
-                    <p>Hi! I'm PulsePal, your AI assistant. Ask me about deals, events, or anything else!</p>
+                    <p>Hi! I'm PulsePal, your AI assistant powered by Gemini.</p>
+                    <p className="mt-2">Ask me about South African deals, events, groceries, and more!</p>
+                    {!apiKey && (
+                      <p className="mt-4 text-yellow-600 dark:text-yellow-400">
+                        ⚠️ Please set your Gemini API key to start chatting
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -154,7 +214,7 @@ const AIAssistant = () => {
                     placeholder="Ask me anything about deals and events..."
                     className="min-h-[100px] pr-20"
                     maxLength={500}
-                    disabled={isLoading}
+                    disabled={isLoading || !apiKey}
                   />
                   <div className="absolute bottom-3 right-3 text-sm text-gray-400">
                     {message.length}/500
@@ -164,7 +224,7 @@ const AIAssistant = () => {
                 <div className="flex space-x-2">
                   <Button 
                     onClick={handleSendMessage}
-                    disabled={!message.trim() || isLoading}
+                    disabled={!message.trim() || isLoading || !apiKey}
                     className="flex-1"
                   >
                     <Send className="w-4 h-4 mr-2" />
@@ -174,7 +234,7 @@ const AIAssistant = () => {
                     variant="outline" 
                     onClick={handleVoiceInput}
                     className={isListening ? "bg-red-100 border-red-300" : ""}
-                    disabled={isLoading}
+                    disabled={isLoading || !apiKey}
                   >
                     <Mic className={`w-4 h-4 ${isListening ? "text-red-600" : ""}`} />
                   </Button>
