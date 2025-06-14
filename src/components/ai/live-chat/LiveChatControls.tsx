@@ -27,7 +27,7 @@ const LiveChatControls = ({
         {!isConnected ? (
           <Button 
             onClick={onConnect}
-            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium py-3 px-8 rounded-xl shadow-lg transition-colors duration-200"
           >
             <Zap className="w-5 h-5 mr-2" />
             Connect to Live Chat
@@ -36,7 +36,7 @@ const LiveChatControls = ({
           <Button 
             onClick={onDisconnect}
             variant="outline"
-            className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 py-3 px-8 rounded-xl transition-all duration-200 hover:scale-105"
+            className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 py-3 px-8 rounded-xl transition-colors duration-200"
           >
             <VolumeX className="w-5 h-5 mr-2" />
             Disconnect
@@ -57,11 +57,11 @@ const LiveChatControls = ({
               <Button
                 onClick={onMicToggle}
                 disabled={!isConnected}
-                className={`relative py-4 px-8 rounded-xl font-medium transition-all duration-300 ${
+                className={`py-4 px-8 rounded-xl font-medium transition-colors duration-200 shadow-lg ${
                   isListening
                     ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white'
-                    : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white hover:scale-105'
-                } shadow-lg hover:shadow-xl`}
+                    : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white'
+                }`}
               >
                 {isListening ? (
                   <>
@@ -73,11 +73,6 @@ const LiveChatControls = ({
                     <Mic className="w-6 h-6 mr-2" />
                     Start Listening
                   </>
-                )}
-                
-                {/* Pulsing ring for listening state */}
-                {isListening && (
-                  <div className="absolute inset-0 rounded-xl border-2 border-white/50 animate-ping"></div>
                 )}
               </Button>
             </div>
