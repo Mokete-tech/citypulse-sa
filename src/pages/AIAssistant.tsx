@@ -8,25 +8,48 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mic, Send, Download, Moon, Sun } from "lucide-react";
+import { Mic, Send, Download, Moon, Sun, Trash2 } from "lucide-react";
+import { useAI } from "@/hooks/useAI";
+import { formatDistanceToNow } from "date-fns";
 
 const AIAssistant = () => {
   const [message, setMessage] = useState("");
   const [darkMode, setDarkMode] = useState(false);
   const [language, setLanguage] = useState("english");
   const [isListening, setIsListening] = useState(false);
+  const { messages, isLoading, sendMessage, clearMessages } = useAI();
 
   const handleSendMessage = () => {
-    if (message.trim()) {
-      // Handle message sending logic here
-      console.log("Sending message:", message);
+    if (message.trim() && !isLoading) {
+      sendMessage(message);
       setMessage("");
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
   const handleVoiceInput = () => {
     setIsListening(!isListening);
-    // Handle voice input logic here
+    // Voice input functionality can be implemented here
+  };
+
+  const exportConversation = () => {
+    const conversation = messages.map(msg => 
+      `${msg.role.toUpperCase()}: ${msg.content}`
+    ).join('\n\n');
+    
+    const blob = new Blob([conversation], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'pulsepal-conversation.txt';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -79,11 +102,46 @@ const AIAssistant = () => {
           {/* Chat Area */}
           <Card className={`mb-6 ${darkMode ? 'bg-gray-800 border-gray-700' : ''}`}>
             <CardContent className="p-6">
-              <div className="min-h-[400px] mb-6 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                <div className="text-center text-gray-500 dark:text-gray-400 mt-20">
-                  <div className="text-6xl mb-4">🤖</div>
-                  <p>Hi! I'm PulsePal, your AI assistant. Ask me about deals, events, or anything else!</p>
-                </div>
+              <div className="min-h-[400px] max-h-[500px] overflow-y-auto mb-6 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                {messages.length === 0 ? (
+                  <div className="text-center text-gray-500 dark:text-gray-400 mt-20">
+                    <div className="text-6xl mb-4">🤖</div>
+                    <p>Hi! I'm PulsePal, your AI assistant. Ask me about deals, events, or anything else!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {messages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[80%] rounded-lg p-3 ${
+                            msg.role === 'user'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                          }`}
+                        >
+                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                          <span className="text-xs opacity-70 mt-1 block">
+                            {formatDistanceToNow(msg.timestamp, { addSuffix: true })}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                    {isLoading && (
+                      <div className="flex justify-start">
+                        <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 dark:bg-gray-700">
+                          <div className="flex space-x-1">
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               
               {/* Input Area */}
@@ -92,9 +150,11 @@ const AIAssistant = () => {
                   <Textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
                     placeholder="Ask me anything about deals and events..."
                     className="min-h-[100px] pr-20"
                     maxLength={500}
+                    disabled={isLoading}
                   />
                   <div className="absolute bottom-3 right-3 text-sm text-gray-400">
                     {message.length}/500
@@ -104,7 +164,7 @@ const AIAssistant = () => {
                 <div className="flex space-x-2">
                   <Button 
                     onClick={handleSendMessage}
-                    disabled={!message.trim()}
+                    disabled={!message.trim() || isLoading}
                     className="flex-1"
                   >
                     <Send className="w-4 h-4 mr-2" />
@@ -114,9 +174,9 @@ const AIAssistant = () => {
                     variant="outline" 
                     onClick={handleVoiceInput}
                     className={isListening ? "bg-red-100 border-red-300" : ""}
+                    disabled={isLoading}
                   >
                     <Mic className={`w-4 h-4 ${isListening ? "text-red-600" : ""}`} />
-                    {isListening ? "Stop Voice" : "Start Voice"}
                   </Button>
                 </div>
               </div>
@@ -128,16 +188,42 @@ const AIAssistant = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Conversation History</CardTitle>
-                <Button variant="outline" size="sm">
-                  <Download className="w-4 h-4 mr-2" />
-                  Export
-                </Button>
+                <div className="flex space-x-2">
+                  {messages.length > 0 && (
+                    <>
+                      <Button variant="outline" size="sm" onClick={exportConversation}>
+                        <Download className="w-4 h-4 mr-2" />
+                        Export
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={clearMessages}>
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Clear
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-                <p>No conversation history yet. Start chatting with PulsePal!</p>
-              </div>
+              {messages.length === 0 ? (
+                <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+                  <p>No conversation history yet. Start chatting with PulsePal!</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {messages.map((msg) => (
+                    <div key={msg.id} className="text-sm">
+                      <Badge variant={msg.role === 'user' ? 'default' : 'secondary'}>
+                        {msg.role === 'user' ? 'You' : 'PulsePal'}
+                      </Badge>
+                      <span className="ml-2 text-gray-600 dark:text-gray-400">
+                        {msg.content.substring(0, 100)}
+                        {msg.content.length > 100 ? '...' : ''}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
