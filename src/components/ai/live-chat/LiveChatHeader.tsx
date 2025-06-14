@@ -1,5 +1,5 @@
 
-import { memo } from 'react';
+import { memo, useState, useEffect } from 'react';
 
 interface LiveChatHeaderProps {
   isListening: boolean;
@@ -8,10 +8,62 @@ interface LiveChatHeaderProps {
 }
 
 const LiveChatHeader = memo(({ isListening, isSpeaking, hasApiKey }: LiveChatHeaderProps) => {
+  const [isBlinking, setIsBlinking] = useState(false);
+  const [talkingFrame, setTalkingFrame] = useState(0);
+
+  // Blinking animation when idle
+  useEffect(() => {
+    if (!isSpeaking && !isListening) {
+      const blinkInterval = setInterval(() => {
+        setIsBlinking(true);
+        setTimeout(() => setIsBlinking(false), 200);
+      }, 3000 + Math.random() * 2000); // Random blink every 3-5 seconds
+
+      return () => clearInterval(blinkInterval);
+    }
+  }, [isSpeaking, isListening]);
+
+  // Talking animation frames
+  useEffect(() => {
+    if (isSpeaking) {
+      const talkInterval = setInterval(() => {
+        setTalkingFrame(prev => (prev + 1) % 3);
+      }, 400);
+
+      return () => clearInterval(talkInterval);
+    } else {
+      setTalkingFrame(0);
+    }
+  }, [isSpeaking]);
+
+  const getBotEmoji = () => {
+    if (isSpeaking) {
+      // Talking animation with different mouth positions
+      const talkingEmojis = ['😮', '😯', '🙂'];
+      return talkingEmojis[talkingFrame];
+    }
+    
+    if (isListening) {
+      return '🤔'; // Thinking while listening
+    }
+    
+    if (isBlinking) {
+      return '😌'; // Blinking/peaceful
+    }
+    
+    return '😊'; // Default happy face
+  };
+
   const getStatusText = () => {
     if (isListening) return '👂 Listening to you...';
     if (isSpeaking) return '🗣️ PulsePal is speaking...';
-    return '🤖 Ready to chat';
+    return '😊 Ready to chat';
+  };
+
+  const getAnimationClass = () => {
+    if (isSpeaking) return 'animate-pulse';
+    if (isListening) return 'animate-bounce';
+    return '';
   };
 
   return (
@@ -27,9 +79,9 @@ const LiveChatHeader = memo(({ isListening, isSpeaking, hasApiKey }: LiveChatHea
           </p>
         </div>
 
-        {/* Simple Bot Emoji */}
-        <div className="text-9xl">
-          🤖
+        {/* Animated Bot Emoji */}
+        <div className={`text-9xl transition-all duration-300 ${getAnimationClass()}`}>
+          {getBotEmoji()}
         </div>
 
         {/* Status Text */}
