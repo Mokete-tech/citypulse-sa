@@ -13,30 +13,30 @@ const LiveChatHeader = memo(({ isListening, isSpeaking }: LiveChatHeaderProps) =
   const isConnected = !!apiKey;
 
   return (
-    <div className="relative p-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
-      <div className="flex flex-col items-center space-y-4">
+    <div className="relative p-8 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+      <div className="flex flex-col items-center space-y-6">
         {/* Title */}
         <div className="text-center">
-          <h2 className="text-2xl font-bold">
-            🎤 PulsePal Live Chat
+          <h2 className="text-3xl font-bold">
+            🎤 Voice Chat
           </h2>
           <p className="text-sm opacity-90">
-            Your AI voice companion
+            Talk naturally with PulsePal AI
           </p>
         </div>
 
-        {/* Animated Bot */}
+        {/* Large Animated Bot */}
         <AnimatedBot 
           isConnected={isConnected}
           isListening={isListening}
           isSpeaking={isSpeaking}
         />
 
-        {/* Status */}
-        <div className="flex items-center space-x-2 text-center">
+        {/* Simple Status */}
+        <div className="flex items-center space-x-2">
           <span className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-400' : 'bg-yellow-400'}`}></span>
-          <span className="text-sm">
-            {isConnected ? 'Ready for voice chat' : 'API key needed'}
+          <span className="text-sm font-medium">
+            {isConnected ? 'Connected' : 'Need API Key'}
           </span>
         </div>
       </div>

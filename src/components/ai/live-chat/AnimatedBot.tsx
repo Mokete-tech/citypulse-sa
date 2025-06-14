@@ -8,51 +8,31 @@ interface AnimatedBotProps {
 }
 
 const AnimatedBot = memo(({ isListening, isSpeaking }: AnimatedBotProps) => {
-  const getEyeState = () => {
-    if (isListening) return '👁️'; // Wide eyes when listening
-    return '😊'; // Normal happy eyes
+  const getMainEmoji = () => {
+    if (isSpeaking) return '🗣️';
+    if (isListening) return '👂';
+    return '🤖';
   };
 
-  const getMouthAnimation = () => {
-    if (isSpeaking) {
-      return (
-        <div className="text-3xl animate-pulse">
-          🗣️
-        </div>
-      );
-    }
-    if (isListening) {
-      return (
-        <div className="text-3xl animate-bounce">
-          🎧
-        </div>
-      );
-    }
-    return (
-      <div className="text-3xl">
-        💬
-      </div>
-    );
+  const getAnimationClass = () => {
+    if (isSpeaking) return 'animate-pulse';
+    if (isListening) return 'animate-bounce';
+    return '';
   };
 
   return (
-    <div className="flex flex-col items-center space-y-2">
-      {/* Bot Face */}
-      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center shadow-lg">
-        <div className="text-4xl">
-          {getEyeState()}
-        </div>
+    <div className="flex flex-col items-center space-y-4">
+      {/* Large Animated Bot */}
+      <div className={`text-8xl transition-all duration-300 ${getAnimationClass()}`}>
+        {getMainEmoji()}
       </div>
-
-      {/* Mouth/Action */}
-      {getMouthAnimation()}
 
       {/* Status Text */}
       <div className="text-center">
-        <p className="text-xs font-medium">
-          {isListening && '👂 Listening...'}
-          {isSpeaking && '🗣️ Speaking...'}
-          {!isListening && !isSpeaking && '😊 Ready to chat'}
+        <p className="text-sm font-medium text-white/90">
+          {isListening && '👂 Listening to you...'}
+          {isSpeaking && '🗣️ PulsePal is speaking...'}
+          {!isListening && !isSpeaking && '🤖 Ready to chat'}
         </p>
       </div>
     </div>

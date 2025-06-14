@@ -5,7 +5,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useAI } from '@/hooks/useAI';
 import LiveChatHeader from './live-chat/LiveChatHeader';
 import LiveChatControls from './live-chat/LiveChatControls';
-import LiveChatWelcome from './live-chat/LiveChatWelcome';
 
 interface LiveChatInterfaceProps {
   darkMode: boolean;
@@ -77,13 +76,11 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
           isSpeaking={isSpeaking}
         />
         
-        <CardContent className="p-6 space-y-6">
+        <CardContent className="p-8 space-y-8">
           <LiveChatControls
             isListening={isListening}
             onMicToggle={handleMicToggle}
           />
-
-          <LiveChatWelcome darkMode={darkMode} />
 
           {!apiKey && (
             <div className={`text-center p-4 rounded-lg border-2 border-dashed ${
