@@ -75,12 +75,20 @@ export const useEventRegistration = () => {
       
       if (error) throw error;
 
-      // Update current attendees count directly
+      // Get current attendees count and increment it
+      const { data: eventData, error: fetchError } = await supabase
+        .from('events')
+        .select('current_attendees')
+        .eq('id', eventId)
+        .single();
+      
+      if (fetchError) throw fetchError;
+
+      const newCount = (eventData.current_attendees || 0) + 1;
+      
       const { error: updateError } = await supabase
         .from('events')
-        .update({ 
-          current_attendees: supabase.raw('current_attendees + 1') 
-        })
+        .update({ current_attendees: newCount })
         .eq('id', eventId);
       
       if (updateError) throw updateError;
