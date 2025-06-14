@@ -8,88 +8,62 @@ interface LiveChatHeaderProps {
 }
 
 const LiveChatHeader = memo(({ isListening, isSpeaking, hasApiKey }: LiveChatHeaderProps) => {
-  const [eyeState, setEyeState] = useState('open');
-  const [mouthState, setMouthState] = useState('smile');
   const [animationPhase, setAnimationPhase] = useState(0);
+  const [isBlinking, setIsBlinking] = useState(false);
 
-  // Realistic blinking animation when idle
+  // Natural blinking animation when idle
   useEffect(() => {
     if (!isSpeaking && !isListening) {
       const blinkInterval = setInterval(() => {
-        setEyeState('blink');
-        setTimeout(() => setEyeState('open'), 150);
-      }, 2000 + Math.random() * 3000); // Natural blink timing
+        setIsBlinking(true);
+        setTimeout(() => setIsBlinking(false), 200);
+      }, 2000 + Math.random() * 2000);
 
       return () => clearInterval(blinkInterval);
+    } else {
+      setIsBlinking(false);
     }
   }, [isSpeaking, isListening]);
 
-  // Listening animation - thoughtful expressions
+  // Listening animation - head tilting and thoughtful expressions
   useEffect(() => {
     if (isListening) {
-      setEyeState('focused');
-      setMouthState('neutral');
-      
       const listenInterval = setInterval(() => {
-        setAnimationPhase(prev => (prev + 1) % 3);
-      }, 800);
+        setAnimationPhase(prev => (prev + 1) % 4);
+      }, 600);
 
       return () => clearInterval(listenInterval);
     }
   }, [isListening]);
 
-  // Speaking animation - realistic mouth movements
+  // Speaking animation - mouth movements and expressions
   useEffect(() => {
     if (isSpeaking) {
-      setEyeState('engaged');
-      
       const speakInterval = setInterval(() => {
-        setAnimationPhase(prev => (prev + 1) % 4);
-      }, 200);
+        setAnimationPhase(prev => (prev + 1) % 6);
+      }, 300);
 
       return () => clearInterval(speakInterval);
     } else {
       setAnimationPhase(0);
-      if (!isListening) {
-        setEyeState('open');
-        setMouthState('smile');
-      }
     }
-  }, [isSpeaking, isListening]);
+  }, [isSpeaking]);
 
-  const getEyes = () => {
-    if (eyeState === 'blink') return '😌';
-    if (eyeState === 'focused' && isListening) {
-      return animationPhase === 1 ? '🤔' : '😯';
+  const getEmoji = () => {
+    if (isBlinking) {
+      return '😴';
     }
-    if (eyeState === 'engaged') return '😊';
-    return '😊';
-  };
-
-  const getMouth = () => {
+    
     if (isSpeaking) {
-      const speakingMouths = ['😮', '😯', '🙂', '😊'];
-      return speakingMouths[animationPhase];
-    }
-    if (isListening) {
-      return animationPhase === 2 ? '🤔' : '😯';
-    }
-    return '😊';
-  };
-
-  const getFinalEmoji = () => {
-    if (isSpeaking) {
-      const talkingEmojis = ['😮', '😯', '🙂', '😊'];
+      // Animated talking sequence
+      const talkingEmojis = ['😮', '😯', '🗣️', '😊', '😄', '🙂'];
       return talkingEmojis[animationPhase];
     }
     
     if (isListening) {
-      const listeningEmojis = ['🤔', '😯', '🧐'];
+      // Animated listening sequence - more expressive
+      const listeningEmojis = ['🤔', '👂', '🧐', '😯'];
       return listeningEmojis[animationPhase];
-    }
-    
-    if (eyeState === 'blink') {
-      return '😌';
     }
     
     return '😊';
@@ -102,14 +76,32 @@ const LiveChatHeader = memo(({ isListening, isSpeaking, hasApiKey }: LiveChatHea
   };
 
   const getAnimationClass = () => {
-    if (isSpeaking) return 'animate-pulse scale-110 drop-shadow-lg';
-    if (isListening) return 'animate-bounce scale-105';
-    return 'hover:scale-110 transition-all duration-300 drop-shadow-md';
+    const baseClasses = 'transition-all duration-300 ease-out transform';
+    
+    if (isSpeaking) {
+      return `${baseClasses} animate-pulse scale-110 drop-shadow-2xl hover:scale-115`;
+    }
+    
+    if (isListening) {
+      return `${baseClasses} animate-bounce scale-105 drop-shadow-xl`;
+    }
+    
+    if (isBlinking) {
+      return `${baseClasses} scale-95 opacity-80`;
+    }
+    
+    return `${baseClasses} hover:scale-110 drop-shadow-md hover:drop-shadow-xl`;
+  };
+
+  const getContainerClass = () => {
+    if (isSpeaking) return 'animate-pulse';
+    if (isListening) return 'animate-pulse';
+    return '';
   };
 
   return (
     <div className="relative p-12 bg-gradient-to-r from-indigo-600 to-purple-600 text-white min-h-[400px] flex items-center justify-center">
-      <div className="flex flex-col items-center space-y-8 text-center">
+      <div className={`flex flex-col items-center space-y-8 text-center ${getContainerClass()}`}>
         {/* Title */}
         <div className="space-y-2">
           <h2 className="text-4xl font-bold">
@@ -122,12 +114,26 @@ const LiveChatHeader = memo(({ isListening, isSpeaking, hasApiKey }: LiveChatHea
 
         {/* HUGE Animated Emoji - This is the main focus */}
         <div className="relative">
-          <div className={`text-[200px] leading-none transition-all duration-300 ease-out ${getAnimationClass()}`}>
-            {getFinalEmoji()}
+          <div className={`text-[200px] leading-none select-none ${getAnimationClass()}`}>
+            {getEmoji()}
           </div>
           
-          {/* Subtle glow effect */}
-          <div className="absolute inset-0 bg-white/10 rounded-full blur-3xl scale-75 -z-10 opacity-50"></div>
+          {/* Dynamic glow effect */}
+          <div className={`absolute inset-0 rounded-full blur-3xl scale-75 -z-10 transition-all duration-500 ${
+            isSpeaking ? 'bg-green-400/30 animate-pulse' :
+            isListening ? 'bg-blue-400/30 animate-pulse' :
+            'bg-white/10 opacity-50'
+          }`}></div>
+          
+          {/* Extra animated ring for speaking */}
+          {isSpeaking && (
+            <div className="absolute inset-0 border-4 border-green-400/50 rounded-full scale-125 animate-ping -z-10"></div>
+          )}
+          
+          {/* Extra animated ring for listening */}
+          {isListening && (
+            <div className="absolute inset-0 border-4 border-blue-400/50 rounded-full scale-110 animate-pulse -z-10"></div>
+          )}
         </div>
 
         {/* Status Text */}
