@@ -64,6 +64,14 @@ const LiveChatInterface = ({ darkMode }: LiveChatInterfaceProps) => {
     }
   };
 
+  const handleMicToggle = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
+
   return (
     <div className="relative overflow-hidden">
       {/* Animated background particles */}
@@ -71,12 +79,11 @@ const LiveChatInterface = ({ darkMode }: LiveChatInterfaceProps) => {
         {particles.map((particle) => (
           <div
             key={particle.id}
-            className="absolute w-2 h-2 rounded-full opacity-20"
+            className="absolute w-2 h-2 rounded-full opacity-20 animate-pulse"
             style={{
               left: `${particle.x}%`,
               top: `${particle.y}%`,
               background: `linear-gradient(45deg, #8b5cf6, #06b6d4)`,
-              animation: `float 3s ease-in-out infinite`,
               animationDelay: `${particle.delay}s`
             }}
           />
@@ -189,10 +196,11 @@ const LiveChatInterface = ({ darkMode }: LiveChatInterfaceProps) => {
                 
                 <div className="flex items-center justify-center space-x-6">
                   <Button
-                    onClick={isListening ? stopListening : startListening}
+                    onClick={handleMicToggle}
+                    disabled={!isConnected}
                     className={`relative py-4 px-8 rounded-xl font-medium transition-all duration-300 ${
                       isListening
-                        ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white animate-pulse'
+                        ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white'
                         : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white hover:scale-105'
                     } shadow-lg hover:shadow-xl`}
                   >
@@ -327,13 +335,6 @@ const LiveChatInterface = ({ darkMode }: LiveChatInterfaceProps) => {
           )}
         </CardContent>
       </Card>
-
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(180deg); }
-        }
-      `}</style>
     </div>
   );
 };
