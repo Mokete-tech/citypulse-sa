@@ -1,10 +1,10 @@
-
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import DealCard from "@/components/DealCard";
 import EventCard from "@/components/EventCard";
 import AuthModal from "@/components/AuthModal";
 import UserProfile from "@/components/UserProfile";
+import VideoPlayer from "@/components/VideoPlayer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Tag, Calendar, Bot, Building2, Sparkles, Play, Users, Star } from "lucide-react";
@@ -85,17 +85,11 @@ const Index = () => {
               </Link>
             </div>
             
-            {/* Video Preview */}
-            <div className="max-w-4xl mx-auto">
-              <div className="relative bg-black rounded-lg overflow-hidden shadow-2xl">
-                <div className="aspect-video bg-gradient-to-br from-blue-800 to-purple-800 flex items-center justify-center">
-                  <Button size="lg" className="bg-white bg-opacity-20 hover:bg-opacity-30 border-2 border-white">
-                    <Play className="w-8 h-8 mr-2" />
-                    Watch CityPulse in Action
-                  </Button>
-                </div>
-              </div>
-            </div>
+            {/* Video Player */}
+            <VideoPlayer 
+              title="CityPulse in Action"
+              description="Watch how thousands of South Africans are discovering amazing local deals and events in Cape Town, Johannesburg, and across the country."
+            />
           </div>
         </div>
       </section>
