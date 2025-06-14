@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useGeminiLive } from '@/hooks/useGeminiLive';
 import LiveChatParticles from './live-chat/LiveChatParticles';
@@ -27,38 +27,43 @@ const LiveChatInterface = ({ darkMode }: LiveChatInterfaceProps) => {
     sendText,
   } = useGeminiLive();
 
-  const handleSendText = () => {
+  const handleSendText = useCallback(() => {
     if (textInput.trim() && isConnected) {
       sendText(textInput);
       setTextInput('');
     }
-  };
+  }, [textInput, isConnected, sendText]);
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       handleSendText();
     }
-  };
+  }, [handleSendText]);
 
-  const handleMicToggle = () => {
+  const handleMicToggle = useCallback(() => {
     if (isListening) {
       stopListening();
     } else {
       startListening();
     }
-  };
+  }, [isListening, startListening, stopListening]);
+
+  // Memoize card classes to prevent recalculation
+  const cardClasses = useMemo(() => 
+    `relative border-2 shadow-2xl overflow-hidden ${
+      darkMode 
+        ? 'bg-gray-800/90 border-purple-500/50' 
+        : 'bg-white/90 border-purple-200'
+    } backdrop-blur-sm`, [darkMode]
+  );
 
   return (
     <div className="relative overflow-hidden">
       <LiveChatParticles />
 
       {/* Main Live Chat Card */}
-      <Card className={`relative border-2 shadow-2xl overflow-hidden ${
-        darkMode 
-          ? 'bg-gray-800/90 border-purple-500/50' 
-          : 'bg-white/90 border-purple-200'
-      } backdrop-blur-sm`}>
+      <Card className={cardClasses}>
         
         <LiveChatHeader 
           isConnected={isConnected}
