@@ -39,6 +39,8 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
       }, 800);
 
       return () => clearInterval(listenInterval);
+    } else {
+      setAnimationPhase(0);
     }
   }, [isListening]);
 
@@ -56,21 +58,23 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
   }, [isSpeaking]);
 
   const getEmoji = () => {
-    // Force blinking state
+    console.log('Getting emoji - isBlinking:', isBlinking, 'isSpeaking:', isSpeaking, 'isListening:', isListening, 'animationPhase:', animationPhase);
+    
+    // Force blinking state when idle
     if (isBlinking && !isSpeaking && !isListening) {
-      return '😴';
+      return '😌';
     }
     
     if (isSpeaking) {
       // More expressive talking sequence
       const talkingEmojis = ['😮', '🗣️', '😄', '😊', '😯', '🙂'];
-      return talkingEmojis[animationPhase];
+      return talkingEmojis[animationPhase % talkingEmojis.length];
     }
     
     if (isListening) {
       // More attentive listening sequence
       const listeningEmojis = ['🤔', '👂', '🧐', '😯'];
-      return listeningEmojis[animationPhase];
+      return listeningEmojis[animationPhase % listeningEmojis.length];
     }
     
     return '😊';
@@ -102,6 +106,8 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
   };
 
   const handleMicToggle = useCallback(async () => {
+    console.log('Mic toggle clicked - current state:', { isListening, isSpeaking, hasApiKey: !!apiKey?.trim() });
+    
     if (!apiKey?.trim()) {
       toast({
         title: "API Key Required",
@@ -153,7 +159,7 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
         }
       }, 3000);
     }
-  }, [isListening, apiKey, sendMessage, toast]);
+  }, [isListening, isSpeaking, apiKey, sendMessage, toast]);
 
   const cardClasses = `relative border-2 shadow-2xl overflow-hidden backdrop-blur-sm ${
     darkMode 
@@ -292,8 +298,10 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
 
             {/* Debug info for development */}
             <div className="mt-4 text-center text-sm opacity-60">
-              <p>Status: {isListening ? 'Listening' : isSpeaking ? 'Speaking' : 'Ready'}</p>
+              <p>Status: {isListening ? '🎤 Listening' : isSpeaking ? '🗣️ Speaking' : '😊 Ready'}</p>
               <p>API Key: {apiKey?.trim() ? 'Set ✅' : 'Missing ❌'}</p>
+              <p>Animation Phase: {animationPhase}</p>
+              <p>Blinking: {isBlinking ? 'Yes' : 'No'}</p>
             </div>
           </div>
         </CardContent>
