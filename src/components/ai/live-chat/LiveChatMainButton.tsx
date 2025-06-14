@@ -23,7 +23,7 @@ const LiveChatMainButton = ({
           !hasApiKey
             ? 'bg-gray-400 cursor-not-allowed scale-95'
             : isListening
-            ? 'bg-red-600 hover:bg-red-700 text-white scale-110 animate-pulse'
+            ? 'bg-red-600 hover:bg-red-700 text-white scale-105'
             : 'bg-blue-600 hover:bg-blue-700 text-white hover:scale-105'
         }`}
       >

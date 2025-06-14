@@ -18,8 +18,6 @@ const LiveChatInterface = memo(({ darkMode, sendMessage }: LiveChatInterfaceProp
   
   const { toast } = useToast();
 
-  console.log('Live Chat - API Key status:', liveApiKey ? 'Available' : 'Not set');
-
   const handleMicToggle = useCallback(async () => {
     if (!liveApiKey?.trim()) {
       toast({
@@ -44,7 +42,7 @@ const LiveChatInterface = memo(({ darkMode, sendMessage }: LiveChatInterfaceProp
             title: "Voice interaction complete",
             description: "Check Regular Chat to see the full conversation!",
           });
-        }, 4000);
+        }, 3000);
       }, 1000);
       
     } else {
@@ -54,12 +52,12 @@ const LiveChatInterface = memo(({ darkMode, sendMessage }: LiveChatInterfaceProp
         description: "Speak now! I'm listening to your voice.",
       });
       
-      // Auto-stop listening after 5 seconds for demo
+      // Auto-stop listening after 10 seconds for demo
       setTimeout(() => {
         if (isListening) {
-          handleMicToggle();
+          setIsListening(false);
         }
-      }, 5000);
+      }, 10000);
     }
   }, [isListening, liveApiKey, sendMessage, toast]);
 

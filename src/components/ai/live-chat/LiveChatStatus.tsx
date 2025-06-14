@@ -1,5 +1,5 @@
 
-import { useState, useEffect, memo } from 'react';
+import { memo } from 'react';
 
 interface LiveChatStatusProps {
   isListening: boolean;
@@ -8,58 +8,10 @@ interface LiveChatStatusProps {
 }
 
 const LiveChatStatus = memo(({ isListening, isSpeaking, hasApiKey }: LiveChatStatusProps) => {
-  const [animationPhase, setAnimationPhase] = useState(0);
-  const [isBlinking, setIsBlinking] = useState(false);
-
-  // Blinking animation for idle state
-  useEffect(() => {
-    if (!isSpeaking && !isListening) {
-      const blinkTimer = setTimeout(() => {
-        setIsBlinking(true);
-        setTimeout(() => setIsBlinking(false), 150);
-      }, 2000 + Math.random() * 3000);
-
-      return () => clearTimeout(blinkTimer);
-    }
-  }, [isSpeaking, isListening, isBlinking]);
-
-  // Animation cycles for different states
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (isListening) {
-      interval = setInterval(() => {
-        setAnimationPhase(prev => (prev + 1) % 4);
-      }, 800);
-    } else if (isSpeaking) {
-      interval = setInterval(() => {
-        setAnimationPhase(prev => (prev + 1) % 6);
-      }, 250);
-    } else {
-      setAnimationPhase(0);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isListening, isSpeaking]);
-
   const getEmoji = () => {
-    if (isBlinking && !isSpeaking && !isListening) {
-      return '😌';
-    }
-    
-    if (isSpeaking) {
-      const talkingEmojis = ['😮', '🗣️', '😄', '😊', '😯', '🙂'];
-      return talkingEmojis[animationPhase];
-    }
-    
-    if (isListening) {
-      const listeningEmojis = ['🤔', '👂', '🧐', '😯'];
-      return listeningEmojis[animationPhase];
-    }
-    
-    return '😊';
+    if (isSpeaking) return '🗣️';
+    if (isListening) return '👂';
+    return '🤖';
   };
 
   const getStatusText = () => {
@@ -69,30 +21,19 @@ const LiveChatStatus = memo(({ isListening, isSpeaking, hasApiKey }: LiveChatSta
     return '😊 Ready to chat - Click Start Talking!';
   };
 
-  const getAnimationClass = () => {
-    const baseClasses = 'transition-all duration-300 ease-out transform select-none';
-    
-    if (isSpeaking) {
-      return `${baseClasses} animate-pulse scale-110 drop-shadow-2xl`;
-    }
-    
-    if (isListening) {
-      return `${baseClasses} animate-bounce scale-105 drop-shadow-xl`;
-    }
-    
-    if (isBlinking) {
-      return `${baseClasses} scale-95 opacity-70`;
-    }
-    
-    return `${baseClasses} hover:scale-105 drop-shadow-lg`;
+  const getStatusColor = () => {
+    if (isSpeaking) return 'text-green-200';
+    if (isListening) return 'text-blue-200';
+    if (!hasApiKey) return 'text-yellow-200';
+    return 'text-white/95';
   };
 
   return (
-    <div className="relative p-8 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white min-h-[500px] flex items-center justify-center overflow-hidden">
-      {/* Background particles */}
+    <div className="relative p-8 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white min-h-[400px] flex items-center justify-center overflow-hidden">
+      {/* Background effects */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className={`absolute top-1/4 left-1/4 w-32 h-32 bg-white/10 rounded-full blur-xl ${isSpeaking ? 'animate-ping' : 'animate-pulse'}`}></div>
-        <div className={`absolute bottom-1/4 right-1/4 w-24 h-24 bg-blue-300/20 rounded-full blur-xl ${isListening ? 'animate-bounce' : 'animate-pulse'}`}></div>
+        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-white/10 rounded-full blur-xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-24 h-24 bg-blue-300/20 rounded-full blur-xl animate-pulse"></div>
       </div>
 
       <div className="relative z-10 flex flex-col items-center space-y-6 text-center">
@@ -106,49 +47,33 @@ const LiveChatStatus = memo(({ isListening, isSpeaking, hasApiKey }: LiveChatSta
           </p>
         </div>
 
-        {/* Animated Emoji */}
+        {/* Simple Emoji Display */}
         <div className="relative my-8">
-          <div className={`text-[240px] leading-none ${getAnimationClass()}`}>
+          <div className={`text-[200px] leading-none transition-all duration-500 ${
+            isSpeaking ? 'animate-pulse scale-110' :
+            isListening ? 'animate-bounce scale-105' :
+            'scale-100'
+          }`}>
             {getEmoji()}
           </div>
           
-          {/* Glow effects */}
+          {/* Simple glow effect */}
           <div className={`absolute inset-0 rounded-full blur-3xl scale-75 -z-10 transition-all duration-500 ${
-            isSpeaking ? 'bg-green-400/40 animate-pulse' :
-            isListening ? 'bg-blue-400/40 animate-pulse' :
+            isSpeaking ? 'bg-green-400/40' :
+            isListening ? 'bg-blue-400/40' :
             'bg-white/20'
           }`}></div>
-          
-          {/* Animated rings */}
-          {isSpeaking && (
-            <>
-              <div className="absolute inset-0 border-4 border-green-400/60 rounded-full scale-125 animate-ping -z-10"></div>
-              <div className="absolute inset-0 border-2 border-green-300/40 rounded-full scale-150 animate-pulse -z-10"></div>
-            </>
-          )}
-          
-          {isListening && (
-            <>
-              <div className="absolute inset-0 border-4 border-blue-400/60 rounded-full scale-110 animate-pulse -z-10"></div>
-              <div className="absolute inset-0 border-2 border-blue-300/40 rounded-full scale-130 animate-bounce -z-10"></div>
-            </>
-          )}
         </div>
 
         {/* Status Text */}
         <div className="space-y-4">
-          <p className={`text-xl font-medium transition-all duration-300 ${
-            isSpeaking ? 'text-green-200 animate-pulse' :
-            isListening ? 'text-blue-200 animate-pulse' :
-            !hasApiKey ? 'text-yellow-200' :
-            'text-white/95'
-          }`}>
+          <p className={`text-xl font-medium transition-all duration-300 ${getStatusColor()}`}>
             {getStatusText()}
           </p>
           
           {/* API Key Status */}
           {!hasApiKey && (
-            <div className="flex items-center justify-center space-x-3 bg-yellow-500/20 backdrop-blur-sm rounded-full px-6 py-3 border border-yellow-400/30 animate-pulse">
+            <div className="flex items-center justify-center space-x-3 bg-yellow-500/20 backdrop-blur-sm rounded-full px-6 py-3 border border-yellow-400/30">
               <span className="w-3 h-3 rounded-full bg-yellow-400 animate-ping"></span>
               <span className="text-sm font-medium text-yellow-100">
                 Set your API Key above to enable Live Voice Chat
