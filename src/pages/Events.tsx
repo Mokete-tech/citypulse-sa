@@ -2,16 +2,19 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import EventCard from "@/components/EventCard";
+import LocationSelector from "@/components/LocationSelector";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, Filter, Calendar, MapPin, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { useEvents } from "@/hooks/useEvents";
+import { useLocation } from "@/hooks/useLocation";
 
 const Events = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const { location } = useLocation();
 
   const categories = ["All", "Music", "Food & Drink", "Arts & Culture", "Sports", "Business", "Entertainment", "Education"];
 
@@ -40,7 +43,19 @@ const Events = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Local Events</h1>
-            <p className="text-xl text-gray-600 mb-6">Discover all upcoming events across South Africa.</p>
+            <p className="text-xl text-gray-600 mb-6">
+              Discover all upcoming events across South Africa.
+              {location && (
+                <span className="block mt-2 text-blue-600">
+                  Showing events near {location.city}, {location.province}
+                </span>
+              )}
+            </p>
+            
+            {/* Location Selector */}
+            <div className="flex justify-center mb-6">
+              <LocationSelector />
+            </div>
             
             {/* Featured Stats */}
             <div className="flex justify-center space-x-8 mb-8">
@@ -99,6 +114,11 @@ const Events = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
               <TrendingUp className="w-6 h-6 mr-2 text-purple-600" />
               Premium Events
+              {location && (
+                <span className="ml-2 text-sm font-normal text-gray-600">
+                  in {location.city}
+                </span>
+              )}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {premiumEvents.slice(0, 3).map((event) => (

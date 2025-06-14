@@ -2,16 +2,19 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import DealCard from "@/components/DealCard";
+import LocationSelector from "@/components/LocationSelector";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, Filter, MapPin, TrendingUp, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { useDeals } from "@/hooks/useDeals";
+import { useLocation } from "@/hooks/useLocation";
 
 const Deals = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const { location } = useLocation();
 
   const categories = ["All", "Food & Drink", "Retail", "Beauty", "Entertainment", "Health & Fitness", "Travel"];
 
@@ -41,7 +44,19 @@ const Deals = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Local Deals</h1>
-            <p className="text-xl text-gray-600 mb-6">Explore all the best deals across South Africa - from grocery stores to retail outlets.</p>
+            <p className="text-xl text-gray-600 mb-6">
+              Explore all the best deals across South Africa - from grocery stores to retail outlets.
+              {location && (
+                <span className="block mt-2 text-blue-600">
+                  Showing deals near {location.city}, {location.province}
+                </span>
+              )}
+            </p>
+            
+            {/* Location Selector */}
+            <div className="flex justify-center mb-6">
+              <LocationSelector />
+            </div>
             
             {/* Featured Stats */}
             <div className="flex justify-center space-x-8 mb-8">
@@ -100,6 +115,11 @@ const Deals = () => {
           <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
             <ShoppingCart className="w-6 h-6 mr-2 text-green-600" />
             Grocery & Retail Deals
+            {location && (
+              <span className="ml-2 text-sm font-normal text-gray-600">
+                in {location.city}
+              </span>
+            )}
           </h2>
           <p className="text-gray-600 mb-6">Find the best deals at South Africa's top retailers including Shoprite, Pick n Pay, Woolworths, and more!</p>
           
