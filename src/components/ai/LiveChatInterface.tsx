@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useGeminiLive } from '@/hooks/useGeminiLive';
 import LiveChatParticles from './live-chat/LiveChatParticles';
@@ -13,7 +13,8 @@ interface LiveChatInterfaceProps {
   darkMode: boolean;
 }
 
-const LiveChatInterface = ({ darkMode }: LiveChatInterfaceProps) => {
+// Memoize the main component to prevent unnecessary re-renders
+const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
   const [textInput, setTextInput] = useState('');
   const {
     isConnected,
@@ -27,6 +28,7 @@ const LiveChatInterface = ({ darkMode }: LiveChatInterfaceProps) => {
     sendText,
   } = useGeminiLive();
 
+  // Memoize all handlers to prevent recreation
   const handleSendText = useCallback(() => {
     if (textInput.trim() && isConnected) {
       sendText(textInput);
@@ -49,7 +51,7 @@ const LiveChatInterface = ({ darkMode }: LiveChatInterfaceProps) => {
     }
   }, [isListening, startListening, stopListening]);
 
-  // Memoize card classes to prevent recalculation
+  // Memoize card classes
   const cardClasses = useMemo(() => 
     `relative border-2 shadow-2xl overflow-hidden ${
       darkMode 
@@ -58,54 +60,67 @@ const LiveChatInterface = ({ darkMode }: LiveChatInterfaceProps) => {
     } backdrop-blur-sm`, [darkMode]
   );
 
+  // Memoize components that depend on state to prevent unnecessary re-renders
+  const memoizedHeader = useMemo(() => (
+    <LiveChatHeader 
+      isConnected={isConnected}
+      isListening={isListening}
+      isSpeaking={isSpeaking}
+    />
+  ), [isConnected, isListening, isSpeaking]);
+
+  const memoizedControls = useMemo(() => (
+    <LiveChatControls
+      isConnected={isConnected}
+      isListening={isListening}
+      darkMode={darkMode}
+      onConnect={connect}
+      onDisconnect={disconnect}
+      onMicToggle={handleMicToggle}
+    />
+  ), [isConnected, isListening, darkMode, connect, disconnect, handleMicToggle]);
+
+  const memoizedTextInput = useMemo(() => {
+    if (!isConnected) return null;
+    return (
+      <LiveChatTextInput
+        textInput={textInput}
+        setTextInput={setTextInput}
+        onSendText={handleSendText}
+        onKeyPress={handleKeyPress}
+        darkMode={darkMode}
+      />
+    );
+  }, [isConnected, textInput, handleSendText, handleKeyPress, darkMode]);
+
+  const memoizedMessages = useMemo(() => {
+    if (messages.length === 0) return null;
+    return <LiveChatMessages messages={messages} darkMode={darkMode} />;
+  }, [messages, darkMode]);
+
+  const memoizedWelcome = useMemo(() => {
+    if (isConnected) return null;
+    return <LiveChatWelcome darkMode={darkMode} />;
+  }, [isConnected, darkMode]);
+
   return (
     <div className="relative overflow-hidden">
       <LiveChatParticles />
-
-      {/* Main Live Chat Card */}
+      
       <Card className={cardClasses}>
+        {memoizedHeader}
         
-        <LiveChatHeader 
-          isConnected={isConnected}
-          isListening={isListening}
-          isSpeaking={isSpeaking}
-        />
-
         <CardContent className="p-6 space-y-6">
-          
-          <LiveChatControls
-            isConnected={isConnected}
-            isListening={isListening}
-            darkMode={darkMode}
-            onConnect={connect}
-            onDisconnect={disconnect}
-            onMicToggle={handleMicToggle}
-          />
-
-          {/* Text Input - Only show when connected */}
-          {isConnected && (
-            <LiveChatTextInput
-              textInput={textInput}
-              setTextInput={setTextInput}
-              onSendText={handleSendText}
-              onKeyPress={handleKeyPress}
-              darkMode={darkMode}
-            />
-          )}
-
-          {/* Messages Display */}
-          {messages.length > 0 && (
-            <LiveChatMessages messages={messages} darkMode={darkMode} />
-          )}
-
-          {/* Fun Getting Started Section */}
-          {!isConnected && (
-            <LiveChatWelcome darkMode={darkMode} />
-          )}
+          {memoizedControls}
+          {memoizedTextInput}
+          {memoizedMessages}
+          {memoizedWelcome}
         </CardContent>
       </Card>
     </div>
   );
-};
+});
+
+LiveChatInterface.displayName = 'LiveChatInterface';
 
 export default LiveChatInterface;
