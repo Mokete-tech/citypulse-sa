@@ -17,7 +17,7 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
   const { toast } = useToast();
 
   const handleMicToggle = useCallback(async () => {
-    if (!apiKey) {
+    if (!apiKey?.trim()) {
       toast({
         title: "API Key Required",
         description: "Please set your Gemini API key in Regular Chat mode first",
@@ -74,23 +74,15 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
         <LiveChatHeader 
           isListening={isListening}
           isSpeaking={isSpeaking}
+          hasApiKey={!!apiKey?.trim()}
         />
         
         <CardContent className="p-8 space-y-8">
           <LiveChatControls
             isListening={isListening}
             onMicToggle={handleMicToggle}
+            hasApiKey={!!apiKey?.trim()}
           />
-
-          {!apiKey && (
-            <div className={`text-center p-4 rounded-lg border-2 border-dashed ${
-              darkMode ? 'border-gray-600 bg-gray-700/50' : 'border-gray-300 bg-gray-50'
-            }`}>
-              <p className="text-sm text-gray-500">
-                💡 Switch to "Regular Chat" mode to set your API key first, then come back to try voice chat!
-              </p>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>
