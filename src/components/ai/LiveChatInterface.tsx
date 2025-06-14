@@ -1,7 +1,9 @@
+
 import { useState, useCallback, memo, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Mic, MicOff, Key, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface LiveChatInterfaceProps {
@@ -10,15 +12,17 @@ interface LiveChatInterfaceProps {
   sendMessage: (content: string) => void;
 }
 
-const LiveChatInterface = memo(({ darkMode, apiKey, sendMessage }: LiveChatInterfaceProps) => {
+const LiveChatInterface = memo(({ darkMode, sendMessage }: LiveChatInterfaceProps) => {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [animationPhase, setAnimationPhase] = useState(0);
   const [isBlinking, setIsBlinking] = useState(false);
+  const [liveApiKey, setLiveApiKey] = useState('');
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   
   const { toast } = useToast();
 
-  console.log('Live Chat - API Key status:', apiKey ? 'Available' : 'Not set');
+  console.log('Live Chat - API Key status:', liveApiKey ? 'Available' : 'Not set');
 
   // Blinking animation for idle state
   useEffect(() => {
@@ -74,7 +78,7 @@ const LiveChatInterface = memo(({ darkMode, apiKey, sendMessage }: LiveChatInter
   const getStatusText = () => {
     if (isListening) return '👂 Listening to you...';
     if (isSpeaking) return '🗣️ PulsePal is speaking...';
-    if (!apiKey?.trim()) return '🔑 API Key needed to start chatting';
+    if (!liveApiKey?.trim()) return '🔑 API Key needed to start chatting';
     return '😊 Ready to chat - Click Start Talking!';
   };
 
@@ -97,10 +101,10 @@ const LiveChatInterface = memo(({ darkMode, apiKey, sendMessage }: LiveChatInter
   };
 
   const handleMicToggle = useCallback(async () => {
-    if (!apiKey?.trim()) {
+    if (!liveApiKey?.trim()) {
       toast({
         title: "API Key Required",
-        description: "Please set your Gemini API key in Regular Chat mode first",
+        description: "Please set your Gemini API key for Live Chat first",
         variant: "destructive"
       });
       return;
@@ -112,7 +116,7 @@ const LiveChatInterface = memo(({ darkMode, apiKey, sendMessage }: LiveChatInter
       // Simulate AI response
       setTimeout(() => {
         setIsSpeaking(true);
-        sendMessage("Hello! I heard you speaking in voice chat. This is a demo response from PulsePal AI.");
+        sendMessage("Hello! I heard you speaking in live voice chat. This is a demo response from PulsePal AI.");
         
         setTimeout(() => {
           setIsSpeaking(false);
@@ -137,12 +141,54 @@ const LiveChatInterface = memo(({ darkMode, apiKey, sendMessage }: LiveChatInter
         }
       }, 5000);
     }
-  }, [isListening, apiKey, sendMessage, toast]);
+  }, [isListening, liveApiKey, sendMessage, toast]);
 
-  const hasApiKey = Boolean(apiKey?.trim());
+  const hasApiKey = Boolean(liveApiKey?.trim());
 
   return (
-    <div className="relative max-w-4xl mx-auto">
+    <div className="relative max-w-4xl mx-auto space-y-6">
+      {/* API Key Section for Live Chat */}
+      <Card className={`border-2 shadow-xl ${darkMode ? 'bg-gray-800/90 border-purple-500' : 'bg-white/90 border-purple-200'} backdrop-blur-sm`}>
+        <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-t-lg p-4">
+          <div className="flex items-center justify-between">
+            <span className="flex items-center font-semibold">
+              <Key className="w-5 h-5 mr-2" />
+              Live Chat API Key
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => window.open('https://makersuite.google.com/app/apikey', '_blank')}
+              className="text-white hover:bg-white/20"
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Get API Key
+            </Button>
+          </div>
+        </div>
+        <CardContent className="p-4">
+          <div className="flex gap-3">
+            <Input
+              type="password"
+              placeholder="Enter your Gemini API key for Live Chat..."
+              value={liveApiKey}
+              onChange={(e) => setLiveApiKey(e.target.value)}
+              className="flex-1"
+            />
+            <Button
+              onClick={() => setShowApiKeyInput(false)}
+              disabled={!liveApiKey.trim()}
+              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+            >
+              {liveApiKey ? 'API Key Set' : 'Save Key'}
+            </Button>
+          </div>
+          <p className="text-sm text-gray-500 mt-2">
+            This API key is separate from Regular Chat and stored locally for Live Chat only.
+          </p>
+        </CardContent>
+      </Card>
+
       <Card className={`relative border-2 shadow-2xl overflow-hidden backdrop-blur-sm ${
         darkMode 
           ? 'bg-gray-900/95 border-gray-700' 
@@ -212,7 +258,7 @@ const LiveChatInterface = memo(({ darkMode, apiKey, sendMessage }: LiveChatInter
                 <div className="flex items-center justify-center space-x-3 bg-yellow-500/20 backdrop-blur-sm rounded-full px-6 py-3 border border-yellow-400/30 animate-pulse">
                   <span className="w-3 h-3 rounded-full bg-yellow-400 animate-ping"></span>
                   <span className="text-sm font-medium text-yellow-100">
-                    Set your API Key in Regular Chat first to enable voice chat
+                    Set your API Key above to enable Live Voice Chat
                   </span>
                 </div>
               )}
@@ -268,7 +314,7 @@ const LiveChatInterface = memo(({ darkMode, apiKey, sendMessage }: LiveChatInter
                 </>
               ) : (
                 <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">
-                  Please set your Gemini API key in Regular Chat mode first
+                  Please set your Gemini API key above to enable Live Voice Chat
                 </p>
               )}
             </div>
