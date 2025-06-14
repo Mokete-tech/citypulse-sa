@@ -9,6 +9,7 @@ import Deals from "./pages/Deals";
 import Events from "./pages/Events";
 import AIAssistant from "./pages/AIAssistant";
 import Contact from "./pages/Contact";
+import BusinessPortal from "./pages/BusinessPortal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/deals" element={<Deals />} />
           <Route path="/events" element={<Events />} />
           <Route path="/ai-assistant" element={<AIAssistant />} />
+          <Route path="/business-portal" element={<BusinessPortal />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

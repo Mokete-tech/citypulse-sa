@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star, Share2 } from "lucide-react";
+import ReactionButton from "./ReactionButton";
 
 interface DealCardProps {
   title: string;
@@ -16,6 +17,10 @@ interface DealCardProps {
 }
 
 const DealCard = ({ title, category, business, description, discount, rating, expires, featured = false }: DealCardProps) => {
+  const handleReaction = (type: 'like' | 'dislike', count: number) => {
+    console.log(`Deal "${title}" ${type}d. New count: ${count}`);
+  };
+
   return (
     <Card className="relative overflow-hidden hover:shadow-lg transition-shadow">
       {featured && (
@@ -45,11 +50,19 @@ const DealCard = ({ title, category, business, description, discount, rating, ex
           Expires: {expires}
         </div>
         
-        <div className="flex space-x-2">
-          <Button className="flex-1">View Deal</Button>
-          <Button variant="outline" size="icon">
-            <Share2 className="w-4 h-4" />
-          </Button>
+        <div className="flex items-center justify-between">
+          <div className="flex space-x-2">
+            <Button className="flex-1">View Deal</Button>
+            <Button variant="outline" size="icon">
+              <Share2 className="w-4 h-4" />
+            </Button>
+          </div>
+          <ReactionButton 
+            type="like" 
+            initialCount={Math.floor(Math.random() * 50) + 10}
+            onReaction={handleReaction}
+            size="sm"
+          />
         </div>
       </CardContent>
     </Card>

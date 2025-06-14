@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { ThumbsUp, ThumbsDown } from "lucide-react";
+import { Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ReactionButtonProps {
@@ -32,10 +32,6 @@ const ReactionButton = ({
     }
   };
 
-  const Icon = type === 'like' ? ThumbsUp : ThumbsDown;
-  const activeColor = type === 'like' ? 'text-green-600' : 'text-red-600';
-  const hoverColor = type === 'like' ? 'hover:text-green-600' : 'hover:text-red-600';
-
   return (
     <Button
       variant="ghost"
@@ -43,14 +39,13 @@ const ReactionButton = ({
       onClick={handleClick}
       className={cn(
         "flex items-center space-x-1 transition-colors",
-        isActive ? activeColor : "text-gray-500",
-        !isActive && hoverColor
+        isActive ? "text-red-500" : "text-gray-500",
+        "hover:text-red-500"
       )}
     >
-      <Icon className={cn(
-        "w-4 h-4",
-        isActive && type === 'like' && "fill-green-600",
-        isActive && type === 'dislike' && "fill-red-600"
+      <Heart className={cn(
+        "w-4 h-4 transition-all",
+        isActive && "fill-red-500 text-red-500"
       )} />
       <span className="text-sm font-medium">{count}</span>
     </Button>

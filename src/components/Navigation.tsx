@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Tag, Calendar, Bot, Users, Heart, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Navigation = () => {
@@ -9,10 +9,13 @@ const Navigation = () => {
   const location = useLocation();
 
   const navItems = [
-    { name: "Deals", path: "/deals" },
-    { name: "Events", path: "/events" },
-    { name: "AI Assistant", path: "/ai-assistant" },
-    { name: "Contact", path: "/contact" },
+    { name: "Deals", path: "/deals", icon: Tag },
+    { name: "Events", path: "/events", icon: Calendar },
+  ];
+
+  const aiBusinessItems = [
+    { name: "PulsePal AI", path: "/ai-assistant", icon: Bot },
+    { name: "Business Portal", path: "/business-portal", icon: Building2 },
   ];
 
   return (
@@ -41,7 +44,30 @@ const Navigation = () => {
                   {item.name}
                 </Link>
               ))}
-              <Button variant="outline" size="sm">
+              {aiBusinessItems.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    location.pathname === item.path
+                      ? "bg-blue-100 text-blue-700"
+                      : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              ))}
+              <Link
+                to="/contact"
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  location.pathname === "/contact"
+                    ? "bg-blue-100 text-blue-700"
+                    : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                }`}
+              >
+                Contact
+              </Link>
+              <Button variant="default" size="sm">
                 Sign In
               </Button>
             </div>
@@ -63,22 +89,65 @@ const Navigation = () => {
       {isMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                to={item.path}
-                className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                  location.pathname === item.path
-                    ? "bg-blue-100 text-blue-700"
-                    : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
-                }`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {item.name}
-              </Link>
-            ))}
             <div className="px-3 py-2">
-              <Button variant="outline" size="sm" className="w-full">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Navigation</h3>
+            </div>
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  className={`flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                    location.pathname === item.path
+                      ? "bg-blue-100 text-blue-700"
+                      : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Icon className="w-5 h-5 mr-3" />
+                  {item.name}
+                </Link>
+              );
+            })}
+            
+            <div className="px-3 py-2 mt-4">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">AI & Business</h3>
+            </div>
+            {aiBusinessItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  className={`flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                    location.pathname === item.path
+                      ? "bg-blue-100 text-blue-700"
+                      : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Icon className="w-5 h-5 mr-3" />
+                  {item.name}
+                </Link>
+              );
+            })}
+
+            <Link
+              to="/contact"
+              className={`flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                location.pathname === "/contact"
+                  ? "bg-blue-100 text-blue-700"
+                  : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+              }`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Users className="w-5 h-5 mr-3" />
+              Contact
+            </Link>
+            
+            <div className="px-3 py-2">
+              <Button variant="default" size="sm" className="w-full">
                 Sign In
               </Button>
             </div>

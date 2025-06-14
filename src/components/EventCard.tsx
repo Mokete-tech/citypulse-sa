@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, Clock, MapPin, Star, Share2 } from "lucide-react";
+import ReactionButton from "./ReactionButton";
 
 interface EventCardProps {
   title: string;
@@ -18,6 +19,10 @@ interface EventCardProps {
 }
 
 const EventCard = ({ title, category, organizer, description, date, time, venue, price, rating, premium = false }: EventCardProps) => {
+  const handleReaction = (type: 'like' | 'dislike', count: number) => {
+    console.log(`Event "${title}" ${type}d. New count: ${count}`);
+  };
+
   return (
     <Card className="relative overflow-hidden hover:shadow-lg transition-shadow">
       {premium && (
@@ -58,11 +63,19 @@ const EventCard = ({ title, category, organizer, description, date, time, venue,
           </div>
         </div>
         
-        <div className="flex space-x-2">
-          <Button className="flex-1">View Event</Button>
-          <Button variant="outline" size="icon">
-            <Share2 className="w-4 h-4" />
-          </Button>
+        <div className="flex items-center justify-between">
+          <div className="flex space-x-2">
+            <Button className="flex-1">View Event</Button>
+            <Button variant="outline" size="icon">
+              <Share2 className="w-4 h-4" />
+            </Button>
+          </div>
+          <ReactionButton 
+            type="like" 
+            initialCount={Math.floor(Math.random() * 30) + 5}
+            onReaction={handleReaction}
+            size="sm"
+          />
         </div>
       </CardContent>
     </Card>

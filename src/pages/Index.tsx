@@ -4,9 +4,8 @@ import Footer from "@/components/Footer";
 import DealCard from "@/components/DealCard";
 import EventCard from "@/components/EventCard";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, Sparkles, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Tag, Calendar, Bot, Building2, Sparkles } from "lucide-react";
 
 const Index = () => {
   const featuredDeals = [
@@ -14,28 +13,19 @@ const Index = () => {
       title: "50% Off Gourmet Burgers",
       category: "Food & Drink",
       business: "The Burger Joint",
-      description: "Enjoy our premium beef burgers with artisanal toppings at half price! Made with locally sourced ingredients.",
+      description: "Enjoy our premium beef burgers with artisanal toppings at half price!",
       discount: "50% OFF",
-      rating: 6,
+      rating: 4.8,
       expires: "2024-12-31",
       featured: true
     },
     {
-      title: "Buy 2 Get 1 Free Coffee",
-      category: "Food & Drink", 
-      business: "Cape Town Coffee Co",
-      description: "Perfect morning deal for coffee lovers. Premium roasted beans from local South African farms.",
-      discount: "Buy 2 Get 1",
-      rating: 7,
-      expires: "2024-12-25"
-    },
-    {
       title: "30% Off Designer Clothing",
       category: "Retail",
-      business: "Fashion Forward", 
-      description: "Latest fashion trends at unbeatable prices. Limited time offer on all designer collections.",
+      business: "Fashion Forward",
+      description: "Latest fashion trends at unbeatable prices. Limited time offer.",
       discount: "30% OFF",
-      rating: 8,
+      rating: 4.6,
       expires: "2024-12-20",
       featured: true
     }
@@ -46,35 +36,24 @@ const Index = () => {
       title: "Summer Music Festival",
       category: "Music",
       organizer: "Event Organizers SA",
-      description: "Three days of amazing live music featuring local and international artists. Food trucks, craft beer, and family-friendly activities.",
+      description: "Three days of amazing live music featuring local and international artists.",
       date: "2024-12-15",
       time: "18:00",
       venue: "Cape Town Stadium",
       price: "R350",
-      rating: 4,
+      rating: 4.9,
       premium: true
     },
     {
-      title: "Food & Wine Tasting", 
-      category: "Food & Shopping",
-      organizer: "Gourmet Events",
-      description: "Experience the best of South African cuisine paired with premium wines from local vineyards. Meet renowned chefs and winemakers.",
-      date: "2024-12-18",
-      time: "19:00", 
-      venue: "V&A Waterfront",
-      price: "R450",
-      rating: 5
-    },
-    {
-      title: "Business Networking Evening",
-      category: "Networking",
-      organizer: "Business Network SA",
-      description: "Connect with entrepreneurs and business leaders in Cape Town. Includes keynote speakers and networking dinner.",
-      date: "2024-12-20",
-      time: "17:30",
-      venue: "Century City Conference Centre", 
-      price: "R150",
-      rating: 6,
+      title: "Art Gallery Opening",
+      category: "Arts & Culture",
+      organizer: "Modern Art Gallery",
+      description: "Discover contemporary South African art at this exclusive opening.",
+      date: "2024-12-25",
+      time: "18:30",
+      venue: "Zeitz Museum",
+      price: "Free",
+      rating: 4.7,
       premium: true
     }
   ];
@@ -84,45 +63,77 @@ const Index = () => {
       <Navigation />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl font-bold mb-6">Welcome to CityPulse South Africa</h1>
-          <p className="text-xl mb-8 max-w-3xl mx-auto">
-            Discover the best local deals and events across South Africa. Connect with your community and never miss out on amazing opportunities.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/deals">
-              <Button size="lg" variant="secondary" className="text-blue-700">
-                <Search className="w-5 h-5 mr-2" />
-                Explore Deals
-              </Button>
+      <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-5xl font-bold mb-6">
+              Welcome to <span className="text-blue-200">CityPulse</span> South Africa
+            </h1>
+            <p className="text-xl mb-8 text-blue-100">
+              Discover the best local deals and events across South Africa. Connect with 
+              your community and never miss out on amazing opportunities.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link to="/deals">
+                <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
+                  <Tag className="w-5 h-5 mr-2" />
+                  Explore Deals
+                </Button>
+              </Link>
+              <Link to="/events">
+                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
+                  <Calendar className="w-5 h-5 mr-2" />
+                  Find Events
+                </Button>
+              </Link>
+              <Link to="/ai-assistant">
+                <Button size="lg" className="bg-purple-500 hover:bg-purple-600">
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  PulsePal AI
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Access Navigation */}
+      <section className="py-8 bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Link to="/deals" className="flex items-center justify-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+              <Tag className="w-6 h-6 mr-2 text-blue-600" />
+              <span className="font-medium text-blue-600">Deals</span>
             </Link>
-            <Link to="/events">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-700">
-                <Calendar className="w-5 h-5 mr-2" />
-                Find Events
-              </Button>
+            <Link to="/events" className="flex items-center justify-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+              <Calendar className="w-6 h-6 mr-2 text-green-600" />
+              <span className="font-medium text-green-600">Events</span>
             </Link>
-            <Link to="/ai-assistant">
-              <Button size="lg" variant="secondary" className="text-purple-700">
-                <Sparkles className="w-5 h-5 mr-2" />
-                PulsePal AI
-              </Button>
+            <Link to="/ai-assistant" className="flex items-center justify-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+              <Bot className="w-6 h-6 mr-2 text-purple-600" />
+              <span className="font-medium text-purple-600">PulsePal AI</span>
+            </Link>
+            <Link to="/business-portal" className="flex items-center justify-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors">
+              <Building2 className="w-6 h-6 mr-2 text-orange-600" />
+              <span className="font-medium text-orange-600">Business Portal</span>
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Featured Deals Section */}
+      {/* Featured Deals */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">Featured Deals</h2>
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 flex items-center">
+              <Tag className="w-8 h-8 mr-3 text-blue-600" />
+              Featured Deals
+            </h2>
             <Link to="/deals">
               <Button variant="outline">View All Deals</Button>
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {featuredDeals.map((deal, index) => (
               <DealCard key={index} {...deal} />
             ))}
@@ -130,16 +141,19 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Upcoming Events Section */}
+      {/* Upcoming Events */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">Upcoming Events</h2>
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 flex items-center">
+              <Calendar className="w-8 h-8 mr-3 text-green-600" />
+              Upcoming Events
+            </h2>
             <Link to="/events">
               <Button variant="outline">View All Events</Button>
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {upcomingEvents.map((event, index) => (
               <EventCard key={index} {...event} />
             ))}
@@ -148,17 +162,23 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-blue-600 text-white py-16">
+      <section className="py-16 bg-gradient-to-r from-green-500 to-blue-500 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to explore South Africa?</h2>
-          <p className="text-xl mb-8">Join thousands of South Africans discovering amazing local experiences every day.</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/deals">
-              <Button size="lg" variant="secondary">Get Started</Button>
-            </Link>
+          <h2 className="text-3xl font-bold mb-4">Ready to Discover More?</h2>
+          <p className="text-xl mb-8 text-green-100">
+            Join thousands of South Africans finding the best local deals and events.
+          </p>
+          <div className="flex justify-center gap-4">
             <Link to="/ai-assistant">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-700">
+              <Button size="lg" className="bg-white text-green-600 hover:bg-gray-100">
+                <Bot className="w-5 h-5 mr-2" />
                 Try PulsePal AI
+              </Button>
+            </Link>
+            <Link to="/business-portal">
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-green-600">
+                <Building2 className="w-5 h-5 mr-2" />
+                Business Portal
               </Button>
             </Link>
           </div>
