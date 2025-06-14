@@ -7,7 +7,6 @@ import AISettingsBar from "@/components/ai/AISettingsBar";
 import APIKeySection from "@/components/ai/APIKeySection";
 import ChatInterface from "@/components/ai/ChatInterface";
 import ConversationHistory from "@/components/ai/ConversationHistory";
-import VoiceControls from "@/components/ai/VoiceControls";
 import { useAI } from "@/hooks/useAI";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -41,7 +40,7 @@ const AIAssistant = () => {
       <AIHeader darkMode={darkMode} />
 
       <section className="py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="flex items-center justify-between mb-6">
             <AISettingsBar
@@ -59,7 +58,7 @@ const AIAssistant = () => {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  className={`${darkMode ? 'bg-gray-800/50 border-gray-600' : 'bg-white/60 border-gray-300'} backdrop-blur-sm`}
+                  className={`${darkMode ? 'bg-gray-800/50 border-gray-600' : 'bg-white/60 border-gray-300'} backdrop-blur-sm hover:scale-105 transition-transform`}
                 >
                   <History className="w-4 h-4 mr-2" />
                   History ({messages.length})
@@ -83,8 +82,6 @@ const AIAssistant = () => {
             apiKey={apiKey}
             setApiKey={setApiKey}
           />
-
-          <VoiceControls darkMode={darkMode} />
 
           <ChatInterface
             darkMode={darkMode}

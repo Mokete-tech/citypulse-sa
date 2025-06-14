@@ -3,8 +3,11 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Mic, Send, Bot, User, Sparkles, Volume2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { Mic, Send, Bot, User, Sparkles, Volume2, VolumeX, MicOff, Play, Pause } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 import { ChatMessage } from "@/hooks/useAI";
 
 interface ChatInterfaceProps {
@@ -24,19 +27,45 @@ const ChatInterface = ({
 }: ChatInterfaceProps) => {
   const [message, setMessage] = useState("");
   const [isListening, setIsListening] = useState(false);
+  const [isTextToSpeechEnabled, setIsTextToSpeechEnabled] = useState(false);
+  const [isSpeechToTextEnabled, setIsSpeechToTextEnabled] = useState(false);
+  const [volume, setVolume] = useState([0.7]);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const synthRef = useRef<SpeechSynthesis | null>(null);
+  const { toast } = useToast();
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Initialize speech synthesis
+  const initializeSpeech = () => {
+    if ('speechSynthesis' in window) {
+      synthRef.current = window.speechSynthesis;
+      return true;
+    }
+    return false;
+  };
+
+  // Initialize speech recognition
+  const initializeRecognition = () => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
+      return true;
+    }
+    return false;
+  };
+
   // Play sound effects
   const playSound = (type: 'send' | 'receive') => {
-    if (!audioRef.current) return;
-    
-    // Create different tones for send vs receive
     const audioContext = new AudioContext();
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
@@ -61,12 +90,40 @@ const ChatInterface = ({
 
   // Text-to-speech for AI responses
   const speakMessage = (text: string) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.volume = 0.7;
-      utterance.rate = 0.9;
-      speechSynthesis.speak(utterance);
+    if (!initializeSpeech() || !synthRef.current) {
+      toast({
+        title: "Text-to-Speech Not Available",
+        description: "Your browser doesn't support text-to-speech functionality.",
+        variant: "destructive"
+      });
+      return;
     }
+
+    synthRef.current.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.volume = volume[0];
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      toast({
+        title: "Speech Error",
+        description: "Failed to speak the text.",
+        variant: "destructive"
+      });
+    };
+
+    synthRef.current.speak(utterance);
+  };
+
+  const stopSpeaking = () => {
+    if (synthRef.current) {
+      synthRef.current.cancel();
+    }
+    setIsSpeaking(false);
   };
 
   const handleSendMessage = () => {
@@ -86,195 +143,324 @@ const ChatInterface = ({
 
   // Voice input functionality
   const handleVoiceInput = () => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert('Speech recognition not supported in your browser');
+    if (!initializeRecognition() || !recognitionRef.current) {
+      toast({
+        title: "Speech Recognition Not Available",
+        description: "Your browser doesn't support speech recognition.",
+        variant: "destructive"
+      });
       return;
     }
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = 'en-US';
+    setIsListening(true);
 
-    recognition.onstart = () => {
-      setIsListening(true);
-      playSound('send');
-    };
-
-    recognition.onresult = (event) => {
+    recognitionRef.current.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       setMessage(transcript);
       setIsListening(false);
+      
+      toast({
+        title: "Voice Input Captured",
+        description: `"${transcript}"`,
+      });
     };
 
-    recognition.onerror = () => {
+    recognitionRef.current.onerror = () => {
+      setIsListening(false);
+      toast({
+        title: "Recognition Error",
+        description: "Failed to recognize speech. Please try again.",
+        variant: "destructive"
+      });
+    };
+
+    recognitionRef.current.onend = () => {
       setIsListening(false);
     };
 
-    recognition.onend = () => {
-      setIsListening(false);
-    };
-
-    recognition.start();
+    recognitionRef.current.start();
+    playSound('send');
   };
 
-  // Play sound when AI responds
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsListening(false);
+  };
+
+  // Auto-speak AI responses when TTS is enabled
   useEffect(() => {
-    if (messages.length > 0) {
+    if (messages.length > 0 && isTextToSpeechEnabled) {
       const lastMessage = messages[messages.length - 1];
       if (lastMessage.role === 'assistant') {
         playSound('receive');
-        // Auto-speak AI responses (optional)
-        // speakMessage(lastMessage.content);
+        speakMessage(lastMessage.content);
       }
     }
-  }, [messages]);
+  }, [messages, isTextToSpeechEnabled]);
 
   return (
-    <Card className={`mb-6 border-2 shadow-2xl ${darkMode ? 'bg-gray-800/90 border-gray-600' : 'bg-white/90 border-gray-200'} backdrop-blur-sm`}>
-      <CardContent className="p-6">
-        <div className={`min-h-[400px] max-h-[500px] overflow-y-auto mb-6 p-6 rounded-2xl border-2 ${darkMode ? 'border-gray-600 bg-gray-900/50' : 'border-gray-200 bg-gray-50/50'} backdrop-blur-sm`}>
-          {messages.length === 0 ? (
-            <div className="text-center mt-20">
-              <div className="relative mb-6">
-                <div className="w-24 h-24 mx-auto bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center shadow-2xl animate-pulse">
-                  <Bot className="w-12 h-12 text-white" />
+    <div className="space-y-6">
+      {/* Voice Controls Panel */}
+      <Card className={`border-2 shadow-xl ${darkMode ? 'bg-gray-800/90 border-purple-500/50' : 'bg-white/90 border-purple-200'} backdrop-blur-sm`}>
+        <CardContent className="p-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center space-x-6">
+              {/* Text-to-Speech Toggle */}
+              <div className="flex items-center space-x-3">
+                <Volume2 className="w-5 h-5 text-purple-500" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">Text-to-Speech</span>
+                  <Switch 
+                    checked={isTextToSpeechEnabled}
+                    onCheckedChange={setIsTextToSpeechEnabled}
+                    className="mt-1"
+                  />
                 </div>
-                <Sparkles className="w-6 h-6 text-yellow-400 absolute top-0 right-1/2 transform translate-x-8 animate-bounce" />
               </div>
-              <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                Hi! I'm PulsePal 👋
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-2">
-                Your AI assistant powered by Gemini, ready to help you discover amazing deals and events!
-              </p>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">
-                🎤 Try voice input or 🔊 enable text-to-speech for accessibility!
-              </p>
-              {!apiKey && (
-                <div className="bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-600 rounded-lg p-4 max-w-md mx-auto">
-                  <p className="text-yellow-800 dark:text-yellow-200 text-sm">
-                    ⚠️ Please set your Gemini API key to start chatting
-                  </p>
+
+              {/* Volume Control */}
+              {isTextToSpeechEnabled && (
+                <div className="flex items-center space-x-3 min-w-[120px]">
+                  <VolumeX className="w-4 h-4 text-gray-400" />
+                  <Slider
+                    value={volume}
+                    onValueChange={setVolume}
+                    max={1}
+                    min={0}
+                    step={0.1}
+                    className="flex-1"
+                  />
+                  <Volume2 className="w-4 h-4 text-gray-400" />
+                </div>
+              )}
+
+              {/* Speech-to-Text Toggle */}
+              <div className="flex items-center space-x-3">
+                <Mic className="w-5 h-5 text-blue-500" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">Speech-to-Text</span>
+                  <Switch 
+                    checked={isSpeechToTextEnabled}
+                    onCheckedChange={setIsSpeechToTextEnabled}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Voice Control Actions */}
+            <div className="flex items-center space-x-2">
+              {isTextToSpeechEnabled && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => speakMessage("Hello! This is a test of the text to speech functionality.")}
+                  disabled={isSpeaking}
+                  className="hover:scale-105 transition-transform"
+                >
+                  <Play className="w-4 h-4 mr-2" />
+                  Test Voice
+                </Button>
+              )}
+              
+              {isSpeaking && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={stopSpeaking}
+                  className="text-red-600 hover:bg-red-50 hover:scale-105 transition-transform"
+                >
+                  <Pause className="w-4 h-4 mr-2" />
+                  Stop
+                </Button>
+              )}
+
+              {/* Status Indicators */}
+              {(isListening || isSpeaking) && (
+                <div className="flex items-center space-x-3 px-3 py-1 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-full">
+                  {isListening && (
+                    <div className="flex items-center space-x-2 text-green-600">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-xs font-medium">Listening...</span>
+                    </div>
+                  )}
+                  {isSpeaking && (
+                    <div className="flex items-center space-x-2 text-blue-600">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      <span className="text-xs font-medium">Speaking...</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          ) : (
-            <div className="space-y-6">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
-                >
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Chat Interface */}
+      <Card className={`border-2 shadow-2xl ${darkMode ? 'bg-gray-800/90 border-gray-600' : 'bg-white/90 border-gray-200'} backdrop-blur-sm overflow-hidden`}>
+        <CardContent className="p-0">
+          {/* Messages Area */}
+          <div className={`min-h-[500px] max-h-[600px] overflow-y-auto p-6 ${darkMode ? 'bg-gray-900/50' : 'bg-gradient-to-br from-purple-50/50 to-blue-50/50'}`}>
+            {messages.length === 0 ? (
+              <div className="text-center mt-20">
+                <div className="relative mb-8">
+                  <div className="w-32 h-32 mx-auto bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 rounded-full flex items-center justify-center shadow-2xl animate-pulse">
+                    <Bot className="w-16 h-16 text-white" />
+                  </div>
+                  <Sparkles className="w-8 h-8 text-yellow-400 absolute top-0 right-1/2 transform translate-x-12 animate-bounce" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-full animate-ping"></div>
+                </div>
+                <h3 className="text-3xl font-bold mb-4 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
+                  Hey there! I'm PulsePal 👋
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-4 text-lg">
+                  Your AI-powered city companion, ready to help you discover amazing deals and events!
+                </p>
+                <div className="flex flex-wrap justify-center gap-4 mb-6">
+                  <div className="flex items-center space-x-2 bg-purple-100 dark:bg-purple-900/30 px-4 py-2 rounded-full">
+                    <Volume2 className="w-4 h-4 text-purple-600" />
+                    <span className="text-sm text-purple-700 dark:text-purple-300">Voice-Enabled</span>
+                  </div>
+                  <div className="flex items-center space-x-2 bg-blue-100 dark:bg-blue-900/30 px-4 py-2 rounded-full">
+                    <Mic className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm text-blue-700 dark:text-blue-300">Speech Recognition</span>
+                  </div>
+                  <div className="flex items-center space-x-2 bg-pink-100 dark:bg-pink-900/30 px-4 py-2 rounded-full">
+                    <Sparkles className="w-4 h-4 text-pink-600" />
+                    <span className="text-sm text-pink-700 dark:text-pink-300">AI-Powered</span>
+                  </div>
+                </div>
+                {!apiKey && (
+                  <div className="bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 border border-yellow-300 dark:border-yellow-600 rounded-2xl p-6 max-w-md mx-auto">
+                    <p className="text-yellow-800 dark:text-yellow-200 font-medium">
+                      ⚠️ Please set your Gemini API key to start chatting
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {messages.map((msg) => (
                   <div
-                    className={`max-w-[80%] rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-200 ${
-                      msg.role === 'user'
-                        ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:scale-105'
-                        : `${darkMode ? 'bg-gray-700' : 'bg-white'} border-2 ${darkMode ? 'border-gray-600' : 'border-gray-200'} text-gray-900 dark:text-gray-100 hover:scale-105`
-                    }`}
+                    key={msg.id}
+                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
                   >
-                    <div className="flex items-start space-x-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        msg.role === 'user' 
-                          ? 'bg-white/20' 
-                          : 'bg-gradient-to-r from-purple-500 to-blue-500'
-                      }`}>
-                        {msg.role === 'user' ? (
-                          <User className="w-4 h-4 text-white" />
-                        ) : (
-                          <Bot className="w-4 h-4 text-white" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs opacity-70">
-                            {formatDistanceToNow(msg.timestamp, { addSuffix: true })}
-                          </span>
-                          {msg.role === 'assistant' && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => speakMessage(msg.content)}
-                              className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
-                            >
-                              <Volume2 className="w-3 h-3" />
-                            </Button>
+                    <div
+                      className={`max-w-[80%] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 ${
+                        msg.role === 'user'
+                          ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 text-white hover:scale-105 transform'
+                          : `${darkMode ? 'bg-gray-700/90' : 'bg-white'} border-2 ${darkMode ? 'border-gray-600' : 'border-purple-200'} text-gray-900 dark:text-gray-100 hover:scale-105 transform hover:border-purple-400`
+                      }`}
+                    >
+                      <div className="flex items-start space-x-4">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          msg.role === 'user' 
+                            ? 'bg-white/20 backdrop-blur-sm' 
+                            : 'bg-gradient-to-r from-purple-500 to-blue-500'
+                        }`}>
+                          {msg.role === 'user' ? (
+                            <User className="w-5 h-5 text-white" />
+                          ) : (
+                            <Bot className="w-5 h-5 text-white" />
                           )}
                         </div>
-                        <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs opacity-70 font-medium">
+                              {formatDistanceToNow(msg.timestamp, { addSuffix: true })}
+                            </span>
+                            {msg.role === 'assistant' && isTextToSpeechEnabled && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => speakMessage(msg.content)}
+                                className="h-8 w-8 p-0 opacity-60 hover:opacity-100 hover:scale-110 transition-all"
+                              >
+                                <Volume2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                          <p className="whitespace-pre-wrap leading-relaxed text-sm">{msg.content}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              {isLoading && (
-                <div className="flex justify-start animate-fade-in">
-                  <div className={`max-w-[80%] rounded-2xl p-4 ${darkMode ? 'bg-gray-700' : 'bg-white'} border-2 ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-lg`}>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
-                        <Bot className="w-4 h-4 text-white" />
-                      </div>
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                        <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                ))}
+                {isLoading && (
+                  <div className="flex justify-start animate-fade-in">
+                    <div className={`max-w-[80%] rounded-2xl p-6 ${darkMode ? 'bg-gray-700/90' : 'bg-white'} border-2 ${darkMode ? 'border-gray-600' : 'border-purple-200'} shadow-lg`}>
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
+                          <Bot className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex space-x-2">
+                          <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce"></div>
+                          <div className="w-3 h-3 bg-pink-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                          <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-          )}
-        </div>
-        
-        {/* Input Area */}
-        <div className="space-y-4">
-          <div className="relative">
-            <Textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask me anything about deals and events... 🎤 or use voice!"
-              className={`min-h-[100px] pr-20 border-2 rounded-xl ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-white'} focus:border-purple-500 transition-all duration-200`}
-              maxLength={500}
-              disabled={isLoading || !apiKey}
-            />
-            <div className="absolute bottom-3 right-3 text-sm text-gray-400">
-              {message.length}/500
-            </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+            )}
           </div>
           
-          <div className="flex space-x-3">
-            <Button 
-              onClick={handleSendMessage}
-              disabled={!message.trim() || isLoading || !apiKey}
-              className="flex-1 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-medium py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-            >
-              <Send className="w-4 h-4 mr-2" />
-              Ask PulsePal
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={handleVoiceInput}
-              className={`px-4 py-3 rounded-xl border-2 transition-all duration-200 hover:scale-105 ${
-                isListening 
-                  ? "bg-red-100 border-red-300 text-red-600 hover:bg-red-200 animate-pulse" 
-                  : "border-gray-300 hover:border-purple-400"
-              }`}
-              disabled={isLoading || !apiKey}
-            >
-              <Mic className={`w-4 h-4 ${isListening ? "text-red-600" : ""}`} />
-            </Button>
+          {/* Input Area */}
+          <div className={`p-6 border-t-2 ${darkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50/50'} backdrop-blur-sm`}>
+            <div className="space-y-4">
+              <div className="relative">
+                <Textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask me anything about deals and events... 🎤 or use voice!"
+                  className={`min-h-[80px] pr-20 border-2 rounded-xl ${darkMode ? 'border-gray-600 bg-gray-700/50' : 'border-purple-300 bg-white/50'} focus:border-purple-500 transition-all duration-200 text-base backdrop-blur-sm`}
+                  maxLength={500}
+                  disabled={isLoading || !apiKey}
+                />
+                <div className="absolute bottom-3 right-3 text-sm text-gray-400 font-medium">
+                  {message.length}/500
+                </div>
+              </div>
+              
+              <div className="flex space-x-3">
+                <Button 
+                  onClick={handleSendMessage}
+                  disabled={!message.trim() || isLoading || !apiKey}
+                  className="flex-1 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 hover:from-purple-600 hover:via-pink-600 hover:to-blue-600 text-white font-medium py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 text-base"
+                >
+                  <Send className="w-5 h-5 mr-2" />
+                  Ask PulsePal
+                </Button>
+                
+                {isSpeechToTextEnabled && (
+                  <Button 
+                    onClick={isListening ? stopListening : handleVoiceInput}
+                    className={`px-6 py-3 rounded-xl border-2 transition-all duration-200 hover:scale-105 ${
+                      isListening 
+                        ? "bg-red-100 border-red-300 text-red-600 hover:bg-red-200 animate-pulse" 
+                        : "border-purple-300 hover:border-purple-400 bg-white/50 hover:bg-purple-50"
+                    }`}
+                    disabled={isLoading || !apiKey}
+                  >
+                    {isListening ? (
+                      <MicOff className="w-5 h-5" />
+                    ) : (
+                      <Mic className="w-5 h-5" />
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-        
-        {/* Hidden audio element for sound effects */}
-        <audio ref={audioRef} style={{ display: 'none' }} />
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
