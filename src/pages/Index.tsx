@@ -3,75 +3,26 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import DealCard from "@/components/DealCard";
 import EventCard from "@/components/EventCard";
+import AuthModal from "@/components/AuthModal";
+import UserProfile from "@/components/UserProfile";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Tag, Calendar, Bot, Building2, Sparkles, Play, Users, Star, TrendingUp, MapPin, Clock, Heart } from "lucide-react";
+import { Tag, Calendar, Bot, Building2, Sparkles, Play, Users, Star } from "lucide-react";
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useDeals } from "@/hooks/useDeals";
+import { useEvents } from "@/hooks/useEvents";
 
 const Index = () => {
-  const featuredDeals = [
-    {
-      title: "50% Off Gourmet Burgers",
-      category: "Food & Drink",
-      business: "The Burger Joint",
-      description: "Enjoy our premium beef burgers with artisanal toppings at half price!",
-      discount: "50% OFF",
-      rating: 4.8,
-      expires: "2024-12-31",
-      featured: true,
-      image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&h=300&fit=crop"
-    },
-    {
-      title: "30% Off Designer Clothing",
-      category: "Retail",
-      business: "Fashion Forward",
-      description: "Latest fashion trends at unbeatable prices. Limited time offer.",
-      discount: "30% OFF",
-      rating: 4.6,
-      expires: "2024-12-20",
-      featured: true,
-      image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&h=300&fit=crop"
-    },
-    {
-      title: "Wine Tasting Experience",
-      category: "Food & Drink",
-      business: "Stellenbosch Winery",
-      description: "Sample premium South African wines with expert sommelier guidance.",
-      discount: "40% OFF",
-      rating: 4.9,
-      expires: "2024-12-30",
-      featured: true,
-      image: "https://images.unsplash.com/photo-1506377872008-6645d6ba8e83?w=500&h=300&fit=crop"
-    }
-  ];
+  const { user } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
 
-  const upcomingEvents = [
-    {
-      title: "Summer Music Festival",
-      category: "Music",
-      organizer: "Event Organizers SA",
-      description: "Three days of amazing live music featuring local and international artists.",
-      date: "2024-12-15",
-      time: "18:00",
-      venue: "Cape Town Stadium",
-      price: "R350",
-      rating: 4.9,
-      premium: true,
-      image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=500&h=300&fit=crop"
-    },
-    {
-      title: "Art Gallery Opening",
-      category: "Arts & Culture",
-      organizer: "Modern Art Gallery",
-      description: "Discover contemporary South African art at this exclusive opening.",
-      date: "2024-12-25",
-      time: "18:30",
-      venue: "Zeitz Museum",
-      price: "Free",
-      rating: 4.7,
-      premium: true,
-      image: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=500&h=300&fit=crop"
-    }
-  ];
+  const { data: deals = [] } = useDeals();
+  const { data: events = [] } = useEvents();
+
+  const featuredDeals = deals.filter(deal => deal.featured).slice(0, 3);
+  const upcomingEvents = events.filter(event => event.premium).slice(0, 2);
 
   const testimonials = [
     {
@@ -154,12 +105,12 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div className="hover:scale-105 transition-transform cursor-pointer">
-              <div className="text-3xl font-bold text-blue-600 mb-2">2,500+</div>
+              <div className="text-3xl font-bold text-blue-600 mb-2">{deals.length}</div>
               <div className="text-gray-600">Active Deals</div>
             </div>
             <div className="hover:scale-105 transition-transform cursor-pointer">
-              <div className="text-3xl font-bold text-green-600 mb-2">1,200+</div>
-              <div className="text-gray-600">Events Monthly</div>
+              <div className="text-3xl font-bold text-green-600 mb-2">{events.length}</div>
+              <div className="text-gray-600">Upcoming Events</div>
             </div>
             <div className="hover:scale-105 transition-transform cursor-pointer">
               <div className="text-3xl font-bold text-purple-600 mb-2">50,000+</div>
@@ -212,8 +163,8 @@ const Index = () => {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredDeals.map((deal, index) => (
-              <DealCard key={index} {...deal} />
+            {featuredDeals.map((deal) => (
+              <DealCard key={deal.id} {...deal} />
             ))}
           </div>
         </div>
@@ -234,8 +185,8 @@ const Index = () => {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {upcomingEvents.map((event, index) => (
-              <EventCard key={index} {...event} />
+            {upcomingEvents.map((event) => (
+              <EventCard key={event.id} {...event} />
             ))}
           </div>
         </div>
@@ -294,15 +245,33 @@ const Index = () => {
                 Business Portal
               </Button>
             </Link>
-            <Button size="lg" className="bg-purple-600 hover:bg-purple-700 hover:scale-105 transition-all">
-              <Users className="w-5 h-5 mr-2" />
-              Create Account
-            </Button>
+            {user ? (
+              <Button 
+                size="lg" 
+                className="bg-purple-600 hover:bg-purple-700 hover:scale-105 transition-all"
+                onClick={() => setProfileModalOpen(true)}
+              >
+                <Users className="w-5 h-5 mr-2" />
+                My Profile
+              </Button>
+            ) : (
+              <Button 
+                size="lg" 
+                className="bg-purple-600 hover:bg-purple-700 hover:scale-105 transition-all"
+                onClick={() => setAuthModalOpen(true)}
+              >
+                <Users className="w-5 h-5 mr-2" />
+                Create Account
+              </Button>
+            )}
           </div>
         </div>
       </section>
 
       <Footer />
+
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      <UserProfile isOpen={profileModalOpen} onClose={() => setProfileModalOpen(false)} />
     </div>
   );
 };
