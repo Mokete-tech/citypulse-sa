@@ -38,17 +38,17 @@ const AnimatedBot = memo(({ isListening, isSpeaking }: AnimatedBotProps) => {
 
   const getEyes = () => {
     if (isListening) return '👀'; // Wide alert eyes when listening
-    if (isBlinking) return '😌'; // Closed eyes when blinking
+    if (isBlinking) return '😌'; // Closed eyes when blinking  
     return '👁️👁️'; // Normal open eyes
   };
 
   const getMouth = () => {
     if (isSpeaking) {
-      // Animated mouth movements
+      // Animated mouth movements when talking
       const mouths = ['😮', '🗣️', '😯'];
       return mouths[lipMovement];
     }
-    if (isListening) return '🤔'; // Thinking mouth when listening
+    if (isListening) return '🤔'; // Thinking expression when listening
     return '😊'; // Happy mouth when idle
   };
 
@@ -59,18 +59,20 @@ const AnimatedBot = memo(({ isListening, isSpeaking }: AnimatedBotProps) => {
   };
 
   return (
-    <div className="flex flex-col items-center space-y-4">
-      {/* Large Animated Bot Face */}
-      <div className={`text-8xl transition-all duration-300 ${getAnimationClass()}`}>
-        <div className="flex flex-col items-center">
-          <div className="text-6xl">{getEyes()}</div>
-          <div className="text-4xl -mt-2">{getMouth()}</div>
+    <div className="flex flex-col items-center space-y-6">
+      {/* Complete Bot Face - Much Larger */}
+      <div className={`text-9xl transition-all duration-300 ${getAnimationClass()}`}>
+        <div className="flex flex-col items-center space-y-2">
+          {/* Eyes */}
+          <div className="text-7xl">{getEyes()}</div>
+          {/* Mouth */}
+          <div className="text-5xl -mt-4">{getMouth()}</div>
         </div>
       </div>
 
       {/* Status Text */}
       <div className="text-center">
-        <p className="text-sm font-medium text-white/90">
+        <p className="text-lg font-medium text-white/90">
           {isListening && '👂 Listening to you...'}
           {isSpeaking && '🗣️ PulsePal is speaking...'}
           {!isListening && !isSpeaking && '🤖 Ready to chat'}
