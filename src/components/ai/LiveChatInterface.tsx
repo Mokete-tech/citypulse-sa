@@ -19,6 +19,8 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
   const { apiKey, sendMessage } = useAI();
   const { toast } = useToast();
 
+  console.log('Live Chat - API Key status:', apiKey ? 'Available' : 'Not set');
+
   // Blinking animation for idle state
   useEffect(() => {
     if (!isSpeaking && !isListening) {
@@ -74,7 +76,7 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
     if (isListening) return '👂 Listening to you...';
     if (isSpeaking) return '🗣️ PulsePal is speaking...';
     if (!apiKey?.trim()) return '🔑 API Key needed to start chatting';
-    return '😊 Ready to chat';
+    return '😊 Ready to chat - Click Start Talking!';
   };
 
   const getAnimationClass = () => {
@@ -138,6 +140,8 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
     }
   }, [isListening, apiKey, sendMessage, toast]);
 
+  const hasApiKey = Boolean(apiKey?.trim());
+
   return (
     <div className="relative max-w-4xl mx-auto">
       <Card className={`relative border-2 shadow-2xl overflow-hidden backdrop-blur-sm ${
@@ -198,14 +202,14 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
               <p className={`text-xl font-medium transition-all duration-300 ${
                 isSpeaking ? 'text-green-200 animate-pulse' :
                 isListening ? 'text-blue-200 animate-pulse' :
-                !apiKey?.trim() ? 'text-yellow-200' :
+                !hasApiKey ? 'text-yellow-200' :
                 'text-white/95'
               }`}>
                 {getStatusText()}
               </p>
               
               {/* API Key Status */}
-              {!apiKey?.trim() && (
+              {!hasApiKey && (
                 <div className="flex items-center justify-center space-x-3 bg-yellow-500/20 backdrop-blur-sm rounded-full px-6 py-3 border border-yellow-400/30 animate-pulse">
                   <span className="w-3 h-3 rounded-full bg-yellow-400 animate-ping"></span>
                   <span className="text-sm font-medium text-yellow-100">
@@ -223,9 +227,9 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
             {/* Microphone button */}
             <Button
               onClick={handleMicToggle}
-              disabled={!apiKey?.trim()}
+              disabled={!hasApiKey}
               className={`relative py-6 px-12 rounded-full font-bold text-xl shadow-2xl transition-all duration-300 transform ${
-                !apiKey?.trim()
+                !hasApiKey
                   ? 'bg-gray-400 cursor-not-allowed scale-95'
                   : isListening
                   ? 'bg-red-600 hover:bg-red-700 text-white scale-110 animate-pulse'
@@ -240,7 +244,7 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
               ) : (
                 <>
                   <Mic className="w-8 h-8 mr-3" />
-                  {apiKey?.trim() ? 'Start Talking' : 'API Key Required'}
+                  {hasApiKey ? 'Start Talking' : 'API Key Required'}
                 </>
               )}
               
@@ -251,7 +255,7 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
 
             {/* Instructions */}
             <div className="text-center space-y-2 max-w-md">
-              {apiKey?.trim() ? (
+              {hasApiKey ? (
                 <>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
                     {isListening 
