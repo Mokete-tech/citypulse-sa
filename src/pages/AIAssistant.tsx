@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -121,7 +122,11 @@ const AIAssistant = () => {
               />
             </>
           ) : (
-            <LiveChatInterface darkMode={darkMode} />
+            <LiveChatInterface 
+              darkMode={darkMode} 
+              apiKey={apiKey}
+              sendMessage={sendMessage}
+            />
           )}
         </div>
       </section>

@@ -1,22 +1,21 @@
-
 import { useState, useCallback, memo, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Mic, MicOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useAI } from '@/hooks/useAI';
 
 interface LiveChatInterfaceProps {
   darkMode: boolean;
+  apiKey: string;
+  sendMessage: (content: string) => void;
 }
 
-const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
+const LiveChatInterface = memo(({ darkMode, apiKey, sendMessage }: LiveChatInterfaceProps) => {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [animationPhase, setAnimationPhase] = useState(0);
   const [isBlinking, setIsBlinking] = useState(false);
   
-  const { apiKey, sendMessage } = useAI();
   const { toast } = useToast();
 
   console.log('Live Chat - API Key status:', apiKey ? 'Available' : 'Not set');
