@@ -2,6 +2,7 @@
 import { useState, useCallback, memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { useAI } from '@/hooks/useAI';
 import LiveChatHeader from './live-chat/LiveChatHeader';
 import LiveChatControls from './live-chat/LiveChatControls';
 import LiveChatWelcome from './live-chat/LiveChatWelcome';
@@ -13,9 +14,19 @@ interface LiveChatInterfaceProps {
 const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const { apiKey, sendMessage, isLoading } = useAI();
   const { toast } = useToast();
 
-  const handleMicToggle = useCallback(() => {
+  const handleMicToggle = useCallback(async () => {
+    if (!apiKey) {
+      toast({
+        title: "API Key Required",
+        description: "Please set your Gemini API key in Regular Chat mode first",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (isListening) {
       // Stop listening
       setIsListening(false);
@@ -31,18 +42,26 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
         description: "Speak now! I'm listening to your voice.",
       });
       
-      // Simulate speaking response after 3 seconds
-      setTimeout(() => {
+      // Simulate a voice interaction
+      setTimeout(async () => {
         setIsSpeaking(true);
         setIsListening(false);
         
-        // Stop speaking after 2 seconds
+        // Send a demo message to show it's working
+        await sendMessage("Hello PulsePal! I'm testing the voice chat feature. Can you tell me about some deals in Cape Town?");
+        
+        toast({
+          title: "AI Response",
+          description: "PulsePal is responding! Check the Regular Chat for the full conversation.",
+        });
+        
+        // Stop speaking after 3 seconds
         setTimeout(() => {
           setIsSpeaking(false);
-        }, 2000);
-      }, 3000);
+        }, 3000);
+      }, 2000);
     }
-  }, [isListening, toast]);
+  }, [isListening, apiKey, sendMessage, toast]);
 
   const cardClasses = `relative border-2 shadow-xl overflow-hidden ${
     darkMode 
@@ -65,6 +84,16 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
           />
 
           <LiveChatWelcome darkMode={darkMode} />
+
+          {!apiKey && (
+            <div className={`text-center p-4 rounded-lg border-2 border-dashed ${
+              darkMode ? 'border-gray-600 bg-gray-700/50' : 'border-gray-300 bg-gray-50'
+            }`}>
+              <p className="text-sm text-gray-500">
+                💡 Switch to "Regular Chat" mode to set your API key first, then come back to try voice chat!
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
