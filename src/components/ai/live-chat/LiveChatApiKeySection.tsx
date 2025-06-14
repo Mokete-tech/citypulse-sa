@@ -53,6 +53,9 @@ const LiveChatApiKeySection = ({
     setTimeout(() => setIsSaved(false), 2000);
   };
 
+  const hasChanges = tempApiKey.trim() !== liveApiKey;
+  const isValidKey = tempApiKey.trim().length > 0;
+
   return (
     <Card className={`border-2 shadow-xl ${darkMode ? 'bg-gray-800/90 border-purple-500' : 'bg-white/90 border-purple-200'} backdrop-blur-sm`}>
       <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-t-lg p-4">
@@ -87,7 +90,7 @@ const LiveChatApiKeySection = ({
           />
           <Button
             onClick={handleSaveApiKey}
-            disabled={!tempApiKey.trim() || tempApiKey === liveApiKey}
+            disabled={!isValidKey || (!hasChanges && !isSaved)}
             className={`min-w-[120px] transition-all duration-200 ${
               isSaved 
                 ? 'bg-green-600 hover:bg-green-700' 
@@ -99,8 +102,10 @@ const LiveChatApiKeySection = ({
                 <Check className="w-4 h-4 mr-2" />
                 Saved!
               </>
+            ) : hasChanges && isValidKey ? (
+              'Save Key'
             ) : (
-              tempApiKey.trim() && tempApiKey !== liveApiKey ? 'Save Key' : 'Enter Key'
+              'Enter Key'
             )}
           </Button>
         </div>
@@ -109,7 +114,9 @@ const LiveChatApiKeySection = ({
         </p>
         {/* Debug info */}
         <div className="text-xs text-gray-400 mt-2">
-          Current API Key: {liveApiKey ? '✓ Set' : '✗ Not set'}
+          Current API Key: {liveApiKey ? '✓ Set' : '✗ Not set'} | 
+          Has Changes: {hasChanges ? 'Yes' : 'No'} | 
+          Valid: {isValidKey ? 'Yes' : 'No'}
         </div>
       </CardContent>
     </Card>
