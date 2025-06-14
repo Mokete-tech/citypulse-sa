@@ -75,10 +75,13 @@ export const useEventRegistration = () => {
       
       if (error) throw error;
 
-      // Update current attendees count
-      const { error: updateError } = await supabase.rpc('increment_event_attendees', {
-        event_id: eventId
-      });
+      // Update current attendees count directly
+      const { error: updateError } = await supabase
+        .from('events')
+        .update({ 
+          current_attendees: supabase.raw('current_attendees + 1') 
+        })
+        .eq('id', eventId);
       
       if (updateError) throw updateError;
     },
