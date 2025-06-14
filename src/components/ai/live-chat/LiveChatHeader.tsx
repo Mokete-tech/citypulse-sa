@@ -102,45 +102,50 @@ const LiveChatHeader = memo(({ isListening, isSpeaking, hasApiKey }: LiveChatHea
   };
 
   const getAnimationClass = () => {
-    if (isSpeaking) return 'animate-pulse scale-105';
-    if (isListening) return 'animate-bounce';
-    return 'hover:scale-105 transition-transform duration-300';
+    if (isSpeaking) return 'animate-pulse scale-110 drop-shadow-lg';
+    if (isListening) return 'animate-bounce scale-105';
+    return 'hover:scale-110 transition-all duration-300 drop-shadow-md';
   };
 
   return (
-    <div className="relative p-8 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
-      <div className="flex flex-col items-center space-y-6">
+    <div className="relative p-12 bg-gradient-to-r from-indigo-600 to-purple-600 text-white min-h-[400px] flex items-center justify-center">
+      <div className="flex flex-col items-center space-y-8 text-center">
         {/* Title */}
-        <div className="text-center">
-          <h2 className="text-3xl font-bold">
+        <div className="space-y-2">
+          <h2 className="text-4xl font-bold">
             🎤 Voice Chat
           </h2>
-          <p className="text-sm opacity-90">
+          <p className="text-lg opacity-90">
             Talk naturally with PulsePal AI
           </p>
         </div>
 
-        {/* Sophisticated Animated Emoji */}
-        <div className={`text-9xl transition-all duration-200 ease-in-out ${getAnimationClass()}`}>
-          {getFinalEmoji()}
+        {/* HUGE Animated Emoji - This is the main focus */}
+        <div className="relative">
+          <div className={`text-[200px] leading-none transition-all duration-300 ease-out ${getAnimationClass()}`}>
+            {getFinalEmoji()}
+          </div>
+          
+          {/* Subtle glow effect */}
+          <div className="absolute inset-0 bg-white/10 rounded-full blur-3xl scale-75 -z-10 opacity-50"></div>
         </div>
 
         {/* Status Text */}
-        <div className="text-center">
-          <p className="text-lg font-medium text-white/90">
+        <div className="space-y-4">
+          <p className="text-xl font-medium text-white/95">
             {getStatusText()}
           </p>
+          
+          {/* API Key Status */}
+          {!hasApiKey && (
+            <div className="flex items-center justify-center space-x-3 bg-yellow-500/20 backdrop-blur-sm rounded-full px-6 py-3 border border-yellow-400/30">
+              <span className="w-3 h-3 rounded-full bg-yellow-400 animate-pulse"></span>
+              <span className="text-sm font-medium text-yellow-100">
+                Need API Key - Set it in Regular Chat first
+              </span>
+            </div>
+          )}
         </div>
-
-        {/* API Key Status */}
-        {!hasApiKey && (
-          <div className="flex items-center space-x-2">
-            <span className="w-3 h-3 rounded-full bg-yellow-400 animate-pulse"></span>
-            <span className="text-sm font-medium">
-              Need API Key - Set it in Regular Chat first
-            </span>
-          </div>
-        )}
       </div>
     </div>
   );
