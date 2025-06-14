@@ -19,7 +19,7 @@ export const useGeminiLive = () => {
   const wsRef = useRef<WebSocket | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
-  const audioQueueRef = useRef<ArrayBuffer[]>([]);
+  const audioQueueRef = useRef<string[]>([]);
   const isPlayingRef = useRef(false);
   
   const { toast } = useToast();
@@ -34,7 +34,12 @@ export const useGeminiLive = () => {
       });
 
       // Connect to our Supabase Edge Function
-      const wsUrl = `wss://${import.meta.env.VITE_SUPABASE_PROJECT_ID || 'your-project-id'}.functions.supabase.co/functions/v1/gemini-live`;
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      if (!projectId) {
+        throw new Error('Supabase project ID not configured');
+      }
+      
+      const wsUrl = `wss://${projectId}.supabase.co/functions/v1/gemini-live`;
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {
@@ -116,24 +121,14 @@ export const useGeminiLive = () => {
     try {
       setIsSpeaking(true);
       
-      // Decode base64 audio
-      const binaryString = atob(base64Audio);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-
-      // Convert PCM to audio buffer
-      const audioBuffer = await audioContextRef.current.decodeAudioData(bytes.buffer);
-      
-      // Add to queue
-      audioQueueRef.current.push(audioBuffer);
+      // Add to queue for sequential playback
+      audioQueueRef.current.push(base64Audio);
       
       if (!isPlayingRef.current) {
         playNextAudio();
       }
     } catch (error) {
-      console.error('Error playing audio:', error);
+      console.error('Error queuing audio:', error);
       setIsSpeaking(false);
     }
   };
@@ -146,17 +141,41 @@ export const useGeminiLive = () => {
     }
 
     isPlayingRef.current = true;
-    const audioBuffer = audioQueueRef.current.shift()!;
+    const base64Audio = audioQueueRef.current.shift()!;
     
-    const source = audioContextRef.current.createBufferSource();
-    source.buffer = audioBuffer as AudioBuffer;
-    source.connect(audioContextRef.current.destination);
-    
-    source.onended = () => {
-      playNextAudio();
-    };
-    
-    source.start(0);
+    try {
+      // Decode base64 audio
+      const binaryString = atob(base64Audio);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+
+      // Create audio buffer from PCM data
+      const audioBuffer = audioContextRef.current.createBuffer(1, bytes.length / 2, 24000);
+      const channelData = audioBuffer.getChannelData(0);
+      
+      // Convert bytes to float32 audio samples
+      for (let i = 0; i < channelData.length; i++) {
+        const sample = (bytes[i * 2] | (bytes[i * 2 + 1] << 8)) / 32768.0;
+        channelData[i] = sample;
+      }
+
+      // Play the audio
+      const source = audioContextRef.current.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(audioContextRef.current.destination);
+      
+      source.onended = () => {
+        playNextAudio();
+      };
+      
+      source.start(0);
+      
+    } catch (error) {
+      console.error('Error playing audio:', error);
+      playNextAudio(); // Continue with next audio
+    }
   };
 
   const startListening = useCallback(async () => {
