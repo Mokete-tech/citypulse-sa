@@ -49,7 +49,34 @@ export class GeminiWebSocketManager {
           const data = JSON.parse(event.data);
           console.log('Received WebSocket message:', data);
           
-          if (data.candidates && data.candidates[0]?.content?.parts) {
+          // Handle serverContent messages (newer format)
+          if (data.serverContent) {
+            if (data.serverContent.generationComplete) {
+              console.log('Generation complete');
+              return;
+            }
+            
+            if (data.serverContent.turnComplete) {
+              console.log('Turn complete');
+              return;
+            }
+            
+            // Handle model turn with parts
+            if (data.serverContent.modelTurn?.parts) {
+              const parts = data.serverContent.modelTurn.parts;
+              
+              for (const part of parts) {
+                if (part.inlineData?.mimeType === 'audio/pcm' && part.inlineData?.data) {
+                  this.onMessage({ type: 'audio', audio: part.inlineData.data, data });
+                } else if (part.text) {
+                  this.onMessage({ type: 'text', text: part.text, data });
+                }
+              }
+            }
+          }
+          
+          // Handle candidates format (older format fallback)
+          else if (data.candidates && data.candidates[0]?.content?.parts) {
             const parts = data.candidates[0].content.parts;
             
             for (const part of parts) {
@@ -60,6 +87,13 @@ export class GeminiWebSocketManager {
               }
             }
           }
+          
+          // Handle setup messages
+          else if (data.setupComplete) {
+            console.log('Setup complete');
+            this.onMessage({ type: 'setup', data });
+          }
+          
         } catch (error) {
           console.error('Error handling Gemini message:', error);
           this.onError('Error processing message');

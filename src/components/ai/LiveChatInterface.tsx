@@ -19,62 +19,52 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
   const { apiKey, sendMessage } = useAI();
   const { toast } = useToast();
 
-  // Natural blinking animation when idle
+  // Blinking animation for idle state
   useEffect(() => {
     if (!isSpeaking && !isListening) {
-      const blinkInterval = setInterval(() => {
+      const blinkTimer = setTimeout(() => {
         setIsBlinking(true);
         setTimeout(() => setIsBlinking(false), 150);
       }, 2000 + Math.random() * 3000);
 
-      return () => clearInterval(blinkInterval);
+      return () => clearTimeout(blinkTimer);
     }
-  }, [isSpeaking, isListening]);
+  }, [isSpeaking, isListening, isBlinking]);
 
-  // Listening animation - continuous movement
+  // Animation cycles for different states
   useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
     if (isListening) {
-      const listenInterval = setInterval(() => {
+      interval = setInterval(() => {
         setAnimationPhase(prev => (prev + 1) % 4);
       }, 800);
-
-      return () => clearInterval(listenInterval);
-    } else {
-      setAnimationPhase(0);
-    }
-  }, [isListening]);
-
-  // Speaking animation - faster mouth movements
-  useEffect(() => {
-    if (isSpeaking) {
-      const speakInterval = setInterval(() => {
+    } else if (isSpeaking) {
+      interval = setInterval(() => {
         setAnimationPhase(prev => (prev + 1) % 6);
       }, 250);
-
-      return () => clearInterval(speakInterval);
     } else {
       setAnimationPhase(0);
     }
-  }, [isSpeaking]);
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isListening, isSpeaking]);
 
   const getEmoji = () => {
-    console.log('Getting emoji - isBlinking:', isBlinking, 'isSpeaking:', isSpeaking, 'isListening:', isListening, 'animationPhase:', animationPhase);
-    
-    // Force blinking state when idle
     if (isBlinking && !isSpeaking && !isListening) {
       return '😌';
     }
     
     if (isSpeaking) {
-      // More expressive talking sequence
       const talkingEmojis = ['😮', '🗣️', '😄', '😊', '😯', '🙂'];
-      return talkingEmojis[animationPhase % talkingEmojis.length];
+      return talkingEmojis[animationPhase];
     }
     
     if (isListening) {
-      // More attentive listening sequence
       const listeningEmojis = ['🤔', '👂', '🧐', '😯'];
-      return listeningEmojis[animationPhase % listeningEmojis.length];
+      return listeningEmojis[animationPhase];
     }
     
     return '😊';
@@ -106,35 +96,25 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
   };
 
   const handleMicToggle = useCallback(async () => {
-    console.log('Mic toggle clicked - current state:', { isListening, isSpeaking, hasApiKey: !!apiKey?.trim() });
-    
     if (!apiKey?.trim()) {
       toast({
         title: "API Key Required",
-        description: "Please set your Gemini API key in Regular Chat mode first to use voice chat",
+        description: "Please set your Gemini API key in Regular Chat mode first",
         variant: "destructive"
       });
       return;
     }
 
     if (isListening) {
-      // Stop listening
       setIsListening(false);
-      console.log('Stopped listening');
       
-      // Simulate processing and then speaking
+      // Simulate AI response
       setTimeout(() => {
         setIsSpeaking(true);
-        console.log('AI is now speaking');
-        
-        // Send a message to demonstrate the connection
         sendMessage("Hello! I heard you speaking in voice chat. This is a demo response from PulsePal AI.");
         
-        // Stop speaking after 4 seconds
         setTimeout(() => {
           setIsSpeaking(false);
-          console.log('AI finished speaking');
-          
           toast({
             title: "Voice interaction complete",
             description: "Check Regular Chat to see the full conversation!",
@@ -143,36 +123,31 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
       }, 1000);
       
     } else {
-      // Start listening
       setIsListening(true);
-      console.log('Started listening - animations should be active now');
-      
       toast({
         title: "🎤 Listening...",
-        description: "Speak now! I'm listening to your voice. (Demo mode - will respond after 3 seconds)",
+        description: "Speak now! I'm listening to your voice.",
       });
       
-      // Auto-stop listening after 3 seconds for demo
+      // Auto-stop listening after 5 seconds for demo
       setTimeout(() => {
         if (isListening) {
           handleMicToggle();
         }
-      }, 3000);
+      }, 5000);
     }
-  }, [isListening, isSpeaking, apiKey, sendMessage, toast]);
-
-  const cardClasses = `relative border-2 shadow-2xl overflow-hidden backdrop-blur-sm ${
-    darkMode 
-      ? 'bg-gray-900/95 border-gray-700' 
-      : 'bg-white/95 border-gray-300'
-  }`;
+  }, [isListening, apiKey, sendMessage, toast]);
 
   return (
     <div className="relative max-w-4xl mx-auto">
-      <Card className={cardClasses}>
+      <Card className={`relative border-2 shadow-2xl overflow-hidden backdrop-blur-sm ${
+        darkMode 
+          ? 'bg-gray-900/95 border-gray-700' 
+          : 'bg-white/95 border-gray-300'
+      }`}>
         {/* Header Section */}
         <div className="relative p-8 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white min-h-[500px] flex items-center justify-center overflow-hidden">
-          {/* Background animated particles */}
+          {/* Background particles */}
           <div className="absolute inset-0 overflow-hidden">
             <div className={`absolute top-1/4 left-1/4 w-32 h-32 bg-white/10 rounded-full blur-xl ${isSpeaking ? 'animate-ping' : 'animate-pulse'}`}></div>
             <div className={`absolute bottom-1/4 right-1/4 w-24 h-24 bg-blue-300/20 rounded-full blur-xl ${isListening ? 'animate-bounce' : 'animate-pulse'}`}></div>
@@ -189,13 +164,13 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
               </p>
             </div>
 
-            {/* MASSIVE Animated Emoji */}
+            {/* Animated Emoji */}
             <div className="relative my-8">
               <div className={`text-[240px] leading-none ${getAnimationClass()}`}>
                 {getEmoji()}
               </div>
               
-              {/* Dynamic glow effects */}
+              {/* Glow effects */}
               <div className={`absolute inset-0 rounded-full blur-3xl scale-75 -z-10 transition-all duration-500 ${
                 isSpeaking ? 'bg-green-400/40 animate-pulse' :
                 isListening ? 'bg-blue-400/40 animate-pulse' :
@@ -245,7 +220,7 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
         {/* Controls Section */}
         <CardContent className="p-8">
           <div className="flex flex-col items-center space-y-6">
-            {/* Main microphone button */}
+            {/* Microphone button */}
             <Button
               onClick={handleMicToggle}
               disabled={!apiKey?.trim()}
@@ -269,7 +244,6 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
                 </>
               )}
               
-              {/* Animated ring for listening state */}
               {isListening && (
                 <div className="absolute inset-0 border-4 border-red-400/50 rounded-full animate-ping"></div>
               )}
@@ -294,14 +268,6 @@ const LiveChatInterface = memo(({ darkMode }: LiveChatInterfaceProps) => {
                   Please set your Gemini API key in Regular Chat mode first
                 </p>
               )}
-            </div>
-
-            {/* Debug info for development */}
-            <div className="mt-4 text-center text-sm opacity-60">
-              <p>Status: {isListening ? '🎤 Listening' : isSpeaking ? '🗣️ Speaking' : '😊 Ready'}</p>
-              <p>API Key: {apiKey?.trim() ? 'Set ✅' : 'Missing ❌'}</p>
-              <p>Animation Phase: {animationPhase}</p>
-              <p>Blinking: {isBlinking ? 'Yes' : 'No'}</p>
             </div>
           </div>
         </CardContent>
