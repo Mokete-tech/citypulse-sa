@@ -1,6 +1,5 @@
 
 import { memo } from 'react';
-import AnimatedBot from './AnimatedBot';
 
 interface LiveChatHeaderProps {
   isListening: boolean;
@@ -9,6 +8,12 @@ interface LiveChatHeaderProps {
 }
 
 const LiveChatHeader = memo(({ isListening, isSpeaking, hasApiKey }: LiveChatHeaderProps) => {
+  const getStatusText = () => {
+    if (isListening) return '👂 Listening to you...';
+    if (isSpeaking) return '🗣️ PulsePal is speaking...';
+    return '🤖 Ready to chat';
+  };
+
   return (
     <div className="relative p-8 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
       <div className="flex flex-col items-center space-y-6">
@@ -22,12 +27,17 @@ const LiveChatHeader = memo(({ isListening, isSpeaking, hasApiKey }: LiveChatHea
           </p>
         </div>
 
-        {/* Large Animated Bot */}
-        <AnimatedBot 
-          isConnected={hasApiKey}
-          isListening={isListening}
-          isSpeaking={isSpeaking}
-        />
+        {/* Simple Bot Emoji */}
+        <div className="text-9xl">
+          🤖
+        </div>
+
+        {/* Status Text */}
+        <div className="text-center">
+          <p className="text-lg font-medium text-white/90">
+            {getStatusText()}
+          </p>
+        </div>
 
         {/* Simple Status - only show if no API key */}
         {!hasApiKey && (
