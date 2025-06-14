@@ -1,10 +1,36 @@
 
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Tag, Calendar, Sparkles } from "lucide-react";
-import CityShowcase from "@/components/CityShowcase";
+import { Tag, Calendar, Sparkles, TrendingUp, Users, MapPin } from "lucide-react";
 
 const HeroSection = () => {
+  const featuredHighlights = [
+    {
+      icon: Tag,
+      title: "500+ Active Deals",
+      description: "From restaurants to retail",
+      color: "text-blue-500"
+    },
+    {
+      icon: Calendar,
+      title: "200+ Events Monthly",
+      description: "Concerts, workshops & more",
+      color: "text-green-500"
+    },
+    {
+      icon: Users,
+      title: "50,000+ Users",
+      description: "Growing community",
+      color: "text-purple-500"
+    },
+    {
+      icon: MapPin,
+      title: "9 Major Cities",
+      description: "Across South Africa",
+      color: "text-orange-500"
+    }
+  ];
+
   return (
     <section className="relative bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20 overflow-hidden">
       <div className="absolute inset-0 bg-black bg-opacity-30"></div>
@@ -17,7 +43,8 @@ const HeroSection = () => {
             Discover the best local deals and events across South Africa. Connect with 
             your community and never miss out on amazing opportunities.
           </p>
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
+          
+          <div className="flex flex-wrap justify-center gap-4 mb-12">
             <Link to="/deals">
               <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 hover:scale-105 transition-all">
                 <Tag className="w-5 h-5 mr-2" />
@@ -37,11 +64,20 @@ const HeroSection = () => {
               </Button>
             </Link>
           </div>
-          
-          <CityShowcase 
-            title="CityPulse Across South Africa"
-            description="Experience the vibrant culture and amazing deals across Cape Town, Johannesburg, Durban, and more South African cities."
-          />
+
+          {/* Platform Highlights */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+            {featuredHighlights.map((highlight, index) => {
+              const Icon = highlight.icon;
+              return (
+                <div key={index} className="bg-white/10 backdrop-blur-sm rounded-lg p-6 hover:scale-105 transition-transform">
+                  <Icon className={`w-8 h-8 ${highlight.color} mb-3 mx-auto`} />
+                  <h3 className="text-lg font-bold mb-2">{highlight.title}</h3>
+                  <p className="text-blue-100 text-sm">{highlight.description}</p>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
