@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Phone, MapPin } from "lucide-react";
 
 const Contact = () => {
   return (
@@ -20,77 +19,31 @@ const Contact = () => {
         </div>
       </section>
 
-      {/* Contact Content */}
+      {/* Contact Form */}
       <section className="py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            
-            {/* Contact Form */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Send us a message</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Input placeholder="First Name" />
-                  <Input placeholder="Last Name" />
-                </div>
-                <Input placeholder="Email Address" type="email" />
-                <Input placeholder="Subject" />
-                <Textarea placeholder="Your message..." className="min-h-[120px]" />
-                <Button className="w-full">Send Message</Button>
-              </CardContent>
-            </Card>
-
-            {/* Contact Information */}
-            <div className="space-y-6">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-shrink-0">
-                      <Mail className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold">Email</h3>
-                      <p className="text-gray-600">hello@citypulse.co.za</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-shrink-0">
-                      <Phone className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold">Phone</h3>
-                      <p className="text-gray-600">+27 (0) 21 123 4567</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-shrink-0">
-                      <MapPin className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold">Address</h3>
-                      <p className="text-gray-600">
-                        123 Business District<br />
-                        Cape Town, 8001<br />
-                        South Africa
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl text-center">Send us a message</CardTitle>
+              <p className="text-gray-600 text-center">We'll get back to you as soon as possible</p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input placeholder="First Name" required />
+                <Input placeholder="Last Name" required />
+              </div>
+              <Input placeholder="Email Address" type="email" required />
+              <Input placeholder="Subject" required />
+              <Textarea 
+                placeholder="Your message..." 
+                className="min-h-[150px]" 
+                required 
+              />
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-3">
+                Send Message
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </section>
 

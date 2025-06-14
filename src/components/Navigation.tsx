@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Tag, Calendar, Bot, Users, Building2, Search } from "lucide-react";
+import { Menu, X, Tag, Calendar, Bot, Building2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -68,12 +68,6 @@ const Navigation = () => {
             >
               <Search className="w-4 h-4" />
             </Button>
-
-            <Link to="/contact">
-              <Button variant="outline" size="sm" className="hover:bg-blue-50">
-                Contact
-              </Button>
-            </Link>
             
             <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
               Sign In
@@ -159,19 +153,6 @@ const Navigation = () => {
                 </Link>
               );
             })}
-
-            <Link
-              to="/contact"
-              className={`flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                location.pathname === "/contact"
-                  ? "bg-blue-100 text-blue-700"
-                  : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
-              }`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <Users className="w-5 h-5 mr-3" />
-              Contact
-            </Link>
             
             <div className="px-3 py-2">
               <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700">
