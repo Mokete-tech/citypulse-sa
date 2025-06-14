@@ -8,50 +8,91 @@ interface LiveChatHeaderProps {
 }
 
 const LiveChatHeader = memo(({ isListening, isSpeaking, hasApiKey }: LiveChatHeaderProps) => {
-  const [isBlinking, setIsBlinking] = useState(false);
-  const [talkingFrame, setTalkingFrame] = useState(0);
+  const [eyeState, setEyeState] = useState('open');
+  const [mouthState, setMouthState] = useState('smile');
+  const [animationPhase, setAnimationPhase] = useState(0);
 
-  // Blinking animation when idle
+  // Realistic blinking animation when idle
   useEffect(() => {
     if (!isSpeaking && !isListening) {
       const blinkInterval = setInterval(() => {
-        setIsBlinking(true);
-        setTimeout(() => setIsBlinking(false), 200);
-      }, 3000 + Math.random() * 2000); // Random blink every 3-5 seconds
+        setEyeState('blink');
+        setTimeout(() => setEyeState('open'), 150);
+      }, 2000 + Math.random() * 3000); // Natural blink timing
 
       return () => clearInterval(blinkInterval);
     }
   }, [isSpeaking, isListening]);
 
-  // Talking animation frames
+  // Listening animation - thoughtful expressions
+  useEffect(() => {
+    if (isListening) {
+      setEyeState('focused');
+      setMouthState('neutral');
+      
+      const listenInterval = setInterval(() => {
+        setAnimationPhase(prev => (prev + 1) % 3);
+      }, 800);
+
+      return () => clearInterval(listenInterval);
+    }
+  }, [isListening]);
+
+  // Speaking animation - realistic mouth movements
   useEffect(() => {
     if (isSpeaking) {
-      const talkInterval = setInterval(() => {
-        setTalkingFrame(prev => (prev + 1) % 3);
-      }, 400);
+      setEyeState('engaged');
+      
+      const speakInterval = setInterval(() => {
+        setAnimationPhase(prev => (prev + 1) % 4);
+      }, 200);
 
-      return () => clearInterval(talkInterval);
+      return () => clearInterval(speakInterval);
     } else {
-      setTalkingFrame(0);
+      setAnimationPhase(0);
+      if (!isListening) {
+        setEyeState('open');
+        setMouthState('smile');
+      }
     }
-  }, [isSpeaking]);
+  }, [isSpeaking, isListening]);
 
-  const getBotEmoji = () => {
+  const getEyes = () => {
+    if (eyeState === 'blink') return '😌';
+    if (eyeState === 'focused' && isListening) {
+      return animationPhase === 1 ? '🤔' : '😯';
+    }
+    if (eyeState === 'engaged') return '😊';
+    return '😊';
+  };
+
+  const getMouth = () => {
     if (isSpeaking) {
-      // Talking animation with different mouth positions
-      const talkingEmojis = ['😮', '😯', '🙂'];
-      return talkingEmojis[talkingFrame];
+      const speakingMouths = ['😮', '😯', '🙂', '😊'];
+      return speakingMouths[animationPhase];
+    }
+    if (isListening) {
+      return animationPhase === 2 ? '🤔' : '😯';
+    }
+    return '😊';
+  };
+
+  const getFinalEmoji = () => {
+    if (isSpeaking) {
+      const talkingEmojis = ['😮', '😯', '🙂', '😊'];
+      return talkingEmojis[animationPhase];
     }
     
     if (isListening) {
-      return '🤔'; // Thinking while listening
+      const listeningEmojis = ['🤔', '😯', '🧐'];
+      return listeningEmojis[animationPhase];
     }
     
-    if (isBlinking) {
-      return '😌'; // Blinking/peaceful
+    if (eyeState === 'blink') {
+      return '😌';
     }
     
-    return '😊'; // Default happy face
+    return '😊';
   };
 
   const getStatusText = () => {
@@ -61,9 +102,9 @@ const LiveChatHeader = memo(({ isListening, isSpeaking, hasApiKey }: LiveChatHea
   };
 
   const getAnimationClass = () => {
-    if (isSpeaking) return 'animate-pulse';
+    if (isSpeaking) return 'animate-pulse scale-105';
     if (isListening) return 'animate-bounce';
-    return '';
+    return 'hover:scale-105 transition-transform duration-300';
   };
 
   return (
@@ -79,9 +120,9 @@ const LiveChatHeader = memo(({ isListening, isSpeaking, hasApiKey }: LiveChatHea
           </p>
         </div>
 
-        {/* Animated Bot Emoji */}
-        <div className={`text-9xl transition-all duration-300 ${getAnimationClass()}`}>
-          {getBotEmoji()}
+        {/* Sophisticated Animated Emoji */}
+        <div className={`text-9xl transition-all duration-200 ease-in-out ${getAnimationClass()}`}>
+          {getFinalEmoji()}
         </div>
 
         {/* Status Text */}
@@ -91,10 +132,10 @@ const LiveChatHeader = memo(({ isListening, isSpeaking, hasApiKey }: LiveChatHea
           </p>
         </div>
 
-        {/* Simple Status - only show if no API key */}
+        {/* API Key Status */}
         {!hasApiKey && (
           <div className="flex items-center space-x-2">
-            <span className="w-3 h-3 rounded-full bg-yellow-400"></span>
+            <span className="w-3 h-3 rounded-full bg-yellow-400 animate-pulse"></span>
             <span className="text-sm font-medium">
               Need API Key - Set it in Regular Chat first
             </span>
