@@ -1,8 +1,10 @@
 
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Key, ExternalLink } from 'lucide-react';
+import { Key, ExternalLink, Check } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface LiveChatApiKeySectionProps {
   darkMode: boolean;
@@ -15,6 +17,32 @@ const LiveChatApiKeySection = ({
   liveApiKey, 
   setLiveApiKey 
 }: LiveChatApiKeySectionProps) => {
+  const [tempApiKey, setTempApiKey] = useState(liveApiKey);
+  const [isSaved, setIsSaved] = useState(false);
+  const { toast } = useToast();
+
+  const handleSaveApiKey = () => {
+    if (!tempApiKey.trim()) {
+      toast({
+        title: "Invalid API Key",
+        description: "Please enter a valid Gemini API key",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLiveApiKey(tempApiKey.trim());
+    setIsSaved(true);
+    
+    toast({
+      title: "API Key Saved",
+      description: "Your Gemini API key has been saved for Live Chat",
+    });
+
+    // Reset the saved indicator after 2 seconds
+    setTimeout(() => setIsSaved(false), 2000);
+  };
+
   return (
     <Card className={`border-2 shadow-xl ${darkMode ? 'bg-gray-800/90 border-purple-500' : 'bg-white/90 border-purple-200'} backdrop-blur-sm`}>
       <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-t-lg p-4">
@@ -39,15 +67,30 @@ const LiveChatApiKeySection = ({
           <Input
             type="password"
             placeholder="Enter your Gemini API key for Live Chat..."
-            value={liveApiKey}
-            onChange={(e) => setLiveApiKey(e.target.value)}
+            value={tempApiKey}
+            onChange={(e) => {
+              setTempApiKey(e.target.value);
+              setIsSaved(false);
+            }}
             className="flex-1"
           />
           <Button
-            disabled={!liveApiKey.trim()}
-            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+            onClick={handleSaveApiKey}
+            disabled={!tempApiKey.trim() || tempApiKey === liveApiKey}
+            className={`min-w-[120px] transition-all duration-200 ${
+              isSaved 
+                ? 'bg-green-600 hover:bg-green-700' 
+                : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600'
+            }`}
           >
-            {liveApiKey ? 'API Key Set' : 'Save Key'}
+            {isSaved ? (
+              <>
+                <Check className="w-4 h-4 mr-2" />
+                Saved!
+              </>
+            ) : (
+              tempApiKey.trim() && tempApiKey !== liveApiKey ? 'Save Key' : 'Enter Key'
+            )}
           </Button>
         </div>
         <p className="text-sm text-gray-500 mt-2">
