@@ -27,7 +27,7 @@ const LiveChatControls = ({
         {!isConnected ? (
           <Button 
             onClick={onConnect}
-            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium py-3 px-8 rounded-xl shadow-lg transition-colors duration-200"
+            className="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-8 rounded-xl shadow-md"
           >
             <Zap className="w-5 h-5 mr-2" />
             Connect to Live Chat
@@ -36,7 +36,7 @@ const LiveChatControls = ({
           <Button 
             onClick={onDisconnect}
             variant="outline"
-            className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 py-3 px-8 rounded-xl transition-colors duration-200"
+            className="border-red-400 text-red-600 hover:bg-red-50 hover:border-red-500 py-3 px-8 rounded-xl"
           >
             <VolumeX className="w-5 h-5 mr-2" />
             Disconnect
@@ -46,10 +46,10 @@ const LiveChatControls = ({
 
       {/* Voice Controls - Only show when connected */}
       {isConnected && (
-        <Card className={`border-2 ${darkMode ? 'bg-gray-700/50 border-gray-600' : 'bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200'} backdrop-blur-sm`}>
+        <Card className={`border-2 ${darkMode ? 'bg-gray-800/60 border-gray-600' : 'bg-purple-50/80 border-purple-200'}`}>
           <CardContent className="p-6">
             <h3 className="text-lg font-semibold mb-4 flex items-center">
-              <Mic className="w-5 h-5 mr-2 text-purple-500" />
+              <Mic className="w-5 h-5 mr-2 text-purple-600" />
               Voice Controls
             </h3>
             
@@ -57,10 +57,10 @@ const LiveChatControls = ({
               <Button
                 onClick={onMicToggle}
                 disabled={!isConnected}
-                className={`py-4 px-8 rounded-xl font-medium transition-colors duration-200 shadow-lg ${
+                className={`py-4 px-8 rounded-xl font-medium shadow-md ${
                   isListening
-                    ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white'
-                    : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white'
+                    ? 'bg-red-600 hover:bg-red-700 text-white'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
                 }`}
               >
                 {isListening ? (
@@ -77,7 +77,7 @@ const LiveChatControls = ({
               </Button>
             </div>
             
-            <p className="text-sm text-center mt-4 text-gray-600 dark:text-gray-300">
+            <p className="text-sm text-center mt-4 text-gray-600 dark:text-gray-400">
               🎤 Click to start talking with PulsePal AI in real-time!
             </p>
           </CardContent>

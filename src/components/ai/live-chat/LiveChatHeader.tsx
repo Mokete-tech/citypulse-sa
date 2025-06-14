@@ -1,5 +1,5 @@
 
-import { Radio, Sparkles, Waves, Volume2 } from 'lucide-react';
+import { Radio, Sparkles } from 'lucide-react';
 import { memo } from 'react';
 
 interface LiveChatHeaderProps {
@@ -10,18 +10,11 @@ interface LiveChatHeaderProps {
 
 const LiveChatHeader = memo(({ isConnected, isListening, isSpeaking }: LiveChatHeaderProps) => {
   return (
-    <div className={`relative p-6 ${
-      isConnected 
-        ? 'bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500' 
-        : 'bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500'
-    } text-white`}>
-      
+    <div className="relative p-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
       <div className="relative flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className="relative">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-              isConnected ? 'bg-white/20' : 'bg-white/10'
-            } backdrop-blur-sm border-2 border-white/30`}>
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-white/20 backdrop-blur-sm border-2 border-white/30">
               <Radio className="w-6 h-6" />
             </div>
             {isConnected && (
@@ -46,17 +39,17 @@ const LiveChatHeader = memo(({ isConnected, isListening, isSpeaking }: LiveChatH
           </div>
         </div>
         
-        {/* Static status indicators without animations */}
+        {/* Simple status badges */}
         <div className="flex items-center space-x-3">
           {isListening && (
-            <div className="flex items-center space-x-2 bg-red-500/30 px-4 py-2 rounded-full border border-red-300/50 backdrop-blur-sm">
-              <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+            <div className="flex items-center space-x-2 bg-red-500/40 px-4 py-2 rounded-full border border-red-300/60">
+              <div className="w-2 h-2 bg-red-300 rounded-full"></div>
               <span className="text-sm font-medium">Listening</span>
             </div>
           )}
           {isSpeaking && (
-            <div className="flex items-center space-x-2 bg-blue-500/30 px-4 py-2 rounded-full border border-blue-300/50 backdrop-blur-sm">
-              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+            <div className="flex items-center space-x-2 bg-blue-500/40 px-4 py-2 rounded-full border border-blue-300/60">
+              <div className="w-2 h-2 bg-blue-300 rounded-full"></div>
               <span className="text-sm font-medium">Speaking</span>
             </div>
           )}
