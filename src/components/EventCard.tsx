@@ -7,6 +7,7 @@ import ReactionButton from "./ReactionButton";
 import { Event, useEventRegistration } from "@/hooks/useEvents";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface EventCardProps extends Event {}
 
@@ -25,10 +26,20 @@ const EventCard = ({
   current_attendees
 }: EventCardProps) => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const eventRegistration = useEventRegistration();
   const [likeCount, setLikeCount] = useState(Math.floor(Math.random() * 30) + 5);
 
   const handleReaction = (type: 'like' | 'dislike', count: number) => {
+    if (!user) {
+      toast({
+        title: "Sign up required",
+        description: "Please sign up or log in to react to events",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     console.log(`Event "${title}" ${type}d. New count: ${count}`);
     setLikeCount(count);
   };
@@ -39,7 +50,14 @@ const EventCard = ({
   };
 
   const handleRegister = () => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Sign up required",
+        description: "Please sign up or log in to register for events",
+        variant: "destructive"
+      });
+      return;
+    }
     eventRegistration.mutate({ eventId: id });
   };
 
@@ -155,15 +173,13 @@ const EventCard = ({
             >
               View Event
             </Button>
-            {user && (
-              <Button 
-                variant="outline"
-                onClick={handleRegister}
-                disabled={eventRegistration.isPending || (spotsLeft !== null && spotsLeft <= 0)}
-              >
-                {eventRegistration.isPending ? 'Registering...' : 'Register'}
-              </Button>
-            )}
+            <Button 
+              variant="outline"
+              onClick={handleRegister}
+              disabled={eventRegistration.isPending || (spotsLeft !== null && spotsLeft <= 0)}
+            >
+              {eventRegistration.isPending ? 'Registering...' : 'Register'}
+            </Button>
             <Button 
               variant="outline" 
               size="icon"
@@ -173,14 +189,13 @@ const EventCard = ({
               <Share2 className="w-4 h-4" />
             </Button>
           </div>
-          {user && (
-            <ReactionButton 
-              type="like" 
-              initialCount={likeCount}
-              onReaction={handleReaction}
-              size="sm"
-            />
-          )}
+          {/* Always show reaction button, but handle auth inside */}
+          <ReactionButton 
+            type="like" 
+            initialCount={likeCount}
+            onReaction={handleReaction}
+            size="sm"
+          />
         </div>
       </CardContent>
     </Card>

@@ -7,6 +7,7 @@ import ReactionButton from "./ReactionButton";
 import { Deal, useFavoriteToggle, useReactionToggle } from "@/hooks/useDeals";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface DealCardProps extends Deal {}
 
@@ -24,13 +25,21 @@ const DealCard = ({
   image_url 
 }: DealCardProps) => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const favoriteToggle = useFavoriteToggle();
   const reactionToggle = useReactionToggle();
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(Math.floor(Math.random() * 50) + 10);
 
   const handleReaction = (type: 'like' | 'dislike', count: number) => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Sign up required",
+        description: "Please sign up or log in to react to deals",
+        variant: "destructive"
+      });
+      return;
+    }
     
     reactionToggle.mutate({ dealId: id, reactionType: type });
     setIsLiked(type === 'like' ? !isLiked : false);
@@ -150,14 +159,13 @@ const DealCard = ({
               <Share2 className="w-4 h-4" />
             </Button>
           </div>
-          {user && (
-            <ReactionButton 
-              type="like" 
-              initialCount={likeCount}
-              onReaction={handleReaction}
-              size="sm"
-            />
-          )}
+          {/* Always show reaction button, but handle auth inside */}
+          <ReactionButton 
+            type="like" 
+            initialCount={likeCount}
+            onReaction={handleReaction}
+            size="sm"
+          />
         </div>
       </CardContent>
     </Card>
