@@ -1,13 +1,14 @@
+
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import DealCard from "@/components/DealCard";
 import EventCard from "@/components/EventCard";
 import AuthModal from "@/components/AuthModal";
 import UserProfile from "@/components/UserProfile";
-import VideoPlayer from "@/components/VideoPlayer";
+import CityShowcase from "@/components/CityShowcase";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Tag, Calendar, Bot, Building2, Sparkles, Play, Users, Star } from "lucide-react";
+import { Tag, Calendar, Bot, Building2, Sparkles, Users, Star } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useDeals } from "@/hooks/useDeals";
@@ -52,7 +53,7 @@ const Index = () => {
     <div className="min-h-screen bg-gray-50">
       <Navigation />
       
-      {/* Hero Section with Video Background */}
+      {/* Hero Section with City Showcase */}
       <section className="relative bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20 overflow-hidden">
         <div className="absolute inset-0 bg-black bg-opacity-30"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -85,10 +86,10 @@ const Index = () => {
               </Link>
             </div>
             
-            {/* Video Player */}
-            <VideoPlayer 
-              title="CityPulse in Action"
-              description="Watch how thousands of South Africans are discovering amazing local deals and events in Cape Town, Johannesburg, and across the country."
+            {/* City Showcase */}
+            <CityShowcase 
+              title="CityPulse Across South Africa"
+              description="Experience the vibrant culture and amazing deals across Cape Town, Johannesburg, Durban, and more South African cities."
             />
           </div>
         </div>
