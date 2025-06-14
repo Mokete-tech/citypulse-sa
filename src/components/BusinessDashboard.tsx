@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Users, Eye, Star, DollarSign, Package, Calendar, LogOut } from "lucide-react";
 import VideoUpload from "./VideoUpload";
+import PayFastPayment from "./PayFastPayment";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -22,12 +23,11 @@ const BusinessDashboard = ({ user, onSignOut }: BusinessDashboardProps) => {
   });
   const { toast } = useToast();
 
-  const handlePackageSelection = (packageType: string, price: number) => {
+  const handlePaymentStart = (packageType: string) => {
     toast({
-      title: "Package Selected",
-      description: `${packageType} package (R${price}) - Payment integration would be implemented here`,
+      title: "Payment Started",
+      description: `Initiating payment for ${packageType} package`,
     });
-    setActivePackage(packageType);
   };
 
   const handleSignOut = async () => {
@@ -106,7 +106,7 @@ const BusinessDashboard = ({ user, onSignOut }: BusinessDashboardProps) => {
           onVideoUploaded={handleVideoUploaded}
         />
 
-        {/* Package Selection */}
+        {/* Package Selection with PayFast Integration */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Deal Packages */}
           <Card>
@@ -125,13 +125,12 @@ const BusinessDashboard = ({ user, onSignOut }: BusinessDashboardProps) => {
                 <p className="text-sm text-gray-600 mb-3">
                   Basic listing with standard visibility
                 </p>
-                <Button 
-                  variant={activePackage === 'standard-deal' ? 'default' : 'outline'}
-                  className="w-full"
-                  onClick={() => handlePackageSelection('Standard Deal', 99)}
-                >
-                  {activePackage === 'standard-deal' ? 'Active' : 'Select Package'}
-                </Button>
+                <PayFastPayment
+                  packageType="Standard Deal"
+                  amount={99}
+                  businessId={user?.id}
+                  onPaymentStart={() => handlePaymentStart('Standard Deal')}
+                />
               </div>
               
               <div className="border-2 border-blue-500 rounded-lg p-4">
@@ -142,13 +141,12 @@ const BusinessDashboard = ({ user, onSignOut }: BusinessDashboardProps) => {
                 <p className="text-sm text-gray-600 mb-3">
                   Featured placement with enhanced visibility
                 </p>
-                <Button 
-                  variant={activePackage === 'premium-deal' ? 'default' : 'outline'}
-                  className="w-full"
-                  onClick={() => handlePackageSelection('Premium Deal', 250)}
-                >
-                  {activePackage === 'premium-deal' ? 'Active' : 'Select Package'}
-                </Button>
+                <PayFastPayment
+                  packageType="Premium Deal"
+                  amount={250}
+                  businessId={user?.id}
+                  onPaymentStart={() => handlePaymentStart('Premium Deal')}
+                />
               </div>
             </CardContent>
           </Card>
@@ -170,13 +168,12 @@ const BusinessDashboard = ({ user, onSignOut }: BusinessDashboardProps) => {
                 <p className="text-sm text-gray-600 mb-3">
                   Basic event listing until event date
                 </p>
-                <Button 
-                  variant={activePackage === 'standard-event' ? 'default' : 'outline'}
-                  className="w-full"
-                  onClick={() => handlePackageSelection('Standard Event', 299)}
-                >
-                  {activePackage === 'standard-event' ? 'Active' : 'Select Package'}
-                </Button>
+                <PayFastPayment
+                  packageType="Standard Event"
+                  amount={299}
+                  businessId={user?.id}
+                  onPaymentStart={() => handlePaymentStart('Standard Event')}
+                />
               </div>
               
               <div className="border-2 border-purple-500 rounded-lg p-4">
@@ -187,13 +184,12 @@ const BusinessDashboard = ({ user, onSignOut }: BusinessDashboardProps) => {
                 <p className="text-sm text-gray-600 mb-3">
                   Featured placement with social media promotion
                 </p>
-                <Button 
-                  variant={activePackage === 'premium-event' ? 'default' : 'outline'}
-                  className="w-full"
-                  onClick={() => handlePackageSelection('Premium Event', 460)}
-                >
-                  {activePackage === 'premium-event' ? 'Active' : 'Select Package'}
-                </Button>
+                <PayFastPayment
+                  packageType="Premium Event"
+                  amount={460}
+                  businessId={user?.id}
+                  onPaymentStart={() => handlePaymentStart('Premium Event')}
+                />
               </div>
             </CardContent>
           </Card>

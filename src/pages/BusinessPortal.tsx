@@ -1,9 +1,14 @@
+
 import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import BusinessAuth from "@/components/BusinessAuth";
 import BusinessDashboard from "@/components/BusinessDashboard";
+import VideoUpload from "@/components/VideoUpload";
 import { Toaster } from "@/components/ui/toaster";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Video, TrendingUp, Users, Star, Eye, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const BusinessPortal = () => {
@@ -31,6 +36,10 @@ const BusinessPortal = () => {
 
   const handleSignOut = () => {
     setUser(null);
+  };
+
+  const handleVideoUploaded = (videoUrl: string) => {
+    console.log('Video uploaded:', videoUrl);
   };
 
   if (loading) {
