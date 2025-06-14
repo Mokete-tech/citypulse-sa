@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,7 +21,14 @@ const LiveChatApiKeySection = ({
   const [isSaved, setIsSaved] = useState(false);
   const { toast } = useToast();
 
+  // Sync tempApiKey with liveApiKey when it changes
+  useEffect(() => {
+    setTempApiKey(liveApiKey);
+  }, [liveApiKey]);
+
   const handleSaveApiKey = () => {
+    console.log('Saving API key:', tempApiKey.substring(0, 10) + '...');
+    
     if (!tempApiKey.trim()) {
       toast({
         title: "Invalid API Key",
@@ -31,8 +38,11 @@ const LiveChatApiKeySection = ({
       return;
     }
 
-    setLiveApiKey(tempApiKey.trim());
+    const trimmedKey = tempApiKey.trim();
+    setLiveApiKey(trimmedKey);
     setIsSaved(true);
+    
+    console.log('API key saved successfully');
     
     toast({
       title: "API Key Saved",
@@ -69,6 +79,7 @@ const LiveChatApiKeySection = ({
             placeholder="Enter your Gemini API key for Live Chat..."
             value={tempApiKey}
             onChange={(e) => {
+              console.log('Input changed:', e.target.value.substring(0, 10) + '...');
               setTempApiKey(e.target.value);
               setIsSaved(false);
             }}
@@ -96,6 +107,10 @@ const LiveChatApiKeySection = ({
         <p className="text-sm text-gray-500 mt-2">
           This API key is separate from Regular Chat and stored locally for Live Chat only.
         </p>
+        {/* Debug info */}
+        <div className="text-xs text-gray-400 mt-2">
+          Current API Key: {liveApiKey ? '✓ Set' : '✗ Not set'}
+        </div>
       </CardContent>
     </Card>
   );
