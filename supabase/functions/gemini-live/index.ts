@@ -10,6 +10,9 @@ const corsHeaders = {
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
 
 serve(async (req) => {
+  console.log('Request method:', req.method);
+  console.log('Request URL:', req.url);
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -21,19 +24,25 @@ serve(async (req) => {
       return new Response("Expected websocket", { status: 426 });
     }
 
+    if (!GEMINI_API_KEY) {
+      console.error('GEMINI_API_KEY not found in environment variables');
+      return new Response("GEMINI_API_KEY not configured", { status: 500 });
+    }
+
     const { socket, response } = Deno.upgradeWebSocket(req);
     let geminiWs: WebSocket | null = null;
 
     socket.onopen = async () => {
-      console.log("Client connected");
+      console.log("Client connected to Edge Function");
       
       // Connect to Gemini Live API
       try {
         const geminiUrl = `wss://generativelanguage.googleapis.com/ws/v1beta/models/gemini-2.0-flash-exp:streamGenerateContent?key=${GEMINI_API_KEY}`;
+        console.log('Connecting to Gemini API...');
         geminiWs = new WebSocket(geminiUrl);
         
         geminiWs.onopen = () => {
-          console.log("Connected to Gemini Live API");
+          console.log("Connected to Gemini Live API successfully");
           
           // Initialize session
           const initMessage = {
@@ -59,12 +68,14 @@ serve(async (req) => {
             }
           };
           
+          console.log('Sending init message to Gemini');
           geminiWs?.send(JSON.stringify(initMessage));
         };
 
         geminiWs.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
+            console.log('Received from Gemini:', data.type || 'unknown type');
             socket.send(JSON.stringify(data));
           } catch (error) {
             console.error("Error parsing Gemini response:", error);
@@ -76,22 +87,25 @@ serve(async (req) => {
           socket.send(JSON.stringify({ error: "Gemini connection error" }));
         };
 
-        geminiWs.onclose = () => {
-          console.log("Gemini WebSocket closed");
+        geminiWs.onclose = (event) => {
+          console.log("Gemini WebSocket closed:", event.code, event.reason);
           socket.close();
         };
 
       } catch (error) {
         console.error("Failed to connect to Gemini:", error);
-        socket.send(JSON.stringify({ error: "Failed to connect to Gemini Live API" }));
+        socket.send(JSON.stringify({ error: "Failed to connect to Gemini Live API: " + error.message }));
       }
     };
 
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        console.log('Received from client:', data.type || 'unknown type');
         if (geminiWs && geminiWs.readyState === WebSocket.OPEN) {
           geminiWs.send(JSON.stringify(data));
+        } else {
+          console.error('Gemini WebSocket not ready, state:', geminiWs?.readyState);
         }
       } catch (error) {
         console.error("Error handling client message:", error);
@@ -99,7 +113,7 @@ serve(async (req) => {
     };
 
     socket.onclose = () => {
-      console.log("Client disconnected");
+      console.log("Client disconnected from Edge Function");
       if (geminiWs) {
         geminiWs.close();
       }
