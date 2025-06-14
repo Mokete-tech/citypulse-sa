@@ -1,91 +1,76 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { GeminiLiveMessage, GeminiLiveHookReturn } from '@/types/geminiLive';
+import { AudioQueue, createMediaRecorder, encodeAudioData } from '@/utils/audioUtils';
+import { GeminiWebSocketManager } from '@/utils/geminiWebSocket';
 
-interface GeminiLiveMessage {
-  type: 'audio' | 'text' | 'error' | 'setup';
-  data?: any;
-  audio?: string;
-  text?: string;
-  error?: string;
-}
-
-export const useGeminiLive = () => {
+export const useGeminiLive = (): GeminiLiveHookReturn => {
   const [isConnected, setIsConnected] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [messages, setMessages] = useState<GeminiLiveMessage[]>([]);
   
-  const wsRef = useRef<WebSocket | null>(null);
+  const wsManagerRef = useRef<GeminiWebSocketManager | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
-  const audioQueueRef = useRef<string[]>([]);
-  const isPlayingRef = useRef(false);
+  const audioQueueRef = useRef<AudioQueue | null>(null);
   
   const { toast } = useToast();
 
-  const connect = useCallback(async () => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) return;
+  const handleMessage = useCallback((message: GeminiLiveMessage) => {
+    if (message.type === 'audio' && message.audio) {
+      audioQueueRef.current?.addToQueue(message.audio);
+    } else {
+      setMessages(prev => [...prev, message]);
+    }
+  }, []);
 
+  const handleConnectionChange = useCallback((connected: boolean) => {
+    setIsConnected(connected);
+    if (!connected) {
+      setIsListening(false);
+      setIsSpeaking(false);
+    }
+    
+    if (connected) {
+      toast({
+        title: "Connected to Gemini Live",
+        description: "You can now have real-time conversations!",
+      });
+    }
+  }, [toast]);
+
+  const handleError = useCallback((error: string) => {
+    toast({
+      title: "Connection Error",
+      description: error,
+      variant: "destructive"
+    });
+  }, [toast]);
+
+  const connect = useCallback(async () => {
     try {
       // Initialize audio context
       audioContextRef.current = new AudioContext({
         sampleRate: 24000,
       });
 
-      // Connect to our Supabase Edge Function
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-      if (!projectId) {
-        throw new Error('Supabase project ID not configured');
-      }
-      
-      const wsUrl = `wss://${projectId}.supabase.co/functions/v1/gemini-live`;
-      wsRef.current = new WebSocket(wsUrl);
+      // Initialize audio queue
+      audioQueueRef.current = new AudioQueue(
+        audioContextRef.current,
+        setIsSpeaking
+      );
 
-      wsRef.current.onopen = () => {
-        setIsConnected(true);
-        toast({
-          title: "Connected to Gemini Live",
-          description: "You can now have real-time conversations!",
-        });
-      };
+      // Initialize WebSocket manager
+      wsManagerRef.current = new GeminiWebSocketManager(
+        handleMessage,
+        handleConnectionChange,
+        handleError
+      );
 
-      wsRef.current.onmessage = async (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          
-          if (data.candidates && data.candidates[0]?.content?.parts) {
-            const parts = data.candidates[0].content.parts;
-            
-            for (const part of parts) {
-              if (part.inlineData?.mimeType === 'audio/pcm' && part.inlineData?.data) {
-                // Handle audio response
-                await playAudioData(part.inlineData.data);
-              } else if (part.text) {
-                // Handle text response
-                setMessages(prev => [...prev, { type: 'text', text: part.text, data }]);
-              }
-            }
-          }
-        } catch (error) {
-          console.error('Error handling Gemini message:', error);
-        }
-      };
-
-      wsRef.current.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        toast({
-          title: "Connection Error",
-          description: "Failed to connect to Gemini Live",
-          variant: "destructive"
-        });
-      };
-
-      wsRef.current.onclose = () => {
-        setIsConnected(false);
-        setIsListening(false);
-        setIsSpeaking(false);
-      };
+      await wsManagerRef.current.connect();
 
     } catch (error) {
       console.error('Failed to connect:', error);
@@ -95,111 +80,41 @@ export const useGeminiLive = () => {
         variant: "destructive"
       });
     }
-  }, [toast]);
+  }, [handleMessage, handleConnectionChange, handleError, toast]);
 
   const disconnect = useCallback(() => {
-    if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
-    }
+    wsManagerRef.current?.disconnect();
+    
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
       mediaRecorderRef.current = null;
     }
+    
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    
     if (audioContextRef.current) {
       audioContextRef.current.close();
       audioContextRef.current = null;
     }
+    
+    audioQueueRef.current?.clear();
+    audioQueueRef.current = null;
+    
     setIsConnected(false);
     setIsListening(false);
     setIsSpeaking(false);
   }, []);
 
-  const playAudioData = async (base64Audio: string) => {
-    if (!audioContextRef.current) return;
-
-    try {
-      setIsSpeaking(true);
-      
-      // Add to queue for sequential playback
-      audioQueueRef.current.push(base64Audio);
-      
-      if (!isPlayingRef.current) {
-        playNextAudio();
-      }
-    } catch (error) {
-      console.error('Error queuing audio:', error);
-      setIsSpeaking(false);
-    }
-  };
-
-  const playNextAudio = async () => {
-    if (!audioContextRef.current || audioQueueRef.current.length === 0) {
-      isPlayingRef.current = false;
-      setIsSpeaking(false);
-      return;
-    }
-
-    isPlayingRef.current = true;
-    const base64Audio = audioQueueRef.current.shift()!;
-    
-    try {
-      // Decode base64 audio
-      const binaryString = atob(base64Audio);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-
-      // Create audio buffer from PCM data
-      const audioBuffer = audioContextRef.current.createBuffer(1, bytes.length / 2, 24000);
-      const channelData = audioBuffer.getChannelData(0);
-      
-      // Convert bytes to float32 audio samples
-      for (let i = 0; i < channelData.length; i++) {
-        const sample = (bytes[i * 2] | (bytes[i * 2 + 1] << 8)) / 32768.0;
-        channelData[i] = sample;
-      }
-
-      // Play the audio
-      const source = audioContextRef.current.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(audioContextRef.current.destination);
-      
-      source.onended = () => {
-        playNextAudio();
-      };
-      
-      source.start(0);
-      
-    } catch (error) {
-      console.error('Error playing audio:', error);
-      playNextAudio(); // Continue with next audio
-    }
-  };
-
   const startListening = useCallback(async () => {
-    if (!isConnected || isListening) return;
+    if (!isConnected || isListening || !wsManagerRef.current) return;
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          sampleRate: 16000,
-          channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true,
-        }
-      });
-
-      mediaRecorderRef.current = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      });
-
-      mediaRecorderRef.current.ondataavailable = async (event) => {
-        if (event.data.size > 0 && wsRef.current?.readyState === WebSocket.OPEN) {
-          // Convert to base64 and send
-          const arrayBuffer = await event.data.arrayBuffer();
-          const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      const { mediaRecorder, stream } = await createMediaRecorder(async (data) => {
+        if (wsManagerRef.current?.isConnected()) {
+          const base64 = await encodeAudioData(data);
           
           const message = {
             clientContent: {
@@ -215,11 +130,14 @@ export const useGeminiLive = () => {
             }
           };
 
-          wsRef.current.send(JSON.stringify(message));
+          wsManagerRef.current.send(message);
         }
-      };
+      });
 
-      mediaRecorderRef.current.start(1000); // Send chunks every second
+      mediaRecorderRef.current = mediaRecorder;
+      streamRef.current = stream;
+      
+      mediaRecorder.start(1000); // Send chunks every second
       setIsListening(true);
 
       toast({
@@ -240,14 +158,19 @@ export const useGeminiLive = () => {
   const stopListening = useCallback(() => {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
       mediaRecorderRef.current = null;
     }
+    
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    
     setIsListening(false);
   }, []);
 
   const sendText = useCallback((text: string) => {
-    if (!isConnected || !wsRef.current) return;
+    if (!isConnected || !wsManagerRef.current) return;
 
     const message = {
       clientContent: {
@@ -260,7 +183,7 @@ export const useGeminiLive = () => {
       }
     };
 
-    wsRef.current.send(JSON.stringify(message));
+    wsManagerRef.current.send(message);
     setMessages(prev => [...prev, { type: 'text', text, data: message }]);
   }, [isConnected]);
 
