@@ -1,18 +1,29 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Mic, MicOff, Phone, PhoneOff, MessageSquare, Volume2, Sparkles } from "lucide-react";
-import { useGeminiLive } from "@/hooks/useGeminiLive";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { useGeminiLive } from '@/hooks/useGeminiLive';
+import { 
+  Mic, 
+  MicOff, 
+  Volume2, 
+  VolumeX, 
+  MessageSquare, 
+  Send, 
+  Sparkles, 
+  Zap,
+  Radio,
+  Waves,
+  Heart
+} from 'lucide-react';
 
 interface LiveChatInterfaceProps {
   darkMode: boolean;
 }
 
 const LiveChatInterface = ({ darkMode }: LiveChatInterfaceProps) => {
-  const [textInput, setTextInput] = useState("");
-  
+  const [textInput, setTextInput] = useState('');
   const {
     isConnected,
     isListening,
@@ -25,173 +36,304 @@ const LiveChatInterface = ({ darkMode }: LiveChatInterfaceProps) => {
     sendText,
   } = useGeminiLive();
 
+  // Fun animated background particles
+  const [particles, setParticles] = useState<Array<{id: number, x: number, y: number, delay: number}>>([]);
+
+  useEffect(() => {
+    // Create animated particles for the background
+    const newParticles = Array.from({ length: 12 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      delay: Math.random() * 2
+    }));
+    setParticles(newParticles);
+  }, []);
+
   const handleSendText = () => {
-    if (textInput.trim()) {
+    if (textInput.trim() && isConnected) {
       sendText(textInput);
-      setTextInput("");
+      setTextInput('');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSendText();
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Connection Status & Controls */}
-      <Card className={`border-2 shadow-xl ${darkMode ? 'bg-gray-800/90 border-purple-500/50' : 'bg-white/90 border-purple-200'} backdrop-blur-sm`}>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-6">
+    <div className="relative overflow-hidden">
+      {/* Animated background particles */}
+      <div className="absolute inset-0 pointer-events-none">
+        {particles.map((particle) => (
+          <div
+            key={particle.id}
+            className="absolute w-2 h-2 rounded-full opacity-20"
+            style={{
+              left: `${particle.x}%`,
+              top: `${particle.y}%`,
+              background: `linear-gradient(45deg, #8b5cf6, #06b6d4)`,
+              animation: `float 3s ease-in-out infinite`,
+              animationDelay: `${particle.delay}s`
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Main Live Chat Card */}
+      <Card className={`relative border-2 shadow-2xl overflow-hidden ${
+        darkMode 
+          ? 'bg-gray-800/90 border-purple-500/50' 
+          : 'bg-white/90 border-purple-200'
+      } backdrop-blur-sm`}>
+        
+        {/* Animated header with live indicator */}
+        <div className={`relative p-6 ${
+          isConnected 
+            ? 'bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500' 
+            : 'bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500'
+        } text-white overflow-hidden`}>
+          
+          {/* Animated wave background */}
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+          </div>
+          
+          <div className="relative flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="relative">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                  isConnected 
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
-                    : 'bg-gradient-to-r from-gray-400 to-gray-500'
-                } shadow-lg`}>
-                  <Sparkles className="w-8 h-8 text-white" />
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  isConnected ? 'bg-white/20' : 'bg-white/10'
+                } backdrop-blur-sm border-2 border-white/30`}>
+                  <Radio className={`w-6 h-6 ${isConnected ? 'animate-pulse' : ''}`} />
                 </div>
                 {isConnected && (
-                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                    <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-                  </div>
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-ping"></div>
                 )}
               </div>
               
               <div>
-                <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
-                  Gemini Live Chat
-                </h3>
-                <div className="flex items-center space-x-3 mt-2">
-                  <Badge variant={isConnected ? "default" : "secondary"} className="px-3 py-1">
-                    {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
-                  </Badge>
-                  
-                  {isListening && (
-                    <Badge variant="outline" className="px-3 py-1 border-green-400 text-green-600 animate-pulse">
-                      🎤 Listening...
-                    </Badge>
+                <h2 className="text-2xl font-bold flex items-center">
+                  🎤 Live Chat with PulsePal
+                  <Sparkles className="w-5 h-5 ml-2 animate-bounce" />
+                </h2>
+                <p className="text-sm opacity-90 flex items-center">
+                  {isConnected ? (
+                    <>
+                      <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
+                      Connected • Real-time voice chat active
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
+                      Disconnected • Click connect to start
+                    </>
                   )}
-                  
-                  {isSpeaking && (
-                    <Badge variant="outline" className="px-3 py-1 border-blue-400 text-blue-600 animate-pulse">
-                      🔊 Speaking...
-                    </Badge>
-                  )}
-                </div>
+                </p>
               </div>
             </div>
-
+            
+            {/* Status indicators */}
             <div className="flex items-center space-x-3">
-              {!isConnected ? (
-                <Button
-                  onClick={connect}
-                  className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-                >
-                  <Phone className="w-5 h-5 mr-2" />
-                  Connect Live
-                </Button>
-              ) : (
-                <Button
-                  onClick={disconnect}
-                  variant="destructive"
-                  className="px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-                >
-                  <PhoneOff className="w-5 h-5 mr-2" />
-                  Disconnect
-                </Button>
+              {isListening && (
+                <div className="flex items-center space-x-2 bg-red-500/20 px-3 py-1 rounded-full border border-red-300">
+                  <Waves className="w-4 h-4 animate-pulse" />
+                  <span className="text-sm font-medium">Listening...</span>
+                </div>
+              )}
+              {isSpeaking && (
+                <div className="flex items-center space-x-2 bg-blue-500/20 px-3 py-1 rounded-full border border-blue-300">
+                  <Volume2 className="w-4 h-4 animate-bounce" />
+                  <span className="text-sm font-medium">Speaking...</span>
+                </div>
               )}
             </div>
           </div>
+        </div>
 
-          {/* Voice Controls */}
-          {isConnected && (
-            <div className="flex items-center justify-center space-x-4 p-6 bg-gradient-to-r from-purple-50/50 to-blue-50/50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl border">
-              <Button
-                onClick={isListening ? stopListening : startListening}
-                disabled={isSpeaking}
-                className={`w-20 h-20 rounded-full shadow-lg transition-all duration-200 hover:scale-110 ${
-                  isListening
-                    ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 animate-pulse'
-                    : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600'
-                }`}
+        <CardContent className="p-6 space-y-6">
+          
+          {/* Connection Controls */}
+          <div className="flex items-center justify-center space-x-4">
+            {!isConnected ? (
+              <Button 
+                onClick={connect}
+                className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
               >
-                {isListening ? (
-                  <MicOff className="w-8 h-8 text-white" />
-                ) : (
-                  <Mic className="w-8 h-8 text-white" />
-                )}
+                <Zap className="w-5 h-5 mr-2" />
+                Connect to Live Chat
               </Button>
-              
-              <div className="text-center">
-                <p className="text-lg font-semibold mb-1">
-                  {isListening ? "🎤 Listening..." : isSpeaking ? "🔊 AI Speaking..." : "Press to Talk"}
+            ) : (
+              <Button 
+                onClick={disconnect}
+                variant="outline"
+                className="border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 py-3 px-8 rounded-xl transition-all duration-200 hover:scale-105"
+              >
+                <VolumeX className="w-5 h-5 mr-2" />
+                Disconnect
+              </Button>
+            )}
+          </div>
+
+          {/* Voice Controls - Only show when connected */}
+          {isConnected && (
+            <Card className={`border-2 ${darkMode ? 'bg-gray-700/50 border-gray-600' : 'bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200'} backdrop-blur-sm`}>
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold mb-4 flex items-center">
+                  <Mic className="w-5 h-5 mr-2 text-purple-500" />
+                  Voice Controls
+                </h3>
+                
+                <div className="flex items-center justify-center space-x-6">
+                  <Button
+                    onClick={isListening ? stopListening : startListening}
+                    className={`relative py-4 px-8 rounded-xl font-medium transition-all duration-300 ${
+                      isListening
+                        ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white animate-pulse'
+                        : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white hover:scale-105'
+                    } shadow-lg hover:shadow-xl`}
+                  >
+                    {isListening ? (
+                      <>
+                        <MicOff className="w-6 h-6 mr-2" />
+                        Stop Listening
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="w-6 h-6 mr-2" />
+                        Start Listening
+                      </>
+                    )}
+                    
+                    {/* Pulsing ring for listening state */}
+                    {isListening && (
+                      <div className="absolute inset-0 rounded-xl border-2 border-white/50 animate-ping"></div>
+                    )}
+                  </Button>
+                </div>
+                
+                <p className="text-sm text-center mt-4 text-gray-600 dark:text-gray-300">
+                  🎤 Click to start talking with PulsePal AI in real-time!
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Real-time voice conversation with Gemini AI
-                </p>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Text Input - Only show when connected */}
+          {isConnected && (
+            <Card className={`border-2 ${darkMode ? 'bg-gray-700/50 border-gray-600' : 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200'} backdrop-blur-sm`}>
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold mb-4 flex items-center">
+                  <MessageSquare className="w-5 h-5 mr-2 text-blue-500" />
+                  Or Type a Message
+                </h3>
+                
+                <div className="flex space-x-3">
+                  <Input
+                    value={textInput}
+                    onChange={(e) => setTextInput(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Type your message to PulsePal..."
+                    className={`flex-1 border-2 rounded-xl ${darkMode ? 'border-gray-600 bg-gray-700/50' : 'border-purple-300 bg-white/50'} focus:border-purple-500 transition-all duration-200 text-base backdrop-blur-sm`}
+                  />
+                  <Button
+                    onClick={handleSendText}
+                    disabled={!textInput.trim()}
+                    className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                  >
+                    <Send className="w-5 h-5" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Messages Display */}
+          {messages.length > 0 && (
+            <Card className={`border-2 ${darkMode ? 'bg-gray-700/50 border-gray-600' : 'bg-gradient-to-br from-gray-50 to-purple-50 border-gray-200'} backdrop-blur-sm max-h-96 overflow-y-auto`}>
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold mb-4 flex items-center">
+                  <Heart className="w-5 h-5 mr-2 text-pink-500" />
+                  Conversation History
+                </h3>
+                
+                <div className="space-y-4">
+                  {messages.map((message, index) => (
+                    <div
+                      key={index}
+                      className={`p-4 rounded-xl ${
+                        message.type === 'text'
+                          ? message.text?.startsWith('User:') 
+                            ? 'bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 ml-8'
+                            : 'bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 mr-8'
+                          : 'bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30'
+                      } border border-gray-200 dark:border-gray-600 shadow-sm animate-fade-in`}
+                    >
+                      {message.text && (
+                        <p className="text-sm leading-relaxed">{message.text}</p>
+                      )}
+                      {message.type === 'audio' && (
+                        <div className="flex items-center space-x-2 text-purple-600 dark:text-purple-400">
+                          <Volume2 className="w-4 h-4" />
+                          <span className="text-sm">Audio response received</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Fun Getting Started Section */}
+          {!isConnected && (
+            <Card className={`border-2 border-dashed ${darkMode ? 'border-purple-500/50 bg-purple-900/20' : 'border-purple-300 bg-purple-50/50'} backdrop-blur-sm`}>
+              <CardContent className="p-8 text-center">
+                <div className="mb-6">
+                  <div className="w-20 h-20 mx-auto bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 rounded-full flex items-center justify-center mb-4 animate-pulse">
+                    <Sparkles className="w-10 h-10 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
+                    Ready for Real-Time Magic? ✨
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    Connect to start having natural voice conversations with PulsePal AI! 
+                    Experience the future of AI interaction - no typing needed, just talk naturally!
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="flex flex-col items-center p-4 rounded-xl bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30">
+                    <Mic className="w-8 h-8 text-blue-500 mb-2" />
+                    <span className="font-medium">Voice Chat</span>
+                    <span className="text-xs text-gray-500">Natural conversation</span>
+                  </div>
+                  <div className="flex flex-col items-center p-4 rounded-xl bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30">
+                    <Zap className="w-8 h-8 text-green-500 mb-2" />
+                    <span className="font-medium">Real-Time</span>
+                    <span className="text-xs text-gray-500">Instant responses</span>
+                  </div>
+                  <div className="flex flex-col items-center p-4 rounded-xl bg-gradient-to-br from-pink-100 to-red-100 dark:from-pink-900/30 dark:to-red-900/30">
+                    <Heart className="w-8 h-8 text-pink-500 mb-2" />
+                    <span className="font-medium">Smart</span>
+                    <span className="text-xs text-gray-500">Context-aware AI</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </CardContent>
       </Card>
 
-      {/* Messages Display */}
-      {messages.length > 0 && (
-        <Card className={`border-2 shadow-xl ${darkMode ? 'bg-gray-800/90 border-gray-600' : 'bg-white/90 border-gray-200'} backdrop-blur-sm`}>
-          <CardContent className="p-6">
-            <h4 className="text-lg font-semibold mb-4 flex items-center">
-              <MessageSquare className="w-5 h-5 mr-2" />
-              Conversation Log
-            </h4>
-            <div className="space-y-3 max-h-60 overflow-y-auto">
-              {messages.map((msg, index) => (
-                <div
-                  key={index}
-                  className={`p-3 rounded-lg ${
-                    msg.type === 'text' 
-                      ? `${darkMode ? 'bg-gray-700/50' : 'bg-gray-100/50'} border`
-                      : 'bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-700'
-                  }`}
-                >
-                  <div className="flex items-center space-x-2 mb-1">
-                    <Badge variant="outline" className="text-xs">
-                      {msg.type === 'text' ? '💬 Text' : '🔊 Audio'}
-                    </Badge>
-                  </div>
-                  {msg.text && (
-                    <p className="text-sm">{msg.text}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Text Input (when connected) */}
-      {isConnected && (
-        <Card className={`border-2 shadow-xl ${darkMode ? 'bg-gray-800/90 border-gray-600' : 'bg-white/90 border-gray-200'} backdrop-blur-sm`}>
-          <CardContent className="p-4">
-            <div className="flex space-x-3">
-              <input
-                type="text"
-                value={textInput}
-                onChange={(e) => setTextInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendText()}
-                placeholder="Or type your message here..."
-                className={`flex-1 px-4 py-3 rounded-xl border-2 ${
-                  darkMode ? 'border-gray-600 bg-gray-700/50' : 'border-purple-300 bg-white/50'
-                } focus:border-purple-500 transition-all duration-200 backdrop-blur-sm`}
-                disabled={isListening || isSpeaking}
-              />
-              <Button
-                onClick={handleSendText}
-                disabled={!textInput.trim() || isListening || isSpeaking}
-                className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-              >
-                <MessageSquare className="w-5 h-5" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(180deg); }
+        }
+      `}</style>
     </div>
   );
 };
