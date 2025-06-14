@@ -84,7 +84,7 @@ const ChatInterface = ({
         speakMessage(lastMessage.content, volume[0]);
       }
     }
-  }, [messages, isTextToSpeechEnabled, volume]);
+  }, [messages, isTextToSpeechEnabled, volume, playSound, speakMessage]);
 
   return (
     <div className="space-y-6">
