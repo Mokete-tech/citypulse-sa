@@ -5,7 +5,7 @@ import DealCard from "@/components/DealCard";
 import EventCard from "@/components/EventCard";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Tag, Calendar, Bot, Building2, Sparkles, Play, Users, Star, TrendingUp } from "lucide-react";
+import { Tag, Calendar, Bot, Building2, Sparkles, Play, Users, Star, TrendingUp, MapPin, Clock, Heart } from "lucide-react";
 
 const Index = () => {
   const featuredDeals = [
@@ -121,7 +121,7 @@ const Index = () => {
                 </Button>
               </Link>
               <Link to="/events">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600 hover:scale-105 transition-all">
+                <Button size="lg" className="bg-green-500 text-white hover:bg-green-600 hover:scale-105 transition-all">
                   <Calendar className="w-5 h-5 mr-2" />
                   Discover Events
                 </Button>
