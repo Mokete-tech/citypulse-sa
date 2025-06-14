@@ -1,6 +1,8 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface ChatMessage {
   id: string;
@@ -12,11 +14,86 @@ export interface ChatMessage {
 export const useAI = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState<string>('');
+  const [apiKey, setApiKeyState] = useState<string>('');
+  const [isLoadingApiKey, setIsLoadingApiKey] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  // Load API key on component mount
+  useEffect(() => {
+    if (user) {
+      loadApiKey();
+    } else {
+      setIsLoadingApiKey(false);
+    }
+  }, [user]);
+
+  const loadApiKey = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('api-key-manager', {
+        body: { action: 'retrieve' }
+      });
+
+      if (error) throw error;
+
+      if (data?.apiKey) {
+        setApiKeyState(data.apiKey);
+      }
+    } catch (error) {
+      console.error('Error loading API key:', error);
+    } finally {
+      setIsLoadingApiKey(false);
+    }
+  };
+
+  const setApiKey = async (newApiKey: string) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to save your API key securely.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('api-key-manager', {
+        body: { 
+          action: 'save',
+          apiKey: newApiKey
+        }
+      });
+
+      if (error) throw error;
+
+      setApiKeyState(newApiKey);
+      toast({
+        title: "API Key Saved",
+        description: "Your Gemini API key has been securely encrypted and saved.",
+      });
+    } catch (error) {
+      console.error('Error saving API key:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save API key. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const sendMessage = async (content: string) => {
     if (!content.trim()) return;
+
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to use PulsePal AI.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     if (!apiKey.trim()) {
       toast({
@@ -106,5 +183,6 @@ User question: ${content}`
     clearMessages,
     apiKey,
     setApiKey,
+    isLoadingApiKey,
   };
 };

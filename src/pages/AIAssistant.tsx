@@ -17,7 +17,7 @@ const AIAssistant = () => {
   const [language, setLanguage] = useState("english");
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const { messages, isLoading, sendMessage, clearMessages, apiKey, setApiKey } = useAI();
+  const { messages, isLoading, sendMessage, clearMessages, apiKey, setApiKey, isLoadingApiKey } = useAI();
 
   const exportConversation = () => {
     const conversation = messages.map(msg => 
@@ -51,6 +51,7 @@ const AIAssistant = () => {
               apiKey={apiKey}
               showApiKeyInput={showApiKeyInput}
               setShowApiKeyInput={setShowApiKeyInput}
+              isLoadingApiKey={isLoadingApiKey}
             />
             
             <Sheet open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
