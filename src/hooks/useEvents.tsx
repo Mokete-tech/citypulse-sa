@@ -2,6 +2,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
+
+type CategoryType = Database['public']['Enums']['category_type'];
 
 export interface Event {
   id: string;
@@ -30,7 +33,7 @@ export const useEvents = (category?: string, searchTerm?: string) => {
         .eq('status', 'upcoming');
 
       if (category && category !== 'All') {
-        const categoryMap: Record<string, string> = {
+        const categoryMap: Record<string, CategoryType> = {
           'Music': 'music',
           'Food & Drink': 'food_drink',
           'Arts & Culture': 'arts_culture',
@@ -39,7 +42,10 @@ export const useEvents = (category?: string, searchTerm?: string) => {
           'Entertainment': 'entertainment',
           'Education': 'education'
         };
-        query = query.eq('category', categoryMap[category] || category.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_'));
+        const mappedCategory = categoryMap[category];
+        if (mappedCategory) {
+          query = query.eq('category', mappedCategory);
+        }
       }
 
       if (searchTerm) {
