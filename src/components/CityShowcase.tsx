@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, MapPin, Users, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,7 +33,7 @@ const CityShowcase = ({ title, description }: CityShowcaseProps) => {
       deals: '15 active deals'
     },
     {
-      url: 'https://images.unsplash.com/photo-1546026423-cc4642628d2b?w=1200&h=675&fit=crop',
+      url: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1200&h=675&fit=crop',
       title: 'Pretoria Government Buildings',
       location: 'Pretoria',
       users: '12,000+ users',
