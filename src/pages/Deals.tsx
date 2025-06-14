@@ -5,7 +5,7 @@ import DealCard from "@/components/DealCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, MapPin, TrendingUp } from "lucide-react";
+import { Search, Filter, MapPin, TrendingUp, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { useDeals } from "@/hooks/useDeals";
 
@@ -18,6 +18,7 @@ const Deals = () => {
   const { data: deals = [], isLoading, error } = useDeals(selectedCategory, searchTerm);
 
   const featuredDeals = deals.filter(deal => deal.featured);
+  const retailDeals = deals.filter(deal => deal.category === 'retail');
   const filteredDeals = deals;
 
   if (error) {
@@ -40,7 +41,7 @@ const Deals = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Local Deals</h1>
-            <p className="text-xl text-gray-600 mb-6">Explore all the best deals across South Africa.</p>
+            <p className="text-xl text-gray-600 mb-6">Explore all the best deals across South Africa - from grocery stores to retail outlets.</p>
             
             {/* Featured Stats */}
             <div className="flex justify-center space-x-8 mb-8">
@@ -49,8 +50,8 @@ const Deals = () => {
                 <div className="text-sm text-gray-600">Active Deals</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{featuredDeals.length}</div>
-                <div className="text-sm text-gray-600">Featured Today</div>
+                <div className="text-2xl font-bold text-green-600">{retailDeals.length}</div>
+                <div className="text-sm text-gray-600">Retail & Grocery</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-600">R2,500</div>
@@ -64,7 +65,7 @@ const Deals = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input 
-                placeholder="Search deals by name, business, or location..."
+                placeholder="Search deals by name, business, or location (e.g., Shoprite, groceries)..."
                 className="pl-10 py-3 text-lg"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -85,10 +86,39 @@ const Deals = () => {
                 className="cursor-pointer hover:scale-105 transition-transform"
                 onClick={() => setSelectedCategory(category)}
               >
+                {category === "Retail" && <ShoppingCart className="w-3 h-3 mr-1" />}
                 {category}
               </Badge>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Grocery & Retail Spotlight */}
+      <section className="py-8 bg-green-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+            <ShoppingCart className="w-6 h-6 mr-2 text-green-600" />
+            Grocery & Retail Deals
+          </h2>
+          <p className="text-gray-600 mb-6">Find the best deals at South Africa's top retailers including Shoprite, Pick n Pay, Woolworths, and more!</p>
+          
+          {retailDeals.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {retailDeals.slice(0, 3).map((deal) => (
+                <DealCard key={deal.id} {...deal} />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white p-8 rounded-lg shadow-sm text-center">
+              <ShoppingCart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">More Retail Deals Coming Soon!</h3>
+              <p className="text-gray-600 mb-4">We're adding grocery and retail deals from Shoprite, Pick n Pay, Woolworths, and other popular stores.</p>
+              <Button onClick={() => setSelectedCategory("All")} variant="outline">
+                View All Available Deals
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -142,19 +172,33 @@ const Deals = () => {
         </div>
       </section>
 
-      {/* Location-based Deals */}
+      {/* Popular Stores */}
       <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
             <MapPin className="w-6 h-6 mr-2 text-green-600" />
-            Popular Locations
+            Popular Stores & Locations
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {["Cape Town", "Johannesburg", "Durban", "Pretoria", "Port Elizabeth", "Bloemfontein", "East London", "Polokwane"].map(city => (
-              <Button key={city} variant="outline" className="p-4 h-auto hover:scale-105 transition-transform">
+            {[
+              { name: "Shoprite", deals: Math.floor(Math.random() * 20) + 15 },
+              { name: "Pick n Pay", deals: Math.floor(Math.random() * 18) + 12 },
+              { name: "Woolworths", deals: Math.floor(Math.random() * 15) + 10 },
+              { name: "Checkers", deals: Math.floor(Math.random() * 16) + 8 },
+              { name: "Cape Town", deals: Math.floor(Math.random() * 100) + 50 },
+              { name: "Johannesburg", deals: Math.floor(Math.random() * 120) + 60 },
+              { name: "Durban", deals: Math.floor(Math.random() * 80) + 40 },
+              { name: "Pretoria", deals: Math.floor(Math.random() * 70) + 35 }
+            ].map(store => (
+              <Button 
+                key={store.name} 
+                variant="outline" 
+                className="p-4 h-auto hover:scale-105 transition-transform"
+                onClick={() => setSearchTerm(store.name)}
+              >
                 <div className="text-center">
-                  <div className="font-medium">{city}</div>
-                  <div className="text-sm text-gray-600">{Math.floor(Math.random() * 100) + 20} deals</div>
+                  <div className="font-medium">{store.name}</div>
+                  <div className="text-sm text-gray-600">{store.deals} deals</div>
                 </div>
               </Button>
             ))}
