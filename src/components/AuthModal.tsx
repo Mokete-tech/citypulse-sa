@@ -66,8 +66,8 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const handleTestSignIn = async () => {
     setLoading(true);
     try {
-      // Try to sign in with a test account or create one
-      const testEmail = "test@citypulse.demo";
+      // Try to sign in with a test account or create one using a valid email format
+      const testEmail = "testuser@example.com";
       const testPassword = "testpassword123";
       
       try {
@@ -79,14 +79,30 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         if (signInError.message.includes("Invalid login credentials")) {
           try {
             await signUp(testEmail, testPassword, "Test User");
-            toast({ 
-              title: "Test Account Created!", 
-              description: "Created and signed in with test account. You can now save your API key securely.",
-              duration: 6000
-            });
-            onClose();
+            // After successful signup, try to sign in immediately
+            setTimeout(async () => {
+              try {
+                await signIn(testEmail, testPassword);
+                toast({ 
+                  title: "Test Account Ready!", 
+                  description: "Test account created and signed in. You can now save your API key securely.",
+                  duration: 6000
+                });
+                onClose();
+              } catch (finalError: any) {
+                toast({ 
+                  title: "Account Created", 
+                  description: "Test account created! Please check the email or try signing in manually.",
+                  variant: "default"
+                });
+              }
+            }, 2000);
           } catch (signUpError: any) {
-            toast({ title: "Error", description: "Could not create test account. Please try manual sign up.", variant: "destructive" });
+            toast({ 
+              title: "Error", 
+              description: `Could not create test account: ${signUpError.message}. Please try manual sign up.`, 
+              variant: "destructive" 
+            });
           }
         } else {
           throw signInError;
@@ -109,7 +125,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         <Alert className="mb-4">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Having trouble with email confirmation? Use the quick test account option below.
+            Having trouble with email confirmation? Use the quick test account option below or sign up manually.
           </AlertDescription>
         </Alert>
 
