@@ -3,7 +3,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Key, ExternalLink, Eye, EyeOff } from "lucide-react";
+import { Key, ExternalLink, Eye, EyeOff, Lock } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface APIKeySectionProps {
   darkMode: boolean;
@@ -23,6 +24,7 @@ const APIKeySection = ({
   const [localApiKey, setLocalApiKey] = useState("");
   const [showKey, setShowKey] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const { user } = useAuth();
 
   if (!showApiKeyInput) return null;
 
@@ -31,7 +33,13 @@ const APIKeySection = ({
     
     setIsSaving(true);
     try {
-      await setApiKey(localApiKey);
+      if (user) {
+        // If user is authenticated, save securely
+        await setApiKey(localApiKey);
+      } else {
+        // If no user, just set in state (temporary)
+        setApiKey(localApiKey);
+      }
       setLocalApiKey("");
       setShowApiKeyInput(false);
     } catch (error) {
@@ -39,6 +47,13 @@ const APIKeySection = ({
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleTempApiKey = () => {
+    if (!localApiKey.trim()) return;
+    setApiKey(localApiKey);
+    setLocalApiKey("");
+    setShowApiKeyInput(false);
   };
 
   return (
@@ -82,9 +97,17 @@ const APIKeySection = ({
                 </Button>
               </div>
             </div>
-            <p className="text-sm text-green-600 dark:text-green-400">
-              ✓ API key is securely saved and encrypted
-            </p>
+            <div className="flex items-center space-x-2">
+              {user ? (
+                <p className="text-sm text-green-600 dark:text-green-400">
+                  ✓ API key is securely saved and encrypted
+                </p>
+              ) : (
+                <p className="text-sm text-orange-600 dark:text-orange-400">
+                  ⚠️ API key is stored temporarily (sign in to save permanently)
+                </p>
+              )}
+            </div>
             <div className="flex space-x-2">
               <Button
                 onClick={() => setShowApiKeyInput(false)}
@@ -113,18 +136,40 @@ const APIKeySection = ({
                 onChange={(e) => setLocalApiKey(e.target.value)}
                 className="w-full"
               />
+              {!user && (
+                <p className="text-sm text-orange-500 mt-2 flex items-center">
+                  <Lock className="w-4 h-4 mr-1" />
+                  Without signing in, your API key will only be stored temporarily in this session.
+                </p>
+              )}
               <p className="text-sm text-gray-500 mt-2">
-                Your API key will be securely encrypted and stored. 
                 Get a free Gemini API key from Google AI Studio.
               </p>
             </div>
-            <Button
-              onClick={handleSaveApiKey}
-              disabled={!localApiKey.trim() || isSaving}
-              className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
-            >
-              {isSaving ? "Saving..." : "Save API Key"}
-            </Button>
+            <div className="space-y-2">
+              {user ? (
+                <Button
+                  onClick={handleSaveApiKey}
+                  disabled={!localApiKey.trim() || isSaving}
+                  className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
+                >
+                  {isSaving ? "Saving..." : "Save API Key Securely"}
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    onClick={handleTempApiKey}
+                    disabled={!localApiKey.trim()}
+                    className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
+                  >
+                    Use API Key (This Session)
+                  </Button>
+                  <p className="text-xs text-center text-gray-500">
+                    Sign in to save your API key permanently and securely
+                  </p>
+                </>
+              )}
+            </div>
           </div>
         )}
       </CardContent>

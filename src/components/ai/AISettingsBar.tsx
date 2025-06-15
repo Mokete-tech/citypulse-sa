@@ -38,20 +38,11 @@ const AISettingsBar = ({
       );
     }
     
-    if (!user) {
-      return (
-        <>
-          <Lock className="w-4 h-4 mr-2" />
-          Sign In Required
-        </>
-      );
-    }
-    
     if (apiKey) {
       return (
         <>
           <Key className="w-4 h-4 mr-2" />
-          API Key Saved
+          {user ? "API Key Saved" : "API Key Set"}
         </>
       );
     }
@@ -65,12 +56,12 @@ const AISettingsBar = ({
   };
 
   const getApiKeyButtonStyle = () => {
-    if (!user) {
-      return "border-orange-500 text-orange-600 bg-orange-50 hover:bg-orange-100";
-    }
-    
     if (apiKey) {
-      return "border-green-500 text-green-600 bg-green-50 hover:bg-green-100";
+      if (user) {
+        return "border-green-500 text-green-600 bg-green-50 hover:bg-green-100";
+      } else {
+        return "border-orange-500 text-orange-600 bg-orange-50 hover:bg-orange-100";
+      }
     }
     
     return "hover:scale-105";
@@ -94,8 +85,8 @@ const AISettingsBar = ({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => user && setShowApiKeyInput(!showApiKeyInput)}
-          disabled={!user || isLoadingApiKey}
+          onClick={() => setShowApiKeyInput(!showApiKeyInput)}
+          disabled={isLoadingApiKey}
           className={`transition-all duration-200 ${getApiKeyButtonStyle()}`}
         >
           {getApiKeyButtonContent()}

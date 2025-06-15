@@ -15,11 +15,11 @@ export const useAI = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [apiKey, setApiKeyState] = useState<string>('');
-  const [isLoadingApiKey, setIsLoadingApiKey] = useState(true);
+  const [isLoadingApiKey, setIsLoadingApiKey] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // Load API key on component mount
+  // Load API key on component mount (only if user is authenticated)
   useEffect(() => {
     if (user) {
       loadApiKey();
@@ -31,6 +31,7 @@ export const useAI = () => {
   const loadApiKey = async () => {
     if (!user) return;
 
+    setIsLoadingApiKey(true);
     try {
       const { data, error } = await supabase.functions.invoke('api-key-manager', {
         body: { action: 'retrieve' }
@@ -49,51 +50,43 @@ export const useAI = () => {
   };
 
   const setApiKey = async (newApiKey: string) => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to save your API key securely.",
-        variant: "destructive"
-      });
-      return;
-    }
+    if (user) {
+      // If user is authenticated, save securely
+      try {
+        const { data, error } = await supabase.functions.invoke('api-key-manager', {
+          body: { 
+            action: 'save',
+            apiKey: newApiKey
+          }
+        });
 
-    try {
-      const { data, error } = await supabase.functions.invoke('api-key-manager', {
-        body: { 
-          action: 'save',
-          apiKey: newApiKey
-        }
-      });
+        if (error) throw error;
 
-      if (error) throw error;
-
+        setApiKeyState(newApiKey);
+        toast({
+          title: "API Key Saved",
+          description: "Your Gemini API key has been securely encrypted and saved.",
+        });
+      } catch (error) {
+        console.error('Error saving API key:', error);
+        toast({
+          title: "Save Failed",
+          description: "Failed to save API key. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } else {
+      // If no user, just set in state (temporary storage)
       setApiKeyState(newApiKey);
       toast({
-        title: "API Key Saved",
-        description: "Your Gemini API key has been securely encrypted and saved.",
-      });
-    } catch (error) {
-      console.error('Error saving API key:', error);
-      toast({
-        title: "Save Failed",
-        description: "Failed to save API key. Please try again.",
-        variant: "destructive"
+        title: "API Key Set",
+        description: "API key set for this session. Sign in to save it permanently.",
       });
     }
   };
 
   const sendMessage = async (content: string) => {
     if (!content.trim()) return;
-
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to use PulsePal AI.",
-        variant: "destructive"
-      });
-      return;
-    }
 
     if (!apiKey.trim()) {
       toast({
