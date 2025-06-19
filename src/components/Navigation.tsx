@@ -5,7 +5,7 @@ import { Menu, X, Tag, Calendar, Bot, Building2, Search, User, LogOut } from "lu
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
-import AuthModal from "@/components/AuthModal";
+import EnhancedAuthModal from "@/components/auth/EnhancedAuthModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -236,7 +236,7 @@ const Navigation = () => {
         )}
       </nav>
 
-      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      <EnhancedAuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </>
   );
 };

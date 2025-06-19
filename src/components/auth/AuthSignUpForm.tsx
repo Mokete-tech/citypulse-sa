@@ -5,13 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { User, Mail, Lock, Sparkles } from 'lucide-react';
+import { User, Mail, Lock, Sparkles, ArrowLeft } from 'lucide-react';
 
 interface AuthSignUpFormProps {
   onClose: () => void;
+  onBack?: () => void;
+  showBack?: boolean;
 }
 
-const AuthSignUpForm = ({ onClose }: AuthSignUpFormProps) => {
+const AuthSignUpForm = ({ onClose, onBack, showBack = false }: AuthSignUpFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -47,7 +49,19 @@ const AuthSignUpForm = ({ onClose }: AuthSignUpFormProps) => {
   };
 
   return (
-    <form onSubmit={handleSignUp} className="space-y-5">
+    <div className="space-y-6">
+      {showBack && (
+        <Button
+          variant="ghost"
+          onClick={onBack}
+          className="flex items-center text-gray-600 hover:text-gray-800 p-0 h-auto"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to options
+        </Button>
+      )}
+
+      <form onSubmit={handleSignUp} className="space-y-5">
       <div className="space-y-4">
         <div className="relative">
           <Label htmlFor="fullName" className="text-sm font-medium text-gray-700 mb-2 block">
@@ -125,11 +139,12 @@ const AuthSignUpForm = ({ onClose }: AuthSignUpFormProps) => {
       </Button>
 
       <div className="text-center">
-        <p className="text-xs text-gray-500 bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-gray-200/50">
-          🎉 You'll receive a confirmation email to verify your account
-        </p>
-      </div>
-    </form>
+          <p className="text-xs text-gray-500 bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-gray-200/50">
+            🎉 You'll receive a confirmation email to verify your account
+          </p>
+        </div>
+      </form>
+    </div>
   );
 };
 

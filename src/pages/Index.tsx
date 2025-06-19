@@ -1,7 +1,7 @@
 
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import AuthModal from "@/components/AuthModal";
+import EnhancedAuthModal from "@/components/auth/EnhancedAuthModal";
 import UserProfile from "@/components/UserProfile";
 import HeroSection from "@/components/home/HeroSection";
 import StatsSection from "@/components/home/StatsSection";
@@ -33,7 +33,7 @@ const Index = () => {
 
       <Footer />
 
-      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      <EnhancedAuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
       <UserProfile isOpen={profileModalOpen} onClose={() => setProfileModalOpen(false)} />
     </div>
   );
