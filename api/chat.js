@@ -23,58 +23,56 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'API key not configured' });
     }
 
-    // Use node-fetch or built-in fetch
-    const https = require('https');
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+    // Use fetch API (available in Node.js 18+)
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `You are PulsePal, an AI assistant for CityPulse that helps users discover deals and events in South Africa. You specialize in:
 
-    const postData = JSON.stringify({
-      contents: [{
-        parts: [{
-          text: `You are PulsePal, an AI assistant for CityPulse. Help with deals and events in South Africa. User: ${message}`
-        }]
-      }],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 1024,
+🛒 Grocery deals (Shoprite, Pick n Pay, Woolworths, Checkers)
+🛍️ Retail discounts and shopping specials
+🍽️ Restaurant and dining offers
+🎉 Local events and activities
+
+Be helpful, friendly, and focus on South African retailers and locations. Provide specific, actionable advice about deals and shopping.
+
+User question: ${message}`
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.7,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 1024,
+          }
+        }),
       }
-    });
+    );
 
-    const options = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(postData)
-      }
-    };
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Gemini API error:', response.status, errorText);
+      return res.status(500).json({ error: 'Failed to get AI response' });
+    }
 
-    const request = https.request(url, options, (response) => {
-      let data = '';
+    const data = await response.json();
+    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "Sorry, I couldn't generate a response. Please try again.";
 
-      response.on('data', (chunk) => {
-        data += chunk;
-      });
-
-      response.on('end', () => {
-        try {
-          const result = JSON.parse(data);
-          const aiResponse = result.candidates?.[0]?.content?.parts?.[0]?.text ||
-            "Sorry, I couldn't generate a response.";
-
-          res.status(200).json({ response: aiResponse });
-        } catch (parseError) {
-          res.status(500).json({ error: 'Failed to parse AI response' });
-        }
-      });
-    });
-
-    request.on('error', (error) => {
-      res.status(500).json({ error: 'Failed to connect to AI service' });
-    });
-
-    request.write(postData);
-    request.end();
+    return res.status(200).json({ response: aiResponse });
 
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Chat API error:', error);
+    return res.status(500).json({
+      error: 'Internal server error',
+      details: error.message
+    });
   }
 }
