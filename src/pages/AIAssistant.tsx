@@ -4,7 +4,6 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import AIHeader from "@/components/ai/AIHeader";
 import AISettingsBar from "@/components/ai/AISettingsBar";
-import APIKeySection from "@/components/ai/APIKeySection";
 import ChatInterface from "@/components/ai/ChatInterface";
 import ConversationHistory from "@/components/ai/ConversationHistory";
 import { useAI } from "@/hooks/useAI";
@@ -15,9 +14,8 @@ import { History } from "lucide-react";
 const AIAssistant = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [language, setLanguage] = useState("english");
-  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const { messages, isLoading, sendMessage, clearMessages, apiKey, setApiKey, isLoadingApiKey } = useAI();
+  const { messages, isLoading, sendMessage, clearMessages } = useAI();
 
   const exportConversation = () => {
     const conversation = messages.map(msg => 
@@ -48,10 +46,6 @@ const AIAssistant = () => {
               setDarkMode={setDarkMode}
               language={language}
               setLanguage={setLanguage}
-              apiKey={apiKey}
-              showApiKeyInput={showApiKeyInput}
-              setShowApiKeyInput={setShowApiKeyInput}
-              isLoadingApiKey={isLoadingApiKey}
             />
             
             <Sheet open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
@@ -76,19 +70,10 @@ const AIAssistant = () => {
             </Sheet>
           </div>
 
-          <APIKeySection
-            darkMode={darkMode}
-            showApiKeyInput={showApiKeyInput}
-            setShowApiKeyInput={setShowApiKeyInput}
-            apiKey={apiKey}
-            setApiKey={setApiKey}
-          />
-
           <ChatInterface
             darkMode={darkMode}
             messages={messages}
             isLoading={isLoading}
-            apiKey={apiKey}
             sendMessage={sendMessage}
           />
         </div>

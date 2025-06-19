@@ -9,7 +9,6 @@ interface ChatMessagesAreaProps {
   darkMode: boolean;
   messages: ChatMessage[];
   isLoading: boolean;
-  apiKey: string;
   isTextToSpeechEnabled: boolean;
   onSpeakMessage: (text: string) => void;
 }
@@ -18,7 +17,6 @@ const ChatMessagesArea = ({
   darkMode,
   messages,
   isLoading,
-  apiKey,
   isTextToSpeechEnabled,
   onSpeakMessage
 }: ChatMessagesAreaProps) => {
@@ -56,13 +54,7 @@ const ChatMessagesArea = ({
               <span className="text-sm text-pink-700 dark:text-pink-300">AI-Powered</span>
             </div>
           </div>
-          {!apiKey && (
-            <div className="bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 border border-yellow-300 dark:border-yellow-600 rounded-2xl p-6 max-w-md mx-auto">
-              <p className="text-yellow-800 dark:text-yellow-200 font-medium">
-                ⚠️ Please set your Gemini API key to start chatting
-              </p>
-            </div>
-          )}
+
         </div>
       ) : (
         <div className="space-y-6">

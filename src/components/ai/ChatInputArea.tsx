@@ -8,7 +8,6 @@ interface ChatInputAreaProps {
   message: string;
   setMessage: (message: string) => void;
   isLoading: boolean;
-  apiKey: string;
   isSpeechToTextEnabled: boolean;
   isListening: boolean;
   onSendMessage: () => void;
@@ -22,7 +21,6 @@ const ChatInputArea = ({
   message,
   setMessage,
   isLoading,
-  apiKey,
   isSpeechToTextEnabled,
   isListening,
   onSendMessage,
@@ -41,7 +39,7 @@ const ChatInputArea = ({
             placeholder="Ask me anything about deals and events... 🎤 or use voice!"
             className={`min-h-[80px] pr-20 border-2 rounded-xl ${darkMode ? 'border-gray-600 bg-gray-700/50' : 'border-purple-300 bg-white/50'} focus:border-purple-500 transition-all duration-200 text-base backdrop-blur-sm`}
             maxLength={500}
-            disabled={isLoading || !apiKey}
+            disabled={isLoading}
           />
           <div className="absolute bottom-3 right-3 text-sm text-gray-400 font-medium">
             {message.length}/500
@@ -51,7 +49,7 @@ const ChatInputArea = ({
         <div className="flex space-x-3">
           <Button 
             onClick={onSendMessage}
-            disabled={!message.trim() || isLoading || !apiKey}
+            disabled={!message.trim() || isLoading}
             className="flex-1 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 hover:from-purple-600 hover:via-pink-600 hover:to-blue-600 text-white font-medium py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 text-base"
           >
             <Send className="w-5 h-5 mr-2" />
@@ -66,7 +64,7 @@ const ChatInputArea = ({
                   ? "bg-red-100 border-red-300 text-red-600 hover:bg-red-200 animate-pulse" 
                   : "border-purple-300 hover:border-purple-400 bg-white/50 hover:bg-purple-50"
               }`}
-              disabled={isLoading || !apiKey}
+              disabled={isLoading}
             >
               {isListening ? (
                 <MicOff className="w-5 h-5" />

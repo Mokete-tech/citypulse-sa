@@ -13,7 +13,6 @@ interface ChatInterfaceProps {
   darkMode: boolean;
   messages: ChatMessage[];
   isLoading: boolean;
-  apiKey: string;
   sendMessage: (message: string) => void;
 }
 
@@ -21,7 +20,6 @@ const ChatInterface = ({
   darkMode,
   messages,
   isLoading,
-  apiKey,
   sendMessage
 }: ChatInterfaceProps) => {
   const [message, setMessage] = useState("");
@@ -111,18 +109,16 @@ const ChatInterface = ({
             darkMode={darkMode}
             messages={messages}
             isLoading={isLoading}
-            apiKey={apiKey}
             isTextToSpeechEnabled={isTextToSpeechEnabled}
             onSpeakMessage={handleSpeakMessage}
           />
-          
+
           {/* Input Area */}
           <ChatInputArea
             darkMode={darkMode}
             message={message}
             setMessage={setMessage}
             isLoading={isLoading}
-            apiKey={apiKey}
             isSpeechToTextEnabled={isSpeechToTextEnabled}
             isListening={isListening}
             onSendMessage={handleSendMessage}
