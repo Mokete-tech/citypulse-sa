@@ -66,7 +66,7 @@ User question: ${message}`
     }
 
     const data = await response.json();
-    const aiResponse = data.candidates[0]?.content?.parts[0]?.text ||
+    const aiResponse = data.candidates[0]?.content?.parts[0]?.text || 
       "Sorry, I couldn't generate a response. Please try again.";
 
     return res.status(200).json({ response: aiResponse });
