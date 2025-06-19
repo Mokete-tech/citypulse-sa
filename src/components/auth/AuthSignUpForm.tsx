@@ -5,13 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { User, Mail, Lock, Sparkles } from 'lucide-react';
 
 interface AuthSignUpFormProps {
   onClose: () => void;
 }
 
 const AuthSignUpForm = ({ onClose }: AuthSignUpFormProps) => {
-  const [email, setEmail] = useState('nzimandevelley@outlook.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -46,45 +47,88 @@ const AuthSignUpForm = ({ onClose }: AuthSignUpFormProps) => {
   };
 
   return (
-    <form onSubmit={handleSignUp} className="space-y-4">
-      <div>
-        <Label htmlFor="fullName">Full Name</Label>
-        <Input
-          id="fullName"
-          type="text"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          placeholder="Enter your full name"
-          required
-        />
+    <form onSubmit={handleSignUp} className="space-y-5">
+      <div className="space-y-4">
+        <div className="relative">
+          <Label htmlFor="fullName" className="text-sm font-medium text-gray-700 mb-2 block">
+            Full Name
+          </Label>
+          <div className="relative">
+            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              id="fullName"
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Enter your full name"
+              className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-xl bg-white/80 backdrop-blur-sm"
+              required
+            />
+          </div>
+        </div>
+
+        <div className="relative">
+          <Label htmlFor="email" className="text-sm font-medium text-gray-700 mb-2 block">
+            Email Address
+          </Label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your.email@example.com"
+              className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-xl bg-white/80 backdrop-blur-sm"
+              required
+            />
+          </div>
+        </div>
+
+        <div className="relative">
+          <Label htmlFor="password" className="text-sm font-medium text-gray-700 mb-2 block">
+            Password
+          </Label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Choose a strong password"
+              className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-xl bg-white/80 backdrop-blur-sm"
+              required
+              minLength={6}
+            />
+          </div>
+          <p className="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
+        </div>
       </div>
-      <div>
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Choose a strong password"
-          required
-        />
-      </div>
-      <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={loading}>
-        {loading ? "Creating Account..." : "Create Account"}
+
+      <Button
+        type="submit"
+        className="w-full h-12 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+        disabled={loading}
+      >
+        {loading ? (
+          <div className="flex items-center">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+            Creating Account...
+          </div>
+        ) : (
+          <div className="flex items-center">
+            <Sparkles className="w-4 h-4 mr-2" />
+            Create Account
+          </div>
+        )}
       </Button>
-      <p className="text-sm text-gray-600 text-center">
-        You'll receive a confirmation email to verify your account.
-      </p>
+
+      <div className="text-center">
+        <p className="text-xs text-gray-500 bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-gray-200/50">
+          🎉 You'll receive a confirmation email to verify your account
+        </p>
+      </div>
     </form>
   );
 };
