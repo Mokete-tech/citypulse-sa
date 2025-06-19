@@ -135,6 +135,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For support, email support@citypulse.co.za or create an issue on GitHub.
 
+---
+*Last updated: June 2025*
+
 ## How can I edit this code?
 
 There are several ways of editing your application.
