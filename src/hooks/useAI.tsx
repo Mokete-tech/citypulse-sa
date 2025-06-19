@@ -28,6 +28,8 @@ export const useAI = () => {
     setIsLoading(true);
 
     try {
+      console.log('Sending message to API:', content);
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -38,12 +40,17 @@ export const useAI = () => {
         }),
       });
 
+      console.log('API Response status:', response.status);
+
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('API Error Response:', errorData);
         throw new Error(errorData.error || `API request failed: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('API Response data:', data);
+
       const aiResponse = data.response || "Sorry, I couldn't generate a response. Please try again.";
 
       const assistantMessage: ChatMessage = {
@@ -57,9 +64,22 @@ export const useAI = () => {
 
     } catch (error) {
       console.error('Chat API Error:', error);
+
+      // More detailed error message
+      let errorMessage = "Failed to get AI response. Please try again.";
+      if (error instanceof Error) {
+        if (error.message.includes('API configuration error')) {
+          errorMessage = "AI service is not configured. Please contact support.";
+        } else if (error.message.includes('Failed to fetch')) {
+          errorMessage = "Network error. Please check your connection and try again.";
+        } else if (error.message.includes('500')) {
+          errorMessage = "Server error. Please try again in a moment.";
+        }
+      }
+
       toast({
         title: "Error",
-        description: "Failed to get AI response. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
