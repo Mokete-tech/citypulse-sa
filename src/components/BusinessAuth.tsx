@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Building2, LogIn, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { User } from "@supabase/supabase-js";
 
 interface BusinessAuthProps {
-  onAuthSuccess: (user: any) => void;
+  onAuthSuccess: (user: User) => void;
 }
 
 const BusinessAuth = ({ onAuthSuccess }: BusinessAuthProps) => {
@@ -57,10 +58,10 @@ const BusinessAuth = ({ onAuthSuccess }: BusinessAuthProps) => {
           description: "Please check your email to verify your account.",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Authentication failed",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
       });
     } finally {

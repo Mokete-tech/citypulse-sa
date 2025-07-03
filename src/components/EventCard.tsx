@@ -7,35 +7,30 @@ import ReactionButton from "./ReactionButton";
 import { Event, useEventRegistration } from "@/hooks/useEvents";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
-interface EventCardProps extends Event {}
-
-const EventCard = ({ 
+const EventCard = ({
   id,
-  title, 
-  category, 
-  description, 
-  event_date, 
-  start_time, 
-  venue, 
-  price, 
+  title,
+  category,
+  description,
+  event_date,
+  start_time,
+  venue,
+  price,
   premium = false,
   image_url,
   max_attendees,
   current_attendees
-}: EventCardProps) => {
+}: Event) => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const eventRegistration = useEventRegistration();
   const [likeCount, setLikeCount] = useState(Math.floor(Math.random() * 30) + 5);
 
   const handleReaction = (type: 'like' | 'dislike', count: number) => {
     if (!user) {
-      toast({
-        title: "Sign up required",
+      toast.error("Sign up required", {
         description: "Please sign up or log in to react to events",
-        variant: "destructive"
       });
       return;
     }
@@ -51,10 +46,8 @@ const EventCard = ({
 
   const handleRegister = () => {
     if (!user) {
-      toast({
-        title: "Sign up required",
+      toast.error("Sign up required", {
         description: "Please sign up or log in to register for events",
-        variant: "destructive"
       });
       return;
     }

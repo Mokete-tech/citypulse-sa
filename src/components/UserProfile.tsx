@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { User, MapPin, Phone, Mail } from 'lucide-react';
 
 interface UserProfileProps {
@@ -18,7 +18,6 @@ interface UserProfileProps {
 
 const UserProfile = ({ isOpen, onClose }: UserProfileProps) => {
   const { user, signOut } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -57,10 +56,10 @@ const UserProfile = ({ isOpen, onClose }: UserProfileProps) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       setEditing(false);
-      toast({ title: "Success!", description: "Profile updated successfully." });
+      toast.success("Success!", { description: "Profile updated successfully." });
     },
     onError: (error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast.error("Error", { description: error.message });
     }
   });
 
@@ -81,9 +80,9 @@ const UserProfile = ({ isOpen, onClose }: UserProfileProps) => {
     try {
       await signOut();
       onClose();
-      toast({ title: "Signed out successfully" });
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast.info("Signed out successfully");
+    } catch (error) {
+      toast.error("Error", { description: (error as Error).message });
     }
   };
 

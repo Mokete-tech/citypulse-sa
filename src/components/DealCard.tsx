@@ -7,25 +7,22 @@ import ReactionButton from "./ReactionButton";
 import { Deal, useFavoriteToggle, useReactionToggle } from "@/hooks/useDeals";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
-interface DealCardProps extends Deal {}
-
-const DealCard = ({ 
+const DealCard = ({
   id,
-  title, 
-  category, 
+  title,
+  category,
   businesses,
-  description, 
-  discount_text, 
+  description,
+  discount_text,
   original_price,
   discounted_price,
-  expires_at, 
+  expires_at,
   featured = false,
-  image_url 
-}: DealCardProps) => {
+  image_url
+}: Deal) => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const favoriteToggle = useFavoriteToggle();
   const reactionToggle = useReactionToggle();
   const [isLiked, setIsLiked] = useState(false);
@@ -33,10 +30,8 @@ const DealCard = ({
 
   const handleReaction = (type: 'like' | 'dislike', count: number) => {
     if (!user) {
-      toast({
-        title: "Sign up required",
+      toast.error("Sign up required", {
         description: "Please sign up or log in to react to deals",
-        variant: "destructive"
       });
       return;
     }

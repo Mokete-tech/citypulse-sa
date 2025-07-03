@@ -1,14 +1,13 @@
 
 import { useRef } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 export const useSpeechRecognition = () => {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const { toast } = useToast();
 
   const initializeRecognition = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognitionConstructor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const SpeechRecognitionConstructor: typeof SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognitionConstructor();
       recognitionRef.current!.continuous = false;
       recognitionRef.current!.interimResults = false;
@@ -20,10 +19,8 @@ export const useSpeechRecognition = () => {
 
   const startListening = (onResult: (transcript: string) => void, onStart: () => void, onEnd: () => void) => {
     if (!initializeRecognition() || !recognitionRef.current) {
-      toast({
-        title: "Speech Recognition Not Available",
+      toast.error("Speech Recognition Not Available", {
         description: "Your browser doesn't support speech recognition.",
-        variant: "destructive"
       });
       return;
     }
@@ -35,18 +32,15 @@ export const useSpeechRecognition = () => {
       onResult(transcript);
       onEnd();
       
-      toast({
-        title: "Voice Input Captured",
+      toast.info("Voice Input Captured", {
         description: `"${transcript}"`,
       });
     };
 
     recognitionRef.current.onerror = () => {
       onEnd();
-      toast({
-        title: "Recognition Error",
+      toast.error("Recognition Error", {
         description: "Failed to recognize speech. Please try again.",
-        variant: "destructive"
       });
     };
 

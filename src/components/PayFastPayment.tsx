@@ -43,10 +43,10 @@ const PayFastPayment = ({ packageType, amount, businessId, onPaymentStart }: Pay
         description: "Complete your payment in the new window.",
       });
 
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Payment Error",
-        description: error.message || "Failed to initiate payment",
+        description: (error as Error).message || "Failed to initiate payment",
         variant: "destructive",
       });
     } finally {

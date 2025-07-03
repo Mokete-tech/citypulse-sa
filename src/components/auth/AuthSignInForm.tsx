@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Mail, Lock, LogIn, ArrowLeft, Zap } from 'lucide-react';
 
@@ -20,30 +20,26 @@ const AuthSignInForm = ({ onClose, onBack, showBack = false }: AuthSignInFormPro
   const [loading, setLoading] = useState(false);
   const [magicLinkLoading, setMagicLinkLoading] = useState(false);
   const { signIn } = useAuth();
-  const { toast } = useToast();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       await signIn(email, password);
-      toast({ title: "Welcome back!", description: "Successfully signed in." });
+      toast.success("Welcome back!", { description: "Successfully signed in." });
       onClose();
-    } catch (error: any) {
-      if (error.message.includes("Email not confirmed")) {
-        toast({
-          title: "Email Not Confirmed",
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      if (errorMessage.includes("Email not confirmed")) {
+        toast.error("Email Not Confirmed", {
           description: "Please check your email and click the confirmation link to verify your account.",
-          variant: "destructive"
         });
-      } else if (error.message.includes("Invalid login credentials")) {
-        toast({
-          title: "Invalid Credentials",
+      } else if (errorMessage.includes("Invalid login credentials")) {
+        toast.error("Invalid Credentials", {
           description: "Please check your email and password, or sign up if you don't have an account yet.",
-          variant: "destructive"
         });
       } else {
-        toast({ title: "Error", description: error.message, variant: "destructive" });
+        toast.error("Error", { description: errorMessage });
       }
     } finally {
       setLoading(false);
@@ -52,10 +48,8 @@ const AuthSignInForm = ({ onClose, onBack, showBack = false }: AuthSignInFormPro
 
   const handleMagicLink = async () => {
     if (!email.trim()) {
-      toast({
-        title: "Email Required",
+      toast.error("Email Required", {
         description: "Please enter your email address first.",
-        variant: "destructive"
       });
       return;
     }
@@ -73,17 +67,14 @@ const AuthSignInForm = ({ onClose, onBack, showBack = false }: AuthSignInFormPro
         throw error;
       }
 
-      toast({
-        title: "Magic Link Sent!",
+      toast.info("Magic Link Sent!", {
         description: `Check your email at ${email} for a sign-in link.`
       });
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Magic link error:', error);
-      toast({
-        title: "Magic Link Error",
-        description: error.message || "Failed to send magic link. Please try again.",
-        variant: "destructive"
+      toast.error("Magic Link Error", {
+        description: (error as Error).message || "Failed to send magic link. Please try again.",
       });
     } finally {
       setMagicLinkLoading(false);

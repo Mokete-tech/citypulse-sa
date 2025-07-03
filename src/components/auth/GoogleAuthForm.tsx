@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Chrome, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface GoogleAuthFormProps {
   onBack: () => void;
@@ -11,7 +11,6 @@ interface GoogleAuthFormProps {
 
 const GoogleAuthForm = ({ onBack, onClose }: GoogleAuthFormProps) => {
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
@@ -28,17 +27,14 @@ const GoogleAuthForm = ({ onBack, onClose }: GoogleAuthFormProps) => {
       }
 
       // The redirect will happen automatically, so we don't need to close the modal here
-      toast({ 
-        title: "Redirecting to Google", 
-        description: "Please complete the sign-in process with Google." 
+      toast.info("Redirecting to Google", {
+        description: "Please complete the sign-in process with Google."
       });
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Google sign-in error:', error);
-      toast({ 
-        title: "Google Sign-In Error", 
-        description: error.message || "Failed to sign in with Google. Please try again.",
-        variant: "destructive" 
+      toast.error("Google Sign-In Error", {
+        description: (error as Error).message || "Failed to sign in with Google. Please try again.",
       });
       setLoading(false);
     }

@@ -58,6 +58,10 @@ yarn dev
 
 The app will be available at `http://localhost:8080`
 
+## Live Demo
+
+🌐 **Live Application**: [https://citypulse-sa.vercel.app/](https://citypulse-sa.vercel.app/)
+
 ## Deployment to Vercel
 
 ### Quick Deploy

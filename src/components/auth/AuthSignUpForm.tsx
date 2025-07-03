@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { User, Mail, Lock, Sparkles, ArrowLeft } from 'lucide-react';
 
 interface AuthSignUpFormProps {
@@ -19,15 +19,12 @@ const AuthSignUpForm = ({ onClose, onBack, showBack = false }: AuthSignUpFormPro
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
-  const { toast } = useToast();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim()) {
-      toast({ 
-        title: "Full Name Required", 
+      toast.error("Full Name Required", {
         description: "Please enter your full name to create an account.",
-        variant: "destructive" 
       });
       return;
     }
@@ -35,14 +32,13 @@ const AuthSignUpForm = ({ onClose, onBack, showBack = false }: AuthSignUpFormPro
     setLoading(true);
     try {
       await signUp(email, password, fullName);
-      toast({ 
-        title: "Account Created Successfully!", 
+      toast.success("Account Created Successfully!", {
         description: "Please check your email for a confirmation link. After clicking it, you can sign in to save your API key permanently.",
         duration: 10000
       });
       onClose();
-    } catch (error: any) {
-      toast({ title: "Sign Up Error", description: error.message, variant: "destructive" });
+    } catch (error) {
+      toast.error("Sign Up Error", { description: (error as Error).message });
     } finally {
       setLoading(false);
     }

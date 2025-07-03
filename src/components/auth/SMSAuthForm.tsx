@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Smartphone, ArrowLeft, MessageSquare } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface SMSAuthFormProps {
   onBack: () => void;
@@ -16,7 +16,6 @@ const SMSAuthForm = ({ onBack, onClose }: SMSAuthFormProps) => {
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,17 +39,14 @@ const SMSAuthForm = ({ onBack, onClose }: SMSAuthFormProps) => {
       }
 
       setStep('otp');
-      toast({ 
-        title: "OTP Sent!", 
-        description: `Verification code sent to ${formattedPhone}` 
+      toast.info("OTP Sent!", {
+        description: `Verification code sent to ${formattedPhone}`
       });
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('SMS send error:', error);
-      toast({ 
-        title: "SMS Error", 
-        description: error.message || "Failed to send verification code. Please try again.",
-        variant: "destructive" 
+      toast.error("SMS Error", {
+        description: (error as Error).message || "Failed to send verification code. Please try again.",
       });
     } finally {
       setLoading(false);
@@ -79,18 +75,15 @@ const SMSAuthForm = ({ onBack, onClose }: SMSAuthFormProps) => {
         throw error;
       }
 
-      toast({ 
-        title: "Welcome!", 
-        description: "Successfully signed in with SMS verification." 
+      toast.success("Welcome!", {
+        description: "Successfully signed in with SMS verification."
       });
       onClose();
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('OTP verification error:', error);
-      toast({ 
-        title: "Verification Failed", 
-        description: error.message || "Invalid verification code. Please try again.",
-        variant: "destructive" 
+      toast.error("Verification Failed", {
+        description: (error as Error).message || "Invalid verification code. Please try again.",
       });
     } finally {
       setLoading(false);

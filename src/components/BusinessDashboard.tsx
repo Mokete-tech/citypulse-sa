@@ -8,9 +8,10 @@ import VideoUpload from "./VideoUpload";
 import PayFastPayment from "./PayFastPayment";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { User } from "@supabase/supabase-js";
 
 interface BusinessDashboardProps {
-  user: any;
+  user: User;
   onSignOut: () => void;
 }
 
