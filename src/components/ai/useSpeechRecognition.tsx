@@ -7,7 +7,7 @@ export const useSpeechRecognition = () => {
 
   const initializeRecognition = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognitionConstructor: typeof SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const SpeechRecognitionConstructor: typeof SpeechRecognition = (window as Window).SpeechRecognition || (window as Window).webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognitionConstructor();
       recognitionRef.current!.continuous = false;
       recognitionRef.current!.interimResults = false;

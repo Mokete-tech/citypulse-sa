@@ -92,5 +92,10 @@ export default {
 			}
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [
+	   async ({ addComponents }) => {
+	     const { default: tailwindcssAnimate } = await import("tailwindcss-animate");
+	     addComponents(tailwindcssAnimate);
+	   },
+	 ],
 } satisfies Config;

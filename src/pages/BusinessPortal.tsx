@@ -1,5 +1,5 @@
-
 import { useState, useEffect } from "react";
+import { User } from "@supabase/supabase-js";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import BusinessAuth from "@/components/BusinessAuth";
@@ -11,8 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { Video, TrendingUp, Users, Star, Eye, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+type SupabaseUser = User | null;
+
 const BusinessPortal = () => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<SupabaseUser>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,7 +32,7 @@ const BusinessPortal = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleAuthSuccess = (user: any) => {
+  const handleAuthSuccess = (user: SupabaseUser) => {
     setUser(user);
   };
 
