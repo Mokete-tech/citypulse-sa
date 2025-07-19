@@ -1,7 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useToast, toast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
 
 type CategoryType = Database['public']['Enums']['category_type'];
@@ -92,11 +92,7 @@ export const useFavoriteToggle = () => {
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
     },
     onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      });
+      toast(error.message);
     }
   });
 };
@@ -149,11 +145,7 @@ export const useReactionToggle = () => {
       queryClient.invalidateQueries({ queryKey: ['reactions'] });
     },
     onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      });
+      toast(error.message);
     }
   });
 };

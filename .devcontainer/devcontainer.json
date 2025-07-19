@@ -1,0 +1,12 @@
+{
+  "name": "CityPulse SA DevContainer",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:18",
+  "workspaceFolder": "/workspaces/pulse-sa-deals-ai",
+  "features": {},
+  "settings": {
+    "terminal.integrated.shell.linux": "/bin/bash"
+  },
+  "forwardPorts": [8080],
+  "postCreateCommand": "yarn install",
+  "remoteUser": "codespace"
+}

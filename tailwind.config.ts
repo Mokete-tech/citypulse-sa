@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 export default {
-	darkMode: ["class"],
+	darkMode: "class",
 	content: [
 		"./pages/**/*.{ts,tsx}",
 		"./components/**/*.{ts,tsx}",
@@ -92,10 +92,5 @@ export default {
 			}
 		}
 	},
-	plugins: [
-	   async ({ addComponents }) => {
-	     const { default: tailwindcssAnimate } = await import("tailwindcss-animate");
-	     addComponents(tailwindcssAnimate);
-	   },
-	 ],
+	plugins: [require("tailwindcss-animate")],
 } satisfies Config;
