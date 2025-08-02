@@ -92,7 +92,7 @@ export const useFavoriteToggle = () => {
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
     },
     onError: (error) => {
-      toast(error.message);
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   });
 };
@@ -145,7 +145,7 @@ export const useReactionToggle = () => {
       queryClient.invalidateQueries({ queryKey: ['reactions'] });
     },
     onError: (error) => {
-      toast(error.message);
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   });
 };

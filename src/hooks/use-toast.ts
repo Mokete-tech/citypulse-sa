@@ -159,11 +159,11 @@ function toast({ ...props }: Toast) {
 }
 
 function useToast() {
-  const [state, localSetState] = React.useState<State>(state)
+  const [localState, localSetState] = React.useState<State>(state)
 
   React.useEffect(() => {
-    const listener = (state: State) => {
-      localSetState(state)
+    const listener = (newState: State) => {
+      localSetState(newState)
     }
 
     listeners.push(listener)
@@ -176,7 +176,7 @@ function useToast() {
   }, [])
 
   return {
-    ...state,
+    ...localState,
     toast,
   }
 }
