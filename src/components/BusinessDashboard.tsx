@@ -7,7 +7,7 @@ import { TrendingUp, Users, Eye, Star, DollarSign, Package, Calendar, LogOut } f
 import VideoUpload from "./VideoUpload";
 import PayFastPayment from "./PayFastPayment";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { User } from "@supabase/supabase-js";
 
 interface BusinessDashboardProps {
